@@ -180,7 +180,7 @@ export function SiteFooter({ brand, product }: { brand: Brand; product: { label:
           </a>
         </div>
         <div>
-          <h4>Product</h4>
+          <p className="footer-title">Product</p>
           <ul>
             {product.map((p) => (
               <li key={p.to}>
@@ -190,7 +190,7 @@ export function SiteFooter({ brand, product }: { brand: Brand; product: { label:
           </ul>
         </div>
         <div>
-          <h4>Open source</h4>
+          <p className="footer-title">Open source</p>
           <ul>
             <li>
               <a href={brand.repo}>Source code</a>
@@ -204,7 +204,7 @@ export function SiteFooter({ brand, product }: { brand: Brand; product: { label:
           </ul>
         </div>
         <div>
-          <h4>Made by</h4>
+          <p className="footer-title">Made by</p>
           <ul>
             <li>
               <a href="https://tbutman.com">Thomas Butman</a>

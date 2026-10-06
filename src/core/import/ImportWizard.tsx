@@ -263,6 +263,7 @@ export function ImportWizard<M>({
             key={reviewing.id}
             columns={adapter.columns}
             proposed={p.fresh}
+            context={p.alreadySaved}
             source={(pg) => <DocumentViewer store={store} doc={doc} page={pg ?? page} onPageChange={setPage} alt={`The ${adapter.noun.one}`} />}
             onConfirm={(rows) => save(reviewing, rows)}
             onCancel={() => dispatch({ type: 'skipped', id: reviewing.id })}

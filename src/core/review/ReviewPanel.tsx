@@ -27,15 +27,18 @@ type Props = {
   onConfirm: (rows: ConfirmedRow[]) => Promise<void> | void
   onCancel: () => void
   confirmLabel?: (count: number) => string
+  // Other rows from the same document that aren't being reviewed (already saved, say). Only used to
+  // tell whether its dates are day first or month first.
+  context?: ProposedRow[]
 }
 
 const CONFIDENCE_LABEL = { high: 'Clear in the document', medium: 'Check this', low: 'Unsure: check carefully' }
 // Told apart by words and outline, not colour.
 const CHIP_TONE = { high: '', medium: ' outline', low: ' strong' }
 
-export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, confirmLabel }: Props) {
+export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, confirmLabel, context = [] }: Props) {
   const [rows, setRows] = useState<ReviewRow[]>(() => initRows(proposed, columns))
-  const [order, setOrder] = useState<DateOrder | undefined>(() => detectDateOrder(rawDates(initRows(proposed, columns), columns)))
+  const [order, setOrder] = useState<DateOrder | undefined>(() => detectDateOrder(rawDates(initRows([...proposed, ...context], columns), columns)))
   const [page, setPage] = useState<number | undefined>(proposed.find((p) => p.page)?.page)
   const [saving, setSaving] = useState(false)
   const askOrder = useMemo(() => !order && needsDateOrder(rawDates(rows, columns)), [order, rows, columns])

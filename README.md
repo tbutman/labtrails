@@ -126,7 +126,7 @@ npm run test:e2e  # browser tests against the production build
 - `src/core/` (the encrypted vault, storage, backup, settings, documents, the import flow, the review
   screen, the AI client and the Trails UI kit) is shared with LabTrails' sister app, [BabyTrails](https://github.com/tbutman/babytrails),
   and copied from it with `scripts/sync-core.sh`. The source commit is in `src/core/SOURCE`; currently
-  [babytrails@817af37](https://github.com/tbutman/babytrails/commit/817af37).
+  [babytrails@471767d](https://github.com/tbutman/babytrails/commit/471767d).
 - Every push and pull request runs lint, typecheck, unit tests, the build and the browser tests. The
   browser tests fail if the app requests anything from any site other than itself (and, in the tests
   that use a mocked AI, Anthropic's API). They also run [axe](https://github.com/dequelabs/axe-core)

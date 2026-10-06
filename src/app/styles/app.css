@@ -352,33 +352,3 @@
 .kept-files {
   margin-top: var(--space-4);
 }
-
-/* Keeps absolutely positioned children (screen-reader-only labels in cells) inside the scroll
-   container. Without it they escape and widen the whole page on phones. Belongs in the core's
-   components.css (coordination request 15); remove once the core has it. */
-.table-wrap {
-  position: relative;
-}
-
-/* Keyboard access: a skip link that appears when focused, and no ring on headings that receive
-   focus after a screen change (they aren't controls). */
-.skip-link {
-  position: fixed;
-  top: var(--space-2);
-  left: var(--space-2);
-  z-index: 100;
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius);
-  background: var(--text);
-  color: var(--bg);
-  font-weight: 600;
-  text-decoration: none;
-  transform: translateY(-200%);
-}
-.skip-link:focus {
-  transform: none;
-}
-main[tabindex='-1']:focus,
-h1[tabindex='-1']:focus {
-  outline: none;
-}

@@ -72,6 +72,7 @@ describe('name placeholder', () => {
     )
     expect(redactNames('Sam and Samuel', ['Sam'], '[child]')).toBe('[child] and Samuel')
     expect(redactNames('Nothing to hide', [undefined, ''], 'x')).toBe('Nothing to hide')
+    expect(redactNames('How much does Sam Example weigh?', ['Sam Example'], 'your baby')).toBe('How much does your baby weigh?')
   })
 })
 

@@ -1,8 +1,9 @@
 import { FileText, LayoutDashboard, Lock, LogOut, Settings, Sparkles, Stethoscope, Table2 } from 'lucide-react'
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
-import { Link, Navigate, Outlet, ScrollRestoration, useLocation, useNavigate, useParams } from 'react-router'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Link, Navigate, Outlet, ScrollRestoration, useNavigate, useParams } from 'react-router'
 import { loadProfile, type ProfileData } from '../../data/profile'
 import { AppBar, Callout, type NavItem } from '../../core/ui/components'
+import { PageChange, SkipLink } from '../../core/ui/navigation'
 import { UpdatePrompt } from '../../core/ui/UpdatePrompt'
 import { APP, BRAND } from '../brand'
 import { ProfileContext } from '../profileContext'
@@ -17,60 +18,9 @@ export function Root() {
       <UpdatePrompt appName="LabTrails" locksVault={mode === 'unlocked'} />
       <Outlet />
       <ScrollRestoration />
-      <PageChange />
+      <PageChange appName="LabTrails" />
     </>
   )
-}
-
-const mainOf = () => document.querySelector<HTMLElement>('main')
-
-function focusWithin(el: HTMLElement) {
-  if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '-1')
-  el.focus({ preventScroll: true })
-}
-
-/** The first thing a keyboard user reaches: jumps past the navigation to the page itself. */
-function SkipLink() {
-  function skip(e: MouseEvent) {
-    e.preventDefault()
-    const main = mainOf()
-    if (main) focusWithin(main)
-  }
-  return (
-    <a className="skip-link" href="#main" onClick={skip}>
-      Skip to content
-    </a>
-  )
-}
-
-const BASE_TITLE = document.title
-
-/**
- * After moving to another screen: the tab's title names the screen, and focus moves to its heading,
- * so screen readers announce the new page instead of staying on the link that was used. Not on the
- * first load, where the browser already starts at the top.
- */
-function PageChange() {
-  const { pathname } = useLocation()
-  const first = useRef(true)
-  useEffect(() => {
-    const initial = first.current
-    first.current = false
-    // Screens that load their data show a placeholder first; wait for the real heading.
-    let tries = 0
-    const timer = window.setInterval(() => {
-      const heading = mainOf()?.querySelector<HTMLElement>('h1')
-      if (!heading && ++tries < 20) return
-      window.clearInterval(timer)
-      const name = heading?.textContent?.trim()
-      document.title = pathname === '/' || !name ? BASE_TITLE : `${name} · LabTrails`
-      if (initial) return
-      const target = heading ?? mainOf()
-      if (target) focusWithin(target)
-    }, 50)
-    return () => window.clearInterval(timer)
-  }, [pathname])
-  return null
 }
 
 /** Every screen inside the app: the app bar, the demo notice, and the page. */
