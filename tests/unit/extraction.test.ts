@@ -11,10 +11,21 @@ const row = (over: Record<string, unknown> = {}) => ({
   suggestedMarkerId: 'glucose',
   confidence: 'high',
   page: 1,
+  samplePrinted: null,
   ...over,
 })
 
 describe('validateExtraction', () => {
+  it("keeps each row's own sample date on a cumulative report, and treats a missing one as the report's", () => {
+    const v = validateExtraction({
+      sampleDate: { printed: '03/04/2026', guessedFormat: 'DMY' },
+      lab: null,
+      rows: [row({ samplePrinted: ' 12/10/2025 ' }), row({ samplePrinted: null }), row({ samplePrinted: undefined }), row({ samplePrinted: 42 })],
+    })
+    expect(v?.dropped).toBe(0)
+    expect(v?.extraction.rows.map((r) => r.samplePrinted)).toEqual(['12/10/2025', null, null, null])
+  })
+
   it('keeps well-formed rows', () => {
     const v = validateExtraction({ sampleDate: { printed: '03/04/2025', guessedFormat: 'DMY' }, lab: 'Laboratório Exemplo', rows: [row()] })
     expect(v?.dropped).toBe(0)

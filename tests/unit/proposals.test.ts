@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { confirmedRows, type ReviewRow } from '../../src/core/review/model'
 import { EXTRACTION_COLUMNS } from '../../src/app/extractionColumns'
 import { DEMO_EXTRACTION } from '../../src/app/demo'
-import { extractionPrompt, guessDecimal, recordsFromConfirmed, toProposedRows, type ConfirmedResultRow } from '../../src/labs/extraction/proposals'
+import { extractionPrompt, guessDecimal, printedDates, recordsFromConfirmed, toProposedRows, type ConfirmedResultRow } from '../../src/labs/extraction/proposals'
 import type { Extraction } from '../../src/labs/extraction/schema'
 
 const extraction = (rows: Partial<Extraction['rows'][number]>[]): Extraction => ({
   sampleDate: { printed: '03/04/2026', guessedFormat: 'DMY' },
   lab: 'Fictional lab',
   fastingPrinted: null,
-  rows: rows.map((r) => ({ nameAsPrinted: 'Glicose', valuePrinted: '92', unitPrinted: 'mg/dL', rangePrinted: '70 - 110', flagPrinted: null, suggestedMarkerId: 'glucose', confidence: 'high', page: 1, ...r })),
+  rows: rows.map((r) => ({ nameAsPrinted: 'Glicose', valuePrinted: '92', unitPrinted: 'mg/dL', rangePrinted: '70 - 110', flagPrinted: null, suggestedMarkerId: 'glucose', confidence: 'high', page: 1, samplePrinted: null, ...r })),
 })
 
 describe('toProposedRows', () => {
@@ -97,5 +97,47 @@ describe('recordsFromConfirmed', () => {
   it('guesses the decimal mark from the whole report', () => {
     expect(guessDecimal(['0,98', '4,5', '120'])).toBe(',')
     expect(guessDecimal(['0.98', '4.5', '6,500'])).toBe('.')
+  })
+})
+
+describe('cumulative reports (several sample dates)', () => {
+  const history = extraction([
+    { valuePrinted: '92', samplePrinted: '03/04/2026' },
+    { valuePrinted: '97', samplePrinted: '12/10/2025' },
+    { valuePrinted: '101', samplePrinted: '20/03/2025' },
+    { nameAsPrinted: 'Creatinina', valuePrinted: '0,9', unitPrinted: 'mg/dL', rangePrinted: '0,7 - 1,2', suggestedMarkerId: 'creatinine', samplePrinted: null },
+  ])
+
+  it("gives each row its own date, or the report's when it has none", () => {
+    const rows = toProposedRows(history)
+    expect(rows.map((r) => r.values.date)).toEqual(['03/04/2026', '12/10/2025', '20/03/2025', '03/04/2026'])
+    expect(rows[1].sourceText).toMatch(/^12\/10\/2025: Glicose 97/)
+    expect(rows[3].sourceText).toMatch(/^Creatinina/)
+  })
+
+  it('counts the dates printed, once each', () => {
+    expect(printedDates(history)).toEqual(['03/04/2026', '12/10/2025', '20/03/2025'])
+    expect(printedDates(DEMO_EXTRACTION)).toHaveLength(1)
+  })
+
+  it('becomes one report per date after review, every row filed under its own date', () => {
+    const rows: ReviewRow[] = toProposedRows(history).map((p, i) => ({
+      id: String(i),
+      values: Object.fromEntries(Object.entries(p.values).map(([k, v]) => [k, String(v)])),
+      confidence: p.confidence,
+      status: 'accepted',
+    }))
+    const confirmed = confirmedRows(rows, EXTRACTION_COLUMNS, 'dmy') as unknown as ConfirmedResultRow[]
+    let n = 0
+    const { reports, results } = recordsFromConfirmed(confirmed, { profileId: 'p', now: 'now', newId: () => `id${n++}` })
+    expect(reports.map((r) => r.date).sort()).toEqual(['2025-03-20', '2025-10-12', '2026-04-03'])
+    const dateOf = (id: string) => reports.find((r) => r.id === id)!.date
+    expect(results.map((r) => [dateOf(r.reportId), r.nameAsPrinted, r.value])).toEqual(expect.arrayContaining([
+      ['2026-04-03', 'Glicose', 92],
+      ['2025-10-12', 'Glicose', 97],
+      ['2025-03-20', 'Glicose', 101],
+      ['2026-04-03', 'Creatinina', 0.9],
+    ]))
+    expect(results).toHaveLength(4)
   })
 })

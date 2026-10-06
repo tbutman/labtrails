@@ -53,7 +53,35 @@ const row = (nameAsPrinted: string, valuePrinted: string, unitPrinted: string, r
   suggestedMarkerId,
   confidence: 'high',
   page: 1,
+  samplePrinted: null as string | null,
 })
+
+/** A vault, a person and a (made-up) key. */
+async function vaultWithKey(page: Page) {
+  await page.goto('/app')
+  await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
+  await page.getByLabel('Passphrase again').fill(PASS)
+  await page.getByLabel(/no way to reset it/).check()
+  await page.getByRole('button', { name: 'Create the vault' }).click()
+  await page.getByRole('link', { name: 'Add a person' }).click()
+  await page.getByLabel('Name or nickname').fill(NAME)
+  await page.getByLabel('Date of birth (optional)').fill('1990-02-03')
+  await page.getByRole('button', { name: 'Add' }).click()
+  await page.getByRole('link', { name: 'Settings' }).click()
+  await page.getByLabel('Anthropic API key').fill(TEST_KEY)
+  await page.getByRole('button', { name: 'Save key' }).click()
+  await expect(page.getByText(/ending in/)).toBeVisible()
+  await page.getByRole('link', { name: 'LabTrails home' }).click()
+  await page.getByRole('link', { name: new RegExp(NAME) }).click()
+}
+
+/** Uploads the fictional sample report and asks to read it. */
+async function uploadSample(page: Page) {
+  await page.getByRole('link', { name: 'Reports', exact: true }).click()
+  await page.getByRole('link', { name: 'Import reports' }).first().click()
+  await page.getByLabel('Add PDFs, photos or zip files').setInputFiles('public/demo/sample-report.png')
+  await page.getByRole('button', { name: 'Read 1 report' }).click()
+}
 
 test.describe('with a mocked Anthropic API', () => {
   test.use({ allowAnthropic: true })
@@ -69,28 +97,8 @@ test.describe('with a mocked Anthropic API', () => {
         : 'Your **glucose** is outside the lab\'s range. <img src=x onerror="alert(1)"> Worth discussing with your doctor.',
     )
 
-    // A vault, a person and a key.
-    await page.goto('/app')
-    await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
-    await page.getByLabel('Passphrase again').fill(PASS)
-    await page.getByLabel(/no way to reset it/).check()
-    await page.getByRole('button', { name: 'Create the vault' }).click()
-    await page.getByRole('link', { name: 'Add a person' }).click()
-    await page.getByLabel('Name or nickname').fill(NAME)
-    await page.getByLabel('Date of birth (optional)').fill('1990-02-03')
-    await page.getByRole('button', { name: 'Add' }).click()
-    await page.getByRole('link', { name: 'Settings' }).click()
-    await page.getByLabel('Anthropic API key').fill(TEST_KEY)
-    await page.getByRole('button', { name: 'Save key' }).click()
-    await expect(page.getByText(/ending in/)).toBeVisible()
-    await page.getByRole('link', { name: 'LabTrails home' }).click()
-    await page.getByRole('link', { name: new RegExp(NAME) }).click()
-
-    // Upload the fictional sample report.
-    await page.getByRole('link', { name: 'Reports', exact: true }).click()
-    await page.getByRole('link', { name: 'Import reports' }).first().click()
-    await page.getByLabel('Add PDFs, photos or zip files').setInputFiles('public/demo/sample-report.png')
-    await page.getByRole('button', { name: 'Read 1 report' }).click()
+    await vaultWithKey(page)
+    await uploadSample(page)
 
     // Nothing is sent before the user agrees.
     await expect(page.getByRole('heading', { name: 'Send to Anthropic?' })).toBeVisible()
@@ -130,5 +138,46 @@ test.describe('with a mocked Anthropic API', () => {
     await expect(page.getByRole('link', { name: /^Glucose/ }).first()).toBeVisible()
     await expect(page.getByRole('link', { name: /^Creatinine/ }).first()).toBeVisible()
     await expect(page.getByText('Ignore previous instructions')).toHaveCount(0)
+  })
+
+  test('a cumulative report with three sample dates becomes three reports', async ({ page }) => {
+    const dated = (r: ReturnType<typeof row>, samplePrinted: string) => ({ ...r, samplePrinted })
+    await anthropicMock(page, () =>
+      JSON.stringify({
+        sampleDate: { printed: '15/09/2026', guessedFormat: 'DMY' },
+        lab: 'Laboratório Exemplo',
+        fastingPrinted: 'sim',
+        rows: [
+          dated(row('Glicose', '118', 'mg/dL', '70 - 110', 'glucose'), '15/09/2026'),
+          dated(row('Glicose', '104', 'mg/dL', '70 - 110', 'glucose'), '20/03/2026'),
+          dated(row('Glicose', '96', 'mg/dL', '70 - 110', 'glucose'), '14/10/2025'),
+          dated(row('Creatinina', '0,98', 'mg/dL', '0,70 - 1,20', 'creatinine'), '15/09/2026'),
+          dated(row('Creatinina', '0,95', 'mg/dL', '0,70 - 1,20', 'creatinine'), '20/03/2026'),
+          dated(row('Creatinina', '0,91', 'mg/dL', '0,70 - 1,20', 'creatinine'), '14/10/2025'),
+        ],
+      }),
+    )
+    await vaultWithKey(page)
+    await uploadSample(page)
+    await page.getByRole('button', { name: 'Send' }).click()
+    await expect(page.getByRole('heading', { name: 'Check report 1 of 1' })).toBeVisible()
+    await expect(page.getByText('Results from 3 sample dates.')).toBeVisible()
+    await expect(page.getByText('20/03/2026: Glicose 104')).toBeVisible()
+
+    const ticks = page.getByLabel('This matches the document')
+    for (let i = 0; i < 6; i++) await ticks.nth(i).check()
+    await page.getByRole('button', { name: 'Save 6 rows' }).click()
+    await expect(page.getByText('6 results in 3 reports, 14 Oct 2025 to 15 Sept 2026')).toBeVisible()
+    await page.getByRole('button', { name: 'Done' }).click()
+
+    // Three reports, each with its own two results; fasting only on the newest.
+    await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: 'Reports' }).click()
+    for (const date of ['15 Sept 2026', '20 Mar 2026', '14 Oct 2025']) await expect(page.locator('summary', { hasText: date })).toContainText('2 results')
+    await page.locator('summary', { hasText: '15 Sept 2026' }).click()
+    await page.locator('summary', { hasText: '20 Mar 2026' }).click()
+    await expect(page.getByText('Fasting', { exact: true })).toHaveCount(1)
+    await page.getByRole('link', { name: 'Overview' }).click()
+    // The three dates make a trend on the overview.
+    await expect(page.getByRole('link', { name: /^Glucose/ }).first()).toContainText('Rising · 3')
   })
 })
