@@ -50,6 +50,9 @@ nginx (trails-web) ──► Cloudflare Tunnel (outbound only) ──► https:/
 
 ## Cloudflare settings for the domain
 
+The tunnel routes `labtrails.app` and `www.labtrails.app` go to `http://trails-web:80` (main dashboard,
+**Networking → Tunnels**). Always Use HTTPS is under **SSL/TLS → Edge Certificates**.
+
 Turn **off** anything that injects scripts or rewrites pages: Web Analytics' automatic setup,
 Rocket Loader, email address obfuscation, and similar. They would break the CSP and the privacy
 promise. "Always Use HTTPS" on (`.app` domains are HTTPS-only in browsers anyway).
@@ -67,12 +70,6 @@ sudo -u labtrails-deploy env SITE_REPO=tbutman/labtrails SITE_ROOT=/srv/labtrail
 
 nginx config changes aren't part of a release: copy the changed files into the container's
 `conf.d` (and the staged setup folder), then test and reload nginx in the `trails-static` project.
-
-## Cloudflare
-
-The tunnel routes `labtrails.app` and `www.labtrails.app` go to `http://trails-web:80` (main dashboard,
-**Networking → Tunnels**). In the zone: Always Use HTTPS on (**SSL/TLS → Edge Certificates**); Rocket
-Loader, Email Address Obfuscation and Web Analytics off, because each injects scripts or rewrites pages.
 
 ## Tested
 
