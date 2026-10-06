@@ -7,14 +7,14 @@
 
 import { CircleAlert, Copy, FileText, FileUp, Image, Loader2, RotateCcw, Trash2, X } from 'lucide-react'
 import { useEffect, useReducer, useRef, useState, type ReactNode } from 'react'
-import type { RecordStore } from '../core'
-import { SendSheet } from '../core/ai/SendSheet'
-import { addDocument, documentBytes } from '../core/documents/documents'
-import { DocumentViewer } from '../core/documents/DocumentViewer'
-import { ReviewPanel } from '../core/review/ReviewPanel'
-import type { ConfirmedRow, ProposedRow } from '../core/review/model'
-import { Callout, Chip } from '../core/ui/components'
-import type { CheckResult, ImportAdapter, ReadResult } from './adapter'
+import type { RecordStore } from '../store/types'
+import { SendSheet } from '../ai/SendSheet'
+import { addDocument, documentBytes } from '../documents/documents'
+import { DocumentViewer } from '../documents/DocumentViewer'
+import { ReviewPanel } from '../review/ReviewPanel'
+import type { ConfirmedRow, ProposedRow } from '../review/model'
+import { Callout, Chip } from '../ui/components'
+import type { CheckResult, DocumentKindOption, ImportAdapter, ReadResult } from './adapter'
 import { storedFingerprints, type ImportMeta, type StoredDoc } from './duplicates'
 import { intake, type Skipped } from './intake'
 import './import.css'
@@ -25,7 +25,11 @@ type Checked = CheckResult & { fresh: ProposedRow[] }
 type Phase = 'queue' | 'consent' | 'working'
 
 const mb = (n: number) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} kB` : `${(n / 1024 / 1024).toFixed(1)} MB`)
-const today = () => new Date().toISOString().slice(0, 10)
+// Today where the user is, as YYYY-MM-DD (not UTC, which can be a day off).
+const today = () => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 const sameRow = (a: ProposedRow, b: ProposedRow) => JSON.stringify(a.values) === JSON.stringify(b.values) && a.page === b.page
 
 export function ImportWizard<M>({
@@ -72,7 +76,7 @@ export function ImportWizard<M>({
       const stored = await storedFingerprints(store)
       // Files already queued in this session count as "earlier in this batch" too.
       const queued = units.filter((u) => u.file).map((u) => u.file!)
-      const fresh = unitsFromFiles<Proposal<M>>([...queued, ...files], stored, adapter.storeOnlyByDefault).slice(queued.length)
+      const fresh = unitsFromFiles<Proposal<M>>([...queued, ...files], stored, adapter.storeOnlyByDefault, adapter.kindFor).slice(queued.length)
       dispatch({ type: 'add', units: fresh })
       setSkipped((prev) => [...prev, ...s])
     } catch {
@@ -97,7 +101,7 @@ export function ImportWizard<M>({
         const doc = (await addDocument(store, new Blob([u.file.bytes], { type: u.file.mimeType }), {
           profileId,
           date: today(),
-          kind: adapter.documentKind,
+          kind: u.kind ?? adapter.documentKind,
           title: u.file.name.split('/').pop() ?? u.file.name,
           meta,
         })) as StoredDoc
@@ -189,7 +193,7 @@ export function ImportWizard<M>({
   if (phase === 'working' && reviewing && !checks[reviewing.id]) {
     return (
       <>
-        {header('Checking against your saved results…')}
+        {header("Checking against what's already saved…")}
         <div className="skeleton loading-card" />
       </>
     )
@@ -281,7 +285,7 @@ export function ImportWizard<M>({
             .{(c.skipped > 0 || c.failed > 0) && ' Skipped and failed files stay listed as "Not read yet".'}
           </Callout>
         )}
-        <QueueList units={units} dispatch={dispatch} working />
+        <QueueList units={units} dispatch={dispatch} kinds={adapter.kinds} working />
         {finished && (
           <div className="row import-actions">
             <button className="button primary" onClick={onFinish}>
@@ -312,7 +316,7 @@ export function ImportWizard<M>({
           {error}
         </p>
       )}
-      {units.length > 0 && <QueueList units={units} dispatch={dispatch} />}
+      {units.length > 0 && <QueueList units={units} dispatch={dispatch} kinds={adapter.kinds} />}
       {skipped.length > 0 && (
         <details className="disclosure import-skipped">
           <summary>
@@ -352,7 +356,7 @@ export function ImportWizard<M>({
                         await addDocument(store, new Blob([u.file.bytes], { type: u.file.mimeType }), {
                           profileId,
                           date: today(),
-                          kind: adapter.documentKind,
+                          kind: u.kind ?? adapter.documentKind,
                           title: u.file.name.split('/').pop() ?? u.file.name,
                           meta: { sha256: u.file.sha256, importStatus: u.storeOnly ? 'stored' : 'unread' } satisfies ImportMeta,
                         })
@@ -416,7 +420,17 @@ const STATUS: Record<Unit<unknown>['status'], { label: string; tone?: 'flag' | '
   failed: { label: "Couldn't read", tone: 'outline' },
 }
 
-function QueueList<M>({ units, dispatch, working = false }: { units: Unit<M>[]; dispatch: (a: Parameters<typeof queueReducer<M>>[1]) => void; working?: boolean }) {
+function QueueList<M>({
+  units,
+  dispatch,
+  kinds,
+  working = false,
+}: {
+  units: Unit<M>[]
+  dispatch: (a: Parameters<typeof queueReducer<M>>[1]) => void
+  kinds?: DocumentKindOption[]
+  working?: boolean
+}) {
   return (
     <div className="card padless import-queue">
       <ul className="list">
@@ -437,7 +451,24 @@ function QueueList<M>({ units, dispatch, working = false }: { units: Unit<M>[]; 
                 </span>
               </span>
               <Chip tone={s.tone}>{s.label}</Chip>
-              {!working && u.status === 'ready' && (
+              {!working && kinds && ['ready', 'duplicate'].includes(u.status) && (
+                <select
+                  className="import-kind"
+                  aria-label={`What is ${unitName(u)}?`}
+                  value={u.kind}
+                  onChange={(e) => {
+                    const kind = kinds.find((k) => k.value === e.target.value)!
+                    dispatch({ type: 'kind', id: u.id, kind: kind.value, storeOnly: !kind.read })
+                  }}
+                >
+                  {kinds.map((k) => (
+                    <option key={k.value} value={k.value}>
+                      {k.label}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {!working && u.status === 'ready' && (!kinds || kinds.find((k) => k.value === u.kind)?.read !== false) && (
                 <label className="import-toggle small">
                   <input type="checkbox" checked={u.storeOnly} onChange={(e) => dispatch({ type: 'store-only', id: u.id, value: e.target.checked })} /> Keep without reading
                 </label>

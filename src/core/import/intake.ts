@@ -6,7 +6,7 @@
 // and the total unpacked size are capped, so a crafted "zip bomb" can't exhaust memory.
 
 import { unzip, type Unzipped } from 'fflate'
-import { MAX_DOCUMENT_BYTES, sniffType, type SupportedType } from '../core/documents/documents'
+import { MAX_DOCUMENT_BYTES, sniffType, type SupportedType } from '../documents/documents'
 
 export type IntakeLimits = {
   /** Files accepted in one batch, after unpacking zips. */

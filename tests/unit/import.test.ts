@@ -3,9 +3,9 @@ import { zipSync } from 'fflate'
 import { describe, expect, it } from 'vitest'
 import { MemoryStore } from '../../src/core'
 import { addDocument } from '../../src/core/documents/documents'
-import { storedFingerprints } from '../../src/trails-import/duplicates'
-import { DEFAULT_LIMITS, intake, sha256 } from '../../src/trails-import/intake'
-import { counts, queueReducer, unitsFromFiles, type Unit } from '../../src/trails-import/queue'
+import { storedFingerprints } from '../../src/core/import/duplicates'
+import { DEFAULT_LIMITS, intake, sha256 } from '../../src/core/import/intake'
+import { counts, queueReducer, unitsFromFiles, type Unit } from '../../src/core/import/queue'
 
 const pdf = (text: string) => new TextEncoder().encode(`%PDF-1.4\n${text}\n%%EOF`) as Uint8Array<ArrayBuffer>
 const png = (n: number) => new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, n, n, n]) as Uint8Array<ArrayBuffer>
@@ -131,5 +131,21 @@ describe('the queue', () => {
     expect(q.find((u) => u.id === 'c')?.storeOnly).toBe(true)
     q = queueReducer(q, { type: 'retry', id: 'a' })
     expect(q.find((u) => u.id === 'a')).toMatchObject({ status: 'ready', error: undefined })
+  })
+})
+
+describe('document kinds (added in the core for BabyTrails)', () => {
+  it('starts each file as the kind the app guesses, and lets the user change it', async () => {
+    const { files } = await intake([file(pdf('a'), 'eco-20-weeks.pdf'), file(pdf('b'), 'boletim.pdf')])
+    const units = unitsFromFiles<null>(files, new Map(), (f) => f.name.startsWith('eco'), (f) => (f.name.startsWith('eco') ? 'ultrasound' : 'booklet'))
+    expect(units.map((u) => [u.kind, u.storeOnly])).toEqual([
+      ['ultrasound', true],
+      ['booklet', false],
+    ])
+    const next = queueReducer(units, { type: 'kind', id: units[1].id, kind: 'doctor-note', storeOnly: true })
+    expect(next[1]).toMatchObject({ kind: 'doctor-note', storeOnly: true })
+    // Not once it's being read.
+    const reading = queueReducer(next, { type: 'reading', id: units[0].id })
+    expect(queueReducer(reading, { type: 'kind', id: units[0].id, kind: 'booklet', storeOnly: false })).toBe(reading)
   })
 })

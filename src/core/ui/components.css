@@ -431,6 +431,15 @@ fieldset > legend {
   font-weight: 500;
   margin: 0;
 }
+/* A softer check that doesn't block saving: worth a second look. Text colour, marked by a rule. */
+.field-warning {
+  color: var(--text);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  margin: var(--space-1) 0 0;
+  padding-left: var(--space-2);
+  border-left: 3px solid var(--accent);
+}
 input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']),
 select,
 textarea {
