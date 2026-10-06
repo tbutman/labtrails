@@ -68,6 +68,12 @@ sudo -u labtrails-deploy env SITE_REPO=tbutman/labtrails SITE_ROOT=/srv/labtrail
 nginx config changes aren't part of a release: copy the changed files into the container's
 `conf.d` (and the staged setup folder), then test and reload nginx in the `trails-static` project.
 
+## Cloudflare
+
+The tunnel routes `labtrails.app` and `www.labtrails.app` go to `http://trails-web:80` (main dashboard,
+**Networking → Tunnels**). In the zone: Always Use HTTPS on (**SSL/TLS → Edge Certificates**); Rocket
+Loader, Email Address Obfuscation and Web Analytics off, because each injects scripts or rewrites pages.
+
 ## Tested
 
 On 6 October 2026, before anything on the server changed:
@@ -82,6 +88,12 @@ On 6 October 2026, before anything on the server changed:
   security headers; hashed assets are cached for a year and the service worker is `no-cache`; `www`
   redirects to the bare domain with the path and query kept; unknown host names get no response;
   BabyTrails is still served by its own `server` block.
+
+- `check-nginx.sh` runs in CI on every build (adapted from BabyTrails'): it serves the build through
+  the pinned image and this config and checks the content type of every file the app loads, plus the
+  security headers, routes and host rules. It was added after the first live deploy, when the PDF
+  viewer's `.mjs` worker went out as `application/octet-stream` (nginx's default types don't include
+  `.mjs`) and browsers refused to run it. The manual check above had sampled files and missed it.
 
 `trails-deploy.sh` and `nginx/00-default.conf` are copied unchanged from BabyTrails' `deploy/` (commit
 `e0eb370`), because the server installs one copy of each for both apps. Change them in BabyTrails and

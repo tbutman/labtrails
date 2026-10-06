@@ -31,6 +31,9 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # Serve the build through the server's pinned nginx image and config, and check every file's
+      # type and the security headers (a wrong type once stopped the PDF viewer working live).
+      - run: bash deploy/check-nginx.sh dist
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
         env:
