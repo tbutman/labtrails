@@ -37,7 +37,7 @@ export function Overview() {
   const actions = (
     <>
       <Link className="button" to={`${base}/reports/read`}>
-        <ScanText size={16} aria-hidden /> Read a report
+        <ScanText size={16} aria-hidden /> Import reports
       </Link>
       {mode === 'unlocked' && (
         <Link className="button primary" to={`${base}/reports/new`}>
@@ -52,7 +52,7 @@ export function Overview() {
       <>
         <PageHeader title={profile.name} subtitle="No results yet." />
         <EmptyState icon={FileSearch} title="Add your first report" action={<div className="row">{actions}</div>}>
-          Read a lab report with AI and check every row, or type the results in as printed.
+          Import PDFs, photos or a zip of reports and check every row, or type the results in as printed.
         </EmptyState>
       </>
     )

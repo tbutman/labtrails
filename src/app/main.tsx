@@ -15,7 +15,8 @@ import { Landing } from './screens/Landing'
 import { MarkerDetail } from './screens/MarkerDetail'
 import { Overview } from './screens/Overview'
 import { ProfileForm } from './screens/ProfileForm'
-import { ReadReport } from './screens/ReadReport'
+import { ImportReports } from './screens/ImportReports'
+import { ReportEdit } from './screens/ReportEdit'
 import { ReportForm } from './screens/ReportForm'
 import { Reports } from './screens/Reports'
 import { Settings } from './screens/Settings'
@@ -40,7 +41,8 @@ const router = createBrowserRouter([
           { path: 'table', element: <TableView /> },
           { path: 'reports', element: <Reports /> },
           { path: 'reports/new', element: <ReportForm /> },
-          { path: 'reports/read', element: <ReadReport /> },
+          { path: 'reports/read', element: <ImportReports /> },
+          { path: 'reports/:reportId/edit', element: <ReportEdit /> },
           { path: 'summaries', element: <Summaries /> },
           { path: 'doctor', element: <DoctorReport /> },
         ],

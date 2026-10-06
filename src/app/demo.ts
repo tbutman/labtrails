@@ -161,6 +161,7 @@ export const DEMO_SUMMARIES: Summary[] = [
 export const DEMO_EXTRACTION: Extraction = {
   sampleDate: { printed: '15/09/2026', guessedFormat: 'DMY' },
   lab: 'Laboratório Exemplo, Lisboa (fictional)',
+  fastingPrinted: 'sim',
   rows: [
     ['Glicose', '108', 'mg/dL', '70 - 110', null, 'glucose', 'high'],
     ['Glic. hemoglobina A1c', '5,7', '%', '4,0 - 6,0', null, 'hba1c', 'high'],

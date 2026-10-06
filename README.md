@@ -35,9 +35,11 @@ up).
 - **Notes on each test:** fasting or not, the time of day, medications and supplements ("same as last
   time" is one tap), recent illness, hard exercise, alcohol or poor sleep. They never change a flag,
   but they show on the chart and help explain a result.
-- **Read a report with AI (optional).** Add a PDF or photo of a report. If you agree, the AI copies out
-  the results; LabTrails matches them to its catalogue; **you check every row** next to the original
-  page before anything is saved.
+- **Import reports with AI (optional).** Add PDFs or photos, several at once or in a zip. If you
+  agree, the AI copies out the results; LabTrails matches them to its catalogue; **you check every row**
+  next to the original page before anything is saved. Files you've already imported, rows you already
+  have, and a second copy of a report you already saved are all recognised. Files you keep for later
+  wait under "Not read yet".
 - **Summaries with AI (optional):** what changed in a new report, or an overview of everything, with
   questions you could ask your doctor. The AI only explains what LabTrails' rules flagged.
 - **A one-page report for your doctor,** printed, saved as PDF or shared as an image. It's a file you
@@ -117,10 +119,12 @@ npm run test:e2e  # browser tests against the production build
 - [SPEC.md](SPEC.md): what the first version does and why.
 - `src/labs/`: the catalogue, unit conversions (every factor cited in `catalogue/sources.ts` and
   tested), parsing, matching and the flag rules. All pure and tested.
-- `src/core/` (the encrypted vault, storage, backup, settings, documents, the review screen and the AI
-  client) is shared with LabTrails' sister app, [BabyTrails](https://github.com/tbutman/babytrails),
+- `src/trails-import/` is the shared import flow (multiple files and zips, duplicates, the review queue),
+  written here to move into the shared core next.
+- `src/core/` (the encrypted vault, storage, backup, settings, documents, the review screen, the AI
+  client and the Trails UI kit) is shared with LabTrails' sister app, [BabyTrails](https://github.com/tbutman/babytrails),
   and copied from it with `scripts/sync-core.sh`. The source commit is in `src/core/SOURCE`; currently
-  [babytrails@e0eb370](https://github.com/tbutman/babytrails/commit/e0eb370).
+  [babytrails@523cd99](https://github.com/tbutman/babytrails/commit/523cd99).
 - Every push and pull request runs lint, typecheck, unit tests, the build and the browser tests. The
   browser tests fail if the app requests anything from any site other than itself (and, in the tests
   that use a mocked AI, Anthropic's API).

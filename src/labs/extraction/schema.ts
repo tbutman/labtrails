@@ -21,6 +21,8 @@ export type ExtractedRow = {
 export type Extraction = {
   sampleDate: { printed: string; guessedFormat: DateFormat } | null
   lab: string | null
+  /** Whether the report says the sample was taken fasting, as printed ("Jejum: sim"), or null. */
+  fastingPrinted: string | null
   rows: ExtractedRow[]
 }
 
@@ -30,7 +32,7 @@ const nullableString = { anyOf: [{ type: 'string' }, { type: 'null' }] }
 export const EXTRACTION_SCHEMA = {
   type: 'object',
   additionalProperties: false,
-  required: ['sampleDate', 'lab', 'rows'],
+  required: ['sampleDate', 'lab', 'fastingPrinted', 'rows'],
   properties: {
     sampleDate: {
       anyOf: [
@@ -44,6 +46,7 @@ export const EXTRACTION_SCHEMA = {
       ],
     },
     lab: nullableString,
+    fastingPrinted: nullableString,
     rows: {
       type: 'array',
       items: {
@@ -87,6 +90,7 @@ export function validateExtraction(raw: unknown): ValidationResult | null {
     errors.push('sampleDate')
   }
   const lab = isText(raw.lab) ? raw.lab : null
+  const fastingPrinted = isText(raw.fastingPrinted) ? raw.fastingPrinted : null
 
   const rows: ExtractedRow[] = []
   let dropped = 0
@@ -121,7 +125,7 @@ export function validateExtraction(raw: unknown): ValidationResult | null {
     }
   }
   dropped += Math.max(0, raw.rows.length - MAX_ROWS)
-  return { extraction: { sampleDate, lab, rows }, dropped, errors }
+  return { extraction: { sampleDate, lab, fastingPrinted, rows }, dropped, errors }
 }
 
 function isObject(v: unknown): v is Record<string, unknown> {

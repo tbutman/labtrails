@@ -9,19 +9,19 @@ const NAME = 'Alex Example'
 test('demo: only rows the user confirms are saved', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Try the demo' }).first().click()
-  await page.getByRole('link', { name: 'Reports' }).click()
-  await page.getByRole('link', { name: 'Read a report', exact: true }).click()
-  await page.getByRole('button', { name: 'Use the sample report' }).click()
-  await page.getByRole('button', { name: 'Show the review step' }).click()
+  await page.getByRole('link', { name: 'Reports', exact: true }).click()
+  await page.getByRole('link', { name: 'Import reports' }).first().click()
+  await page.getByRole('button', { name: 'Add the sample report' }).click()
+  await page.getByRole('button', { name: 'Read 1 report' }).click()
   await expect(page.getByText('Unsure: check carefully')).toBeVisible()
 
-  const save = page.getByRole('button', { name: /Save \d+ confirmed/ })
+  const save = page.getByRole('button', { name: /Save \d+ row/ })
   await expect(save).toBeDisabled()
   await page.getByLabel('This matches the document').first().check()
-  await expect(save).toHaveText('Save 1 confirmed result')
+  await expect(save).toHaveText('Save 1 row')
   await save.click()
-
-  await page.getByRole('link', { name: 'Reports' }).click()
+  await expect(page.getByRole('heading', { name: 'Import finished' })).toBeVisible()
+  await page.getByRole('button', { name: 'Done' }).click()
   await expect(page.getByText(/· 1 result$/)).toBeVisible()
 })
 
@@ -87,15 +87,16 @@ test.describe('with a mocked Anthropic API', () => {
     await page.getByRole('link', { name: new RegExp(NAME) }).click()
 
     // Upload the fictional sample report.
-    await page.getByRole('link', { name: 'Reports' }).click()
-    await page.getByRole('link', { name: 'Read a report', exact: true }).click()
-    await page.getByLabel('Drop a PDF or photo, or choose a file').setInputFiles('public/demo/sample-report.png')
+    await page.getByRole('link', { name: 'Reports', exact: true }).click()
+    await page.getByRole('link', { name: 'Import reports' }).first().click()
+    await page.getByLabel('Add PDFs, photos or zip files').setInputFiles('public/demo/sample-report.png')
+    await page.getByRole('button', { name: 'Read 1 report' }).click()
 
     // Nothing is sent before the user agrees.
     await expect(page.getByRole('heading', { name: 'Send to Anthropic?' })).toBeVisible()
     expect(bodies).toHaveLength(0)
     await page.getByRole('button', { name: 'Send' }).click()
-    await expect(page.getByRole('heading', { name: 'Check the results' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Check report 1 of 1' })).toBeVisible()
     expect(bodies).toHaveLength(1)
     expect(bodies[0]).not.toContain(NAME)
     expect(bodies[0]).not.toContain('1990-02-03')
@@ -104,9 +105,11 @@ test.describe('with a mocked Anthropic API', () => {
     const ticks = page.getByLabel('This matches the document')
     await ticks.nth(0).check()
     await ticks.nth(1).check()
-    await page.getByRole('button', { name: 'Save 2 confirmed results' }).click()
+    await page.getByRole('button', { name: 'Save 2 rows' }).click()
+    await page.getByRole('button', { name: 'Done' }).click()
 
     // Summary of the new report: the facts leave out the name and date of birth.
+    await page.getByRole('link', { name: 'Summaries' }).click()
     await page.getByRole('button', { name: /Summarise the 15 Sept 2026 report/ }).click()
     await expect(page.getByRole('heading', { name: 'Send to Anthropic?' })).toBeVisible()
     expect(bodies).toHaveLength(1)
