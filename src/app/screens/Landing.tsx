@@ -77,7 +77,7 @@ export function Landing() {
         }
       />
 
-      <main>
+      <main id="main">
         <Hero
           eyebrow="Private by design · Free and open source"
           title={

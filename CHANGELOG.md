@@ -22,3 +22,8 @@ The first version, not yet released.
 - A one-page report for your doctor, printed, saved as PDF or shared as an image.
 - A demo with a made-up person, labs and sample report.
 - Installable, and works offline.
+- Accessibility: a "Skip to content" link; after each screen change, focus moves to its heading and
+  the tab's title names it; checked with axe on every screen in both themes, at phone and desktop
+  widths. Fixed the Table screen scrolling sideways on phones.
+- A lighter landing page: app screens and the encrypted vault load when needed, and the font is
+  preloaded (Lighthouse performance 95 → 97, first paint 2.1 s → 1.8 s on a simulated phone).

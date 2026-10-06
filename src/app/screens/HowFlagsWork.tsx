@@ -16,7 +16,7 @@ export function HowFlagsWork() {
           </Link>
         }
       />
-      <main className="container narrow doc">
+      <main id="main" className="container narrow doc">
         <div className="kicker">How flags work</div>
         <h1>Three simple rules, decided by code</h1>
         <p className="doc-lead">

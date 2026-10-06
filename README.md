@@ -130,7 +130,13 @@ npm run test:e2e  # browser tests against the production build
   [babytrails@523cd99](https://github.com/tbutman/babytrails/commit/523cd99).
 - Every push and pull request runs lint, typecheck, unit tests, the build and the browser tests. The
   browser tests fail if the app requests anything from any site other than itself (and, in the tests
-  that use a mocked AI, Anthropic's API).
+  that use a mocked AI, Anthropic's API). They also run [axe](https://github.com/dequelabs/axe-core)
+  on every screen against WCAG 2.1 AA, in the light and dark themes at phone and desktop widths, check
+  that no screen scrolls sideways, and test the skip link and the focus move after each screen change.
+- Lighthouse (mobile, median of three runs on the production build): landing page performance 97,
+  accessibility 98, best practices 100; first contentful paint 1.8 s, total blocking time 9 ms, no
+  layout shift. The landing page loads alone; each app screen is fetched when first opened and kept
+  offline by the service worker.
 - Found a security problem? See [SECURITY.md](SECURITY.md).
 
 ## Licence
