@@ -184,5 +184,6 @@ export const DEMO_EXTRACTION: Extraction = {
     suggestedMarkerId: suggestedMarkerId!,
     confidence: confidence as Extraction['rows'][number]['confidence'],
     page: 1,
+    samplePrinted: null,
   })),
 }

@@ -39,7 +39,8 @@ up).
   agree, the AI copies out the results; LabTrails matches them to its catalogue; **you check every row**
   next to the original page before anything is saved. Files you've already imported, rows you already
   have, and a second copy of a report you already saved are all recognised. Files you keep for later
-  wait under "Not read yet".
+  wait under "Not read yet". A report that also lists earlier results (several sample dates side by
+  side) becomes one report per date.
 - **Fix one result without starting over.** Correct a value that was misread, add one that was
   missed, delete one, or map a name LabTrails didn't know to a marker. A mapping is remembered for
   the next report and can be applied to every earlier result printed the same way.

@@ -16,6 +16,12 @@ export type ProposedResultRow = {
   page: number
 }
 
+/** The sample dates printed on a report, once each: more than one means a cumulative report. */
+export function printedDates(extraction: Extraction): string[] {
+  const own = extraction.sampleDate?.printed ?? ''
+  return [...new Set(extraction.rows.map((r) => r.samplePrinted ?? own).filter(Boolean))]
+}
+
 /** The text that goes with the document: the catalogue the AI may choose IDs from. */
 export function extractionPrompt(): string {
   const catalogue = MARKERS.map((m) => `${m.id}: ${m.name}`).join('\n')
@@ -25,8 +31,10 @@ export function extractionPrompt(): string {
 const lower = (a: Confidence, b: Confidence): Confidence => (a === 'low' || b === 'low' ? 'low' : a === 'medium' || b === 'medium' ? 'medium' : 'high')
 
 export function toProposedRows(extraction: Extraction, aliases: UserAlias[] = []): ProposedResultRow[] {
-  const date = extraction.sampleDate?.printed ?? ''
+  const reportDate = extraction.sampleDate?.printed ?? ''
   return extraction.rows.map((row) => {
+    // On a cumulative report each row has its own date; saving makes one report per date.
+    const date = row.samplePrinted ?? reportDate
     const unit = row.unitPrinted ?? ''
     const match = matchMarker(row.nameAsPrinted, unit ? normaliseUnit(unit) : undefined, aliases)
     let marker = ''
@@ -44,7 +52,7 @@ export function toProposedRows(extraction: Extraction, aliases: UserAlias[] = []
     return {
       values: { date, name: row.nameAsPrinted, value: row.valuePrinted, unit, range: row.rangePrinted ?? '', flag: row.flagPrinted ?? '', marker },
       confidence,
-      sourceText: [row.nameAsPrinted, row.valuePrinted, unit, row.rangePrinted ? `(${row.rangePrinted})` : '', row.flagPrinted ?? ''].filter(Boolean).join(' '),
+      sourceText: [row.samplePrinted ? `${row.samplePrinted}:` : '', row.nameAsPrinted, row.valuePrinted, unit, row.rangePrinted ? `(${row.rangePrinted})` : '', row.flagPrinted ?? ''].filter(Boolean).join(' '),
       page: row.page,
     }
   })

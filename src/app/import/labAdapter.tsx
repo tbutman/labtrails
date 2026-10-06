@@ -6,7 +6,7 @@ import { AiError, askJson, imageBlock, pdfBlock, shrinkImage, type ContentBlock 
 import type { ConfirmedRow } from '../../core/review/model'
 import { EXTRACTION_SYSTEM } from '../../labs/ai/prompts'
 import { alreadySavedRows, parseFasting, similarReport } from '../../labs/extraction/duplicates'
-import { extractionPrompt, recordsFromConfirmed, toProposedRows, type ConfirmedResultRow, type ProposedResultRow } from '../../labs/extraction/proposals'
+import { extractionPrompt, printedDates, recordsFromConfirmed, toProposedRows, type ConfirmedResultRow, type ProposedResultRow } from '../../labs/extraction/proposals'
 import { EXTRACTION_SCHEMA, validateExtraction, type Extraction } from '../../labs/extraction/schema'
 import type { Alias, Report, Result } from '../../labs/types'
 import type { ImportAdapter } from '../../core/import/adapter'
@@ -16,7 +16,12 @@ import { EXTRACTION_COLUMNS } from '../extractionColumns'
 import { formatDate, plural } from '../format'
 import { LabMetaEditor } from './LabMetaEditor'
 
-export type LabMeta = { lab: string; fasting?: 'yes' | 'no' | 'unknown' }
+export type LabMeta = {
+  lab: string
+  fasting?: 'yes' | 'no' | 'unknown'
+  /** How many sample dates the report shows; more than one is a cumulative report. */
+  dates?: number
+}
 
 export const SAMPLE_TITLE = 'Sample report (fictional).png'
 
@@ -25,6 +30,14 @@ function validated(value: unknown): { extraction: Extraction; dropped: number } 
   if (!v) throw new AiError('output', "The AI's answer wasn't in the expected format. Try again, or enter the results by hand.")
   if (v.extraction.rows.length === 0) throw new AiError('output', "No results could be read from this report. If it's a photo, try a sharper one.")
   return v
+}
+
+/** "12 results on 15 Sept 2026", or for a cumulative report "48 results in 4 reports, 3 Mar 2024 to 15 Sept 2026". */
+export function savedSummary(results: number, dates: string[]): string {
+  const sorted = [...dates].sort()
+  if (sorted.length === 0) return plural(results, 'result')
+  if (sorted.length === 1) return `${plural(results, 'result')} on ${formatDate(sorted[0])}`
+  return `${plural(results, 'result')} in ${sorted.length} reports, ${formatDate(sorted[0])} to ${formatDate(sorted[sorted.length - 1])}`
 }
 
 export function labAdapter(deps: {
@@ -55,7 +68,7 @@ export function labAdapter(deps: {
       notSending: ['Your other results, notes and medications', "Other people's records"],
       notes: ["Reports usually show your name and date of birth, and sometimes a health number. LabTrails can't remove text from a PDF or photo."],
     },
-    estimate: ({ pdfs, images }) => ({ inputTokens: pdfs * 9000 + images * 4000, outputTokens: (pdfs + images) * 1500 }),
+    estimate: ({ pdfs, images }) => ({ inputTokens: pdfs * 9000 + images * 4000, outputTokens: (pdfs + images) * 2000 }),
 
     async read(doc, bytes) {
       let extraction: Extraction
@@ -72,7 +85,8 @@ export function labAdapter(deps: {
           block = imageBlock(small.bytes, small.mediaType)
         }
         const { value } = await askJson(
-          { apiKey: deps.apiKey, model: deps.model, system: EXTRACTION_SYSTEM, content: [block, { type: 'text', text: extractionPrompt() }], maxTokens: 8000 },
+          // A cumulative report with several dates can run to a few hundred rows.
+          { apiKey: deps.apiKey, model: deps.model, system: EXTRACTION_SYSTEM, content: [block, { type: 'text', text: extractionPrompt() }], maxTokens: 16000 },
           EXTRACTION_SCHEMA,
           validated,
         )
@@ -81,7 +95,7 @@ export function labAdapter(deps: {
       }
       return {
         rows: toProposedRows(extraction, deps.aliases),
-        meta: { lab: extraction.lab ?? '', fasting: parseFasting(extraction.fastingPrinted) },
+        meta: { lab: extraction.lab ?? '', fasting: parseFasting(extraction.fastingPrinted), dates: printedDates(extraction).length },
         dropped,
       }
     },
@@ -112,12 +126,14 @@ export function labAdapter(deps: {
         now: new Date().toISOString(),
         newId: () => crypto.randomUUID(),
       })
-      for (const r of reports) await store.put('reports', meta.fasting ? { ...r, context: { ...r.context, fasting: meta.fasting } } : r)
+      // On a cumulative report, what's printed about fasting describes this sample: the newest date.
+      const newest = [...reports].sort((a, b) => b.date.localeCompare(a.date))[0]
+      for (const r of reports) await store.put('reports', meta.fasting && r === newest ? { ...r, context: { ...r.context, fasting: meta.fasting } } : r)
       for (const r of results) await store.put('results', r)
       const latest = (await store.get<StoredDoc>('documents', doc.id)) ?? doc
-      if (reports[0]) await store.put('documents', { ...latest, date: reports[0].date, meta: { ...latest.meta, lab: meta.lab.trim() || undefined } })
+      if (newest) await store.put('documents', { ...latest, date: newest.date, meta: { ...latest.meta, lab: meta.lab.trim() || undefined } })
       await deps.onSaved()
-      return `${plural(results.length, 'result')}${reports[0] ? ` on ${formatDate(reports[0].date)}` : ''}`
+      return savedSummary(results.length, reports.map((r) => r.date))
     },
 
     MetaEditor: LabMetaEditor,
