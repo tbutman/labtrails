@@ -26,7 +26,7 @@ export function Shell({ children, nav }: { children: ReactNode; nav?: ReactNode 
   const navigate = useNavigate()
   return (
     <div className="page">
-      <header className="header">
+      <header className="header no-print">
         <Wordmark />
         <div className="header-actions">
           {mode === 'unlocked' && (
@@ -53,7 +53,7 @@ export function Shell({ children, nav }: { children: ReactNode; nav?: ReactNode 
         </div>
       </header>
       {mode === 'demo' && (
-        <p className="banner" role="note">
+        <p className="banner no-print" role="note">
           <strong>Demo:</strong> a made-up person with made-up results from made-up labs. Nothing here is real, and nothing is saved.
         </p>
       )}
@@ -93,13 +93,14 @@ export function ProfileLayout() {
     <ProfileContext value={data}>
       <Shell
         nav={
-          <nav className="nav" aria-label={data.profile.name}>
+          <nav className="nav no-print" aria-label={data.profile.name}>
             <NavLink to={base} end>
               Overview
             </NavLink>
             <NavLink to={`${base}/table`}>Table</NavLink>
             <NavLink to={`${base}/reports`}>Reports</NavLink>
             <NavLink to={`${base}/summaries`}>Summaries</NavLink>
+            <NavLink to={`${base}/doctor`}>For your doctor</NavLink>
           </nav>
         }
       >

@@ -22,7 +22,7 @@ test('demo: only rows the user confirms are saved', async ({ page }) => {
   await save.click()
 
   await page.getByRole('link', { name: 'Reports' }).click()
-  await expect(page.getByText(/15 Sept 2026.*1 results/)).toBeVisible()
+  await expect(page.getByText(/15 Sept 2026.*· 1 result$/)).toBeVisible()
 })
 
 function anthropicMock(page: Page, answer: (body: string) => string) {

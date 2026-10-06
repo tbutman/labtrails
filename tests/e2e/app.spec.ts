@@ -24,6 +24,11 @@ test('the demo works without a passphrase or key', async ({ page }) => {
   await page.getByRole('link', { name: 'Summaries' }).click()
   await expect(page.getByText(/pre-written example/).first()).toBeVisible()
 
+  await page.getByRole('link', { name: 'For your doctor' }).click()
+  await expect(page.getByRole('img', { name: 'Lab results report for Sam (demo)' })).toBeVisible()
+  await page.getByLabel('Show initials instead of the name').check()
+  await expect(page.getByRole('img', { name: 'Lab results report for S. (.' })).toBeVisible()
+
   await page.getByRole('button', { name: 'Leave the demo' }).click()
   await expect(page.getByRole('heading', { name: 'Set up your vault' })).toBeVisible()
 })

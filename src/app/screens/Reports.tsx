@@ -5,7 +5,7 @@ import { DocumentViewer } from '../../core/documents/DocumentViewer'
 import type { Result } from '../../labs/types'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
-import { formatDate } from '../format'
+import { formatDate, plural } from '../format'
 
 const RECENTLY: Record<string, string> = { illness: 'Recent illness', 'hard-exercise': 'Recent hard exercise', alcohol: 'Recent alcohol', 'poor-sleep': 'Poor sleep' }
 const FASTING: Record<string, string> = { yes: 'Fasting', no: 'Not fasting', unknown: 'Fasting not known' }
@@ -44,7 +44,7 @@ export function Reports() {
           <details key={r.id} className="card panel">
             <summary>
               <strong>{formatDate(r.date)}</strong>
-              {r.time && <span className="muted"> at {r.time}</span>} · {r.lab} · {rows.length} results
+              {r.time && <span className="muted"> at {r.time}</span>}{r.lab ? ` · ${r.lab}` : ''} · {plural(rows.length, 'result')}
             </summary>
             {r.context && (
               <ul className="context-list" aria-label="Test context">

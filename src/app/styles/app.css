@@ -650,3 +650,33 @@ details[open] > summary {
   font-weight: 700;
   font-family: var(--font-display);
 }
+
+/* Doctor-visit report */
+.report-sheet {
+  margin-top: var(--space-4);
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+}
+.report-sheet svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .page {
+    padding: 0;
+    max-width: none;
+  }
+  .report-sheet {
+    border: 0;
+    margin: 0;
+  }
+}

@@ -10,6 +10,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router'
 import { ProfileLayout } from './components/Layout'
 import { SessionProvider } from './session'
 import { Home } from './screens/Home'
+import { DoctorReport } from './screens/DoctorReport'
 import { HowFlagsWork } from './screens/HowFlagsWork'
 import { MarkerDetail } from './screens/MarkerDetail'
 import { Overview } from './screens/Overview'
@@ -37,6 +38,7 @@ const router = createBrowserRouter([
       { path: 'reports/new', element: <ReportForm /> },
       { path: 'reports/read', element: <ReadReport /> },
       { path: 'summaries', element: <Summaries /> },
+      { path: 'doctor', element: <DoctorReport /> },
     ],
   },
   { path: '*', element: <Home /> },
