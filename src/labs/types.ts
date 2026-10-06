@@ -57,5 +57,5 @@ export type Summary = {
   inputsDigest: string
 }
 
-export const COLLECTIONS = ['profiles', 'reports', 'results', 'aliases', 'summaries'] as const
+export const COLLECTIONS = ['profiles', 'reports', 'results', 'aliases', 'summaries', 'askThreads'] as const
 export type Collection = (typeof COLLECTIONS)[number]

@@ -3,6 +3,8 @@
 // between labs. Every name, value and lab here is made up.
 
 import { matchMarker } from '../labs/match/match'
+import type { Answer } from '../core/ask/model'
+import type { Suggestion } from '../labs/ai/ask'
 import type { Extraction } from '../labs/extraction/schema'
 import type { Profile, Report, Result, Summary, TestContext } from '../labs/types'
 import { parseRange, parseValue } from '../labs/units/parse'
@@ -186,4 +188,50 @@ export const DEMO_EXTRACTION: Extraction = {
     page: 1,
     samplePrinted: null,
   })),
+}
+
+// "Ask about the numbers" in the demo: answers to the suggested questions, prepared in advance in the
+// style of the AI's answers, with every number declared against the facts LabTrails sends for that
+// question. A test runs each one through the core's numbers check.
+export const DEMO_ANSWERS: Record<Suggestion['id'], Answer> = {
+  trend: {
+    kind: 'answer',
+    text: "Your glucose has gone up at each of your six tests, from **88 mg/dL** in September 2023 to **112 mg/dL** in June 2026. That's why LabTrails marks it as rising.\n\nThe latest result is just above that lab's range, which goes up to 110 mg/dL, so it's also flagged as outside the range. The earlier lab in Boston printed a range up to 99 mg/dL; each result is compared with its own lab's range.\n\nA steady rise over several tests is worth asking your doctor about, including what it means for you.",
+    numbers: [
+      { text: '88 mg/dL', fact: 'markers[0].results[0].value' },
+      { text: '112 mg/dL', fact: 'markers[0].results[5].value' },
+      { text: '110 mg/dL', fact: 'markers[0].results[5].range.high' },
+      { text: '99 mg/dL', fact: 'markers[0].results[0].range.high' },
+    ],
+  },
+  outside: {
+    kind: 'answer',
+    text: "Your latest total cholesterol was **219 mg/dL**, in June 2026. The lab that measured it prints a range up to 190 mg/dL, so LabTrails flags the result as above the range.\n\nIt has also gone up at every test since 185 mg/dL in September 2023, which is why it's marked as rising. Your LDL cholesterol shows the same pattern, from 108 mg/dL to 138 mg/dL, while your HDL cholesterol has stayed between 50 mg/dL and 55 mg/dL.\n\nA result above the lab's range is a reason to look more closely, not a diagnosis; your doctor can explain what it means for you.",
+    numbers: [
+      { text: '219 mg/dL', fact: 'markers[0].results[5].value' },
+      { text: '190 mg/dL', fact: 'markers[0].results[5].range.high' },
+      { text: '185 mg/dL', fact: 'markers[0].results[0].value' },
+      { text: '108 mg/dL', fact: 'markers[2].results[0].value' },
+      { text: '138 mg/dL', fact: 'markers[2].results[5].value' },
+      { text: '50 mg/dL', fact: 'markers[1].results[1].value' },
+      { text: '55 mg/dL', fact: 'markers[1].results[2].value' },
+    ],
+  },
+  changed: {
+    kind: 'answer',
+    text: "Since your previous test in November 2025, the biggest changes LabTrails flagged were:\n\n- **CRP** fell from 6.8 mg/L to 0.9 mg/L, back inside the lab's range (up to 5 mg/L).\n- **Triglycerides** fell from 162 mg/dL to 101 mg/dL, also back inside the range (up to 150 mg/dL).\n- **Glucose** rose from 104 mg/dL to 112 mg/dL, just above the range (up to 110 mg/dL).\n\nOver a longer time, your ferritin has fallen at every test, from 142 ng/mL to 38 ng/mL, still inside its lab's range. These could be good to go through with your doctor.",
+    numbers: [
+      { text: '6.8 mg/L', fact: 'markers[7].results[4].value' },
+      { text: '0.9 mg/L', fact: 'markers[7].results[5].value' },
+      { text: '5 mg/L', fact: 'markers[7].results[5].range.high' },
+      { text: '162 mg/dL', fact: 'markers[4].results[4].value' },
+      { text: '101 mg/dL', fact: 'markers[4].results[5].value' },
+      { text: '150 mg/dL', fact: 'markers[4].results[5].range.high' },
+      { text: '104 mg/dL', fact: 'markers[0].results[4].value' },
+      { text: '112 mg/dL', fact: 'markers[0].results[5].value' },
+      { text: '110 mg/dL', fact: 'markers[0].results[5].range.high' },
+      { text: '142 ng/mL', fact: 'markers[5].results[0].value' },
+      { text: '38 ng/mL', fact: 'markers[5].results[5].value' },
+    ],
+  },
 }

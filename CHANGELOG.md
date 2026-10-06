@@ -15,6 +15,11 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- Ask about your results: questions answered from the markers they name (or the flagged ones), with
+  every number checked against what was sent before the answer is shown; saved conversations per
+  person; prepared answers in the demo.
+- Photos of one paper report can be grouped as its pages: read in one request, checked once, saved
+  as one report, and shown page by page.
 - Cumulative lab reports: a report that also shows earlier results, in columns by date or as a
   history list, becomes one report per sample date, each row checked with its own date.
 - Correcting a single result after it's saved: fix a misread value, add a missed result, delete one,

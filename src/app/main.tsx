@@ -39,6 +39,7 @@ const router = createBrowserRouter([
           { path: 'reports/:reportId/results/new', lazy: screen(() => import('./screens/ResultEdit'), 'ResultEdit') },
           { path: 'reports/:reportId/results/:resultId', lazy: screen(() => import('./screens/ResultEdit'), 'ResultEdit') },
           { path: 'summaries', lazy: screen(() => import('./screens/Summaries'), 'Summaries') },
+          { path: 'ask', lazy: screen(() => import('./screens/Ask'), 'Ask') },
           { path: 'doctor', lazy: screen(() => import('./screens/DoctorReport'), 'DoctorReport') },
         ],
       },

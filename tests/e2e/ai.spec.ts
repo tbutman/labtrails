@@ -231,4 +231,65 @@ test.describe('with a mocked Anthropic API', () => {
     await expect(page.getByText('Page 1 of 2')).toBeVisible()
     await expect(page.getByText('Page 2 of 2')).toBeVisible()
   })
+
+  test('ask about the numbers: only the named markers are sent, numbers are checked, an unchecked answer is withheld', async ({ page }) => {
+    const bodies = await anthropicMock(page, (body) => {
+      if (!body.includes('Question:')) {
+        return JSON.stringify({
+          sampleDate: { printed: '15/09/2026', guessedFormat: 'DMY' },
+          lab: 'Laboratório Exemplo',
+          fastingPrinted: null,
+          rows: [row('Glicose', '118', 'mg/dL', '70 - 110', 'glucose'), row('Creatinina', '0,98', 'mg/dL', '0,70 - 1,20', 'creatinine')],
+        })
+      }
+      // The follow-up gets an answer with a number it doesn't declare, both times.
+      if (body.includes('Question: What is a typical value')) return JSON.stringify({ kind: 'answer', text: 'Many labs use up to 99 mg/dL.', numbers: [] })
+      return JSON.stringify({
+        kind: 'answer',
+        text: "Your glucose was **118 mg/dL**, above this lab's range, which goes up to 110 mg/dL.",
+        numbers: [
+          { text: '118 mg/dL', fact: 'markers[0].results[0].value' },
+          { text: '110 mg/dL', fact: 'markers[0].results[0].range.high' },
+        ],
+      })
+    })
+    await vaultWithKey(page)
+    await uploadSample(page)
+    await page.getByRole('button', { name: 'Send' }).click()
+    await expect(page.getByRole('heading', { name: 'Check report 1 of 1' })).toBeVisible()
+    for (const tick of await page.getByLabel('This matches the document').all()) await tick.check()
+    await page.getByRole('button', { name: 'Save 2 rows' }).click()
+    await page.getByRole('button', { name: 'Done' }).click()
+
+    await page.getByRole('link', { name: 'Summaries' }).first().click()
+    await page.getByRole('link', { name: 'Ask about your results' }).click()
+    await page.getByLabel('Your question').fill(`How is ${NAME}'s glucose?`)
+    await page.getByRole('button', { name: 'Ask', exact: true }).click()
+
+    // Nothing is sent before agreeing; then only glucose's results, and no name.
+    await expect(page.getByRole('heading', { name: 'Send to Anthropic?' })).toBeVisible()
+    await expect(page.getByText(/Your results for Glucose, with dates/)).toBeVisible()
+    expect(bodies).toHaveLength(1)
+    await page.getByRole('button', { name: 'Send' }).click()
+    await expect(page.getByText("Your glucose was 118 mg/dL, above this lab's range")).toBeVisible()
+    expect(bodies).toHaveLength(2)
+    const sent = (JSON.parse(bodies[1]).messages[0].content[0] as { text: string }).text
+    expect(sent).toContain("Question: How is the person's glucose?")
+    expect(sent).not.toContain('Alex')
+    expect(sent).toContain('"marker":"Glucose"')
+    expect(sent).not.toContain('"marker":"Creatinine"')
+    expect(sent).not.toContain('0.98')
+
+    // A follow-up about the same marker sends the same facts, so it goes without asking again; its
+    // answer uses a number that isn't in the facts, twice, so it's withheld.
+    await page.getByLabel('Ask a follow-up').fill('What is a typical value?')
+    await page.getByRole('button', { name: 'Ask', exact: true }).click()
+    await expect(page.getByText("couldn't check this answer's numbers")).toBeVisible()
+    expect(bodies).toHaveLength(4)
+    await expect(page.getByText('Many labs use up to 99')).toHaveCount(0)
+
+    // The conversation is saved for this person.
+    await page.getByRole('link', { name: 'New question' }).click()
+    await expect(page.getByRole('link', { name: new RegExp(`How is ${NAME}'s glucose\\?.*2 questions`) })).toBeVisible()
+  })
 })
