@@ -248,8 +248,25 @@
 }
 .form-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: var(--space-3);
+}
+.form-actions .push-left {
+  margin-right: auto;
+}
+
+/* Correcting a result */
+.cell-action {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+.row-status .understood .link-button {
+  margin-left: var(--space-1);
+}
+.form-layout + .original {
+  margin-top: var(--space-4);
 }
 
 /* Reading a report */

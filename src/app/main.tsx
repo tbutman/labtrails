@@ -17,6 +17,7 @@ import { Overview } from './screens/Overview'
 import { ProfileForm } from './screens/ProfileForm'
 import { ImportReports } from './screens/ImportReports'
 import { ReportEdit } from './screens/ReportEdit'
+import { ResultEdit } from './screens/ResultEdit'
 import { ReportForm } from './screens/ReportForm'
 import { Reports } from './screens/Reports'
 import { Settings } from './screens/Settings'
@@ -43,6 +44,8 @@ const router = createBrowserRouter([
           { path: 'reports/new', element: <ReportForm /> },
           { path: 'reports/read', element: <ImportReports /> },
           { path: 'reports/:reportId/edit', element: <ReportEdit /> },
+          { path: 'reports/:reportId/results/new', element: <ResultEdit /> },
+          { path: 'reports/:reportId/results/:resultId', element: <ResultEdit /> },
           { path: 'summaries', element: <Summaries /> },
           { path: 'doctor', element: <DoctorReport /> },
         ],

@@ -1,10 +1,11 @@
-import { FileClock, FilePlus2, FileSearch, Pencil, ScanText, Trash2 } from 'lucide-react'
+import { FileClock, FilePlus2, FileSearch, Pencil, Plus, ScanText, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import type { DocumentRecord, RecordStore } from '../../core'
 import { deleteDocument } from '../../core/documents/documents'
 import { DocumentViewer } from '../../core/documents/DocumentViewer'
 import type { StoredDoc } from '../../trails-import/duplicates'
+import { printedNumber, reportDecimal } from '../../labs/edit'
 import type { Result } from '../../labs/types'
 import { Chip, EmptyState, PageHeader } from '../../core/ui/components'
 import { useBase, useProfileData } from '../profileContext'
@@ -19,6 +20,8 @@ export function Reports() {
   const { mode, store, changed, core, saveCore, version } = useSession()
   const { profile } = useProfileData()
   const base = useBase()
+  // Coming back from correcting a result: reopen that report.
+  const openId = useLocation().hash.replace('#report-', '')
   const sorted = [...reports].sort((a, b) => b.date.localeCompare(a.date))
   const [docs, setDocs] = useState<StoredDoc[]>([])
   useEffect(() => {
@@ -119,8 +122,9 @@ export function Reports() {
       )}
       {sorted.map((r) => {
         const rows = results.filter((x) => x.reportId === r.id)
+        const decimal = reportDecimal(rows)
         return (
-          <details key={r.id} className="disclosure">
+          <details key={r.id} id={`report-${r.id}`} className="disclosure" open={r.id === openId || undefined}>
             <summary>
               <span className="report-summary">
                 <span>{formatDate(r.date)}</span>
@@ -150,6 +154,9 @@ export function Reports() {
                       <th scope="col">Value</th>
                       <th scope="col">Unit</th>
                       <th scope="col">Range as printed</th>
+                      <th scope="col">
+                        <span className="sr-only">Correct</span>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -161,10 +168,15 @@ export function Reports() {
                         </th>
                         <td>
                           {x.comparator ?? ''}
-                          {x.value ?? x.textValue}
+                          {x.value !== undefined ? printedNumber(x.value, decimal) : x.textValue}
                         </td>
                         <td>{x.unitAsPrinted}</td>
                         <td>{x.range?.text}</td>
+                        <td className="cell-action">
+                          <Link className="icon-button" to={`${base}/reports/${r.id}/results/${x.id}`} aria-label={`Correct ${x.nameAsPrinted}`} title="Correct this result">
+                            <Pencil size={15} aria-hidden />
+                          </Link>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -174,6 +186,9 @@ export function Reports() {
                 {r.documentId && store && <Original store={store} documentId={r.documentId} />}
                 <Link className="button small" to={`${base}/reports/${r.id}/edit`}>
                   <Pencil size={14} aria-hidden /> Edit details
+                </Link>
+                <Link className="button small" to={`${base}/reports/${r.id}/results/new`}>
+                  <Plus size={14} aria-hidden /> Add a missing result
                 </Link>
                 {mode === 'unlocked' && (
                   <button className="button small ghost danger" onClick={() => void remove(r.id, formatDate(r.date))}>
@@ -189,7 +204,7 @@ export function Reports() {
   )
 }
 
-function Original({ store, documentId }: { store: RecordStore; documentId: string }) {
+export function Original({ store, documentId }: { store: RecordStore; documentId: string }) {
   const [doc, setDoc] = useState<DocumentRecord | null>(null)
   const [open, setOpen] = useState(false)
   useEffect(() => {

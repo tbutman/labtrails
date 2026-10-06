@@ -40,6 +40,9 @@ up).
   next to the original page before anything is saved. Files you've already imported, rows you already
   have, and a second copy of a report you already saved are all recognised. Files you keep for later
   wait under "Not read yet".
+- **Fix one result without starting over.** Correct a value that was misread, add one that was
+  missed, delete one, or map a name LabTrails didn't know to a marker. A mapping is remembered for
+  the next report and can be applied to every earlier result printed the same way.
 - **Summaries with AI (optional):** what changed in a new report, or an overview of everything, with
   questions you could ask your doctor. The AI only explains what LabTrails' rules flagged.
 - **A one-page report for your doctor,** printed, saved as PDF or shared as an image. It's a file you
