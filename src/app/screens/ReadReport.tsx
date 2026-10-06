@@ -4,7 +4,9 @@
 // same matching and review code.
 
 import { useEffect, useState } from 'react'
+import { FileUp, Sparkles } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
+import { Callout, FileDrop, PageHeader } from '../../trails-ui/components'
 import { addDocument, deleteDocument, documentBytes, DocumentError, type DocumentRecord } from '../../core'
 import { AiError, askJson, imageBlock, pdfBlock, shrinkImage, type ContentBlock } from '../../core/ai/client'
 import { SendSheet } from '../../core/ai/SendSheet'
@@ -115,38 +117,55 @@ export function ReadReport() {
   if (step === 'pick') {
     return (
       <>
-        <p className="small">
-          <Link to={`${base}/reports`}>← Reports</Link>
-        </p>
-        <h1>Read a lab report</h1>
-        <p>
-          Add a PDF or a photo of a lab report. It's stored encrypted on this device. Then, if you agree, it's sent to the AI, which copies out
-          the results for you to check one by one.
-        </p>
-        {demo ? (
-          <>
-            <p className="callout">In the demo, you can try this with a made-up sample report. No AI is called.</p>
-            <button
-              className="button primary"
-              onClick={async () => {
-                const blob = await (await fetch('/demo/sample-report.png')).blob()
-                await keep(blob, 'Sample report (fictional)')
-              }}
-            >
-              Use the sample report
-            </button>
-          </>
-        ) : (
-          <div className="field">
-            <label htmlFor="report-file">Lab report (PDF or photo)</label>
-            <input id="report-file" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={(e) => e.target.files?.[0] && void keep(e.target.files[0], e.target.files[0].name)} />
+        <PageHeader
+          title="Read a lab report"
+          subtitle="The AI copies out the results; you check every row before anything is saved."
+          back={{ to: `${base}/reports`, label: 'Reports' }}
+        />
+        <div className="read-steps">
+          <div className="card">
+            {demo ? (
+              <>
+                <Callout icon={Sparkles} tone="accent">
+                  In the demo, try this with a made-up sample report. No AI is called.
+                </Callout>
+                <button
+                  className="button primary large"
+                  onClick={async () => {
+                    const blob = await (await fetch('/demo/sample-report.png')).blob()
+                    await keep(blob, 'Sample report (fictional)')
+                  }}
+                >
+                  Use the sample report
+                </button>
+              </>
+            ) : (
+              <FileDrop
+                label="Drop a PDF or photo, or choose a file"
+                hint="Stored encrypted on this device. Nothing is sent until you agree."
+                accept="application/pdf,image/jpeg,image/png,image/webp"
+                icon={FileUp}
+                onFile={(f) => void keep(f, f.name)}
+              />
+            )}
+            {error && (
+              <p className="error form-error" role="alert">
+                {error}
+              </p>
+            )}
           </div>
-        )}
-        {error && (
-          <p className="error" role="alert">
-            {error}
-          </p>
-        )}
+          <ol className="mini-steps">
+            <li>
+              <strong>Add the report.</strong> It's stored encrypted on this device.
+            </li>
+            <li>
+              <strong>Agree to send it.</strong> You see exactly what goes to Anthropic first.
+            </li>
+            <li>
+              <strong>Check every row</strong> next to the original page. Only ticked rows are saved.
+            </li>
+          </ol>
+        </div>
         <p className="hint">
           Prefer not to use AI? <Link to={`${base}/reports/new`}>Enter the results by hand</Link>.
         </p>
@@ -157,16 +176,20 @@ export function ReadReport() {
   if (step === 'review' && doc) {
     return (
       <>
-        <h1>Check the results</h1>
-        <p>
+        <PageHeader title="Check the results" back={{ to: `${base}/reports`, label: 'Reports' }} />
+        <p className="muted">
           Compare each row with the report. Tick the ones that match, fix any that don't, and remove anything wrong. Rows marked "Unsure" need a
           careful look: either the AI wasn't sure, or LabTrails matched the name using the AI's guess. Only ticked rows are saved.
         </p>
-        {demo && <p className="callout">Demo: this answer was prepared in advance from the sample report. No AI was called.</p>}
+        {demo && (
+          <Callout icon={Sparkles} tone="accent">
+            This answer was prepared in advance from the sample report. No AI was called.
+          </Callout>
+        )}
         {dropped > 0 && (
-          <p className="callout warning">
+          <Callout tone="warning">
             {dropped} row{dropped > 1 ? 's' : ''} in the AI's answer couldn't be read and {dropped > 1 ? 'were' : 'was'} left out. Add them yourself if they're on the report.
-          </p>
+          </Callout>
         )}
         <ReviewPanel
           columns={EXTRACTION_COLUMNS}
@@ -176,7 +199,7 @@ export function ReadReport() {
           onCancel={() => void discard()}
           confirmLabel={(n) => `Save ${n} confirmed result${n === 1 ? '' : 's'}`}
         />
-        <p className="disclaimer">{DISCLAIMER}</p>
+        <p className="hint disclaimer">{DISCLAIMER}</p>
       </>
     )
   }
@@ -184,14 +207,16 @@ export function ReadReport() {
   if (demo) {
     return (
       <>
-        <h1>Read a lab report</h1>
-        <p>With your own Anthropic API key, LabTrails sends the report to Anthropic, which copies out the results. You check every row before anything is saved.</p>
-        <button className="button primary" onClick={() => review(DEMO_EXTRACTION, 0)}>
-          Show the review step
-        </button>{' '}
-        <button className="button" onClick={() => void discard()}>
-          Cancel
-        </button>
+        <PageHeader title="Read a lab report" back={{ to: `${base}/reports`, label: 'Reports' }} />
+        <p className="muted">With your own Anthropic API key, LabTrails sends the report to Anthropic, which copies out the results. You check every row before anything is saved.</p>
+        <div className="row">
+          <button className="button primary" onClick={() => review(DEMO_EXTRACTION, 0)}>
+            Show the review step
+          </button>
+          <button className="button" onClick={() => void discard()}>
+            Cancel
+          </button>
+        </div>
       </>
     )
   }
@@ -199,10 +224,10 @@ export function ReadReport() {
   if (!core.ai.apiKey) {
     return (
       <>
-        <h1>Read a lab report</h1>
-        <p>The report is saved. Reading it uses AI with your own Anthropic API key; add one in Settings, or enter the results by hand.</p>
+        <PageHeader title="Read a lab report" back={{ to: `${base}/reports`, label: 'Reports' }} />
+        <p className="muted">The report is saved. Reading it uses AI with your own Anthropic API key; add one in Settings, or enter the results by hand.</p>
         <p className="row">
-          <Link to="/settings" className="button primary">
+          <Link to="/app/settings#ai" className="button primary">
             Go to Settings
           </Link>
           <Link to={`${base}/reports/new`} className="button">
@@ -216,7 +241,7 @@ export function ReadReport() {
   const kb = doc ? Math.max(1, Math.round(doc.bytes / 1024)) : 0
   return (
     <>
-      <h1>Read a lab report</h1>
+      <PageHeader title="Read a lab report" back={{ to: `${base}/reports`, label: 'Reports' }} />
       {error && (
         <p className="error" role="alert">
           {error}

@@ -1,6 +1,9 @@
+import { FileText, LayoutDashboard, Lock, LogOut, Settings, Sparkles, Stethoscope, Table2 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
-import { Link, Navigate, NavLink, Outlet, ScrollRestoration, useNavigate, useParams } from 'react-router'
+import { Link, Navigate, Outlet, ScrollRestoration, useNavigate, useParams } from 'react-router'
 import { loadProfile, type ProfileData } from '../../data/profile'
+import { AppBar, Callout, type NavItem } from '../../trails-ui/components'
+import { APP, BRAND } from '../brand'
 import { ProfileContext } from '../profileContext'
 import { useSession } from '../sessionContext'
 
@@ -14,62 +17,63 @@ export function Root() {
   )
 }
 
-export function Wordmark() {
+/** Every screen inside the app: the app bar, the demo notice, and the page. */
+export function Shell({ children, nav, narrow }: { children: ReactNode; nav?: NavItem[]; narrow?: boolean }) {
+  const { mode, lock } = useSession()
+  const navigate = useNavigate()
+  const actions = (
+    <>
+      {mode === 'unlocked' && (
+        <>
+          <Link className="icon-button" to={`${APP}/settings`} aria-label="Settings" title="Settings">
+            <Settings size={18} aria-hidden />
+          </Link>
+          <button className="button small" onClick={lock}>
+            <Lock size={14} aria-hidden /> Lock
+          </button>
+        </>
+      )}
+      {mode === 'demo' && (
+        <button
+          className="button small"
+          // The landing page clears the demo once it's showing; clearing it here would make these
+          // screens redirect into the app before the navigation lands.
+          onClick={() => void navigate('/', { state: { leaveDemo: true } })}
+        >
+          <LogOut size={14} aria-hidden /> Leave demo
+        </button>
+      )}
+    </>
+  )
   return (
-    <Link className="wordmark" to="/" aria-label="LabTrails home">
-      <svg width="28" height="20" viewBox="0 0 28 20" aria-hidden="true">
-        <path d="M4 15 C 9 14, 12 10, 14 9 S 20 5, 24 4" fill="none" stroke="var(--accent-text)" strokeWidth="2" strokeLinecap="round" />
-        <circle cx="4" cy="15" r="3" fill="var(--accent-fill)" />
-        <circle cx="14" cy="9" r="3" fill="var(--accent-fill)" />
-        <circle cx="24" cy="4" r="3" fill="var(--accent-fill)" />
-      </svg>
-      <span className="wordmark-text">
-        lab<span>trails</span>
-      </span>
-    </Link>
+    <div className={nav?.length ? 'has-tab-bar' : undefined}>
+      <AppBar brand={BRAND} home={APP} nav={nav} actions={actions} />
+      <main className="app-main">
+        <div className={`container${narrow ? ' narrow' : ''}`}>
+          {mode === 'demo' && (
+            <div className="no-print">
+              <Callout tone="accent">
+                <strong>Demo.</strong> A made-up person with made-up results from made-up labs. Nothing here is real, and nothing is saved.
+              </Callout>
+            </div>
+          )}
+          {children}
+        </div>
+      </main>
+    </div>
   )
 }
 
-/** The header, the demo banner and the lock or leave-demo control, on every screen. */
-export function Shell({ children, nav }: { children: ReactNode; nav?: ReactNode }) {
-  const { mode, lock, exitDemo } = useSession()
-  const navigate = useNavigate()
+function Loading() {
   return (
-    <div className="page">
-      <header className="header no-print">
-        <Wordmark />
-        <div className="header-actions">
-          {mode === 'unlocked' && (
-            <>
-              <Link className="button secondary small-button" to="/settings">
-                Settings
-              </Link>
-              <button className="button secondary small-button" onClick={lock}>
-                Lock
-              </button>
-            </>
-          )}
-          {mode === 'demo' && (
-            <button
-              className="button secondary small-button"
-              onClick={() => {
-                exitDemo()
-                navigate('/')
-              }}
-            >
-              Leave the demo
-            </button>
-          )}
-        </div>
-      </header>
-      {mode === 'demo' && (
-        <p className="banner no-print" role="note">
-          <strong>Demo:</strong> a made-up person with made-up results from made-up labs. Nothing here is real, and nothing is saved.
-        </p>
-      )}
-      {nav}
-      {children}
-    </div>
+    <Shell>
+      <div className="skeleton loading-title" />
+      <div className="metric-grid">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="skeleton loading-card" />
+        ))}
+      </div>
+    </Shell>
   )
 }
 
@@ -88,34 +92,35 @@ export function ProfileLayout() {
     }
   }, [store, profileId, version])
 
-  if (!store) return <Navigate to="/" replace />
-  if (data === undefined) return <Shell>{<p className="muted">Loading…</p>}</Shell>
+  if (!store) return <Navigate to={APP} replace />
+  if (data === undefined) return <Loading />
   if (data === null)
     return (
       <Shell>
         <h1>Profile not found</h1>
-        <Link to="/">Back to the start</Link>
+        <Link to={APP}>Back to the start</Link>
       </Shell>
     )
 
-  const base = `/p/${data.profile.id}`
+  const base = `${APP}/p/${data.profile.id}`
+  const nav: NavItem[] = [
+    { to: base, label: 'Overview', icon: LayoutDashboard, end: true },
+    { to: `${base}/table`, label: 'Table', icon: Table2 },
+    { to: `${base}/reports`, label: 'Reports', icon: FileText },
+    { to: `${base}/summaries`, label: 'Summaries', icon: Sparkles },
+    { to: `${base}/doctor`, label: 'Doctor', icon: Stethoscope },
+  ]
   return (
     <ProfileContext value={data}>
-      <Shell
-        nav={
-          <nav className="nav no-print" aria-label={data.profile.name}>
-            <NavLink to={base} end>
-              Overview
-            </NavLink>
-            <NavLink to={`${base}/table`}>Table</NavLink>
-            <NavLink to={`${base}/reports`}>Reports</NavLink>
-            <NavLink to={`${base}/summaries`}>Summaries</NavLink>
-            <NavLink to={`${base}/doctor`}>For your doctor</NavLink>
-          </nav>
-        }
-      >
+      <Shell nav={nav}>
         <Outlet />
       </Shell>
     </ProfileContext>
   )
+}
+
+/** Addresses from before the app moved under /app keep working. */
+export function LegacyProfile() {
+  const { profileId, '*': rest } = useParams()
+  return <Navigate to={`${APP}/p/${profileId}${rest ? `/${rest}` : ''}`} replace />
 }

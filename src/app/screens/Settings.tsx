@@ -3,60 +3,68 @@ import { Navigate } from 'react-router'
 import { MIN_PASSPHRASE_LENGTH, WrongPassphraseError } from '../../core'
 import { ApiKeySettings } from '../../core/ai/ApiKeySettings'
 import type { Theme } from '../../core/settings/settings'
-import { Field } from '../components/Field'
+import { PageHeader, Segmented, SelectField, TextField } from '../../trails-ui/components'
+import { APP } from '../brand'
 import { Shell } from '../components/Layout'
 import { useSession } from '../sessionContext'
 import { ExportBackup, RestoreBackup } from './Backup'
 
 export function Settings() {
   const { mode, core, saveCore } = useSession()
-  if (mode !== 'unlocked') return <Navigate to="/" replace />
+  if (mode !== 'unlocked') return <Navigate to={APP} replace />
   return (
-    <Shell>
-      <h1>Settings</h1>
+    <Shell narrow>
+      <PageHeader title="Settings" back={{ to: APP, label: 'People' }} />
 
-      <section className="card panel">
-        <h2 className="flush">Backup</h2>
+      <h2 className="section-title">Backup</h2>
+      <div className="card">
         <ExportBackup />
-      </section>
+      </div>
 
-      <section className="card panel" id="ai">
-        <h2 className="flush">AI (optional)</h2>
-        <p className="small">
+      <h2 className="section-title" id="ai">
+        AI (optional)
+      </h2>
+      <div className="card">
+        <p className="muted small">
           Reading reports and writing summaries use your own Anthropic API key. Use a dedicated key with a spending limit set in Anthropic's console.
           The key is stored only in this encrypted vault and sent only to Anthropic.
         </p>
         <ApiKeySettings apiKey={core.ai.apiKey} model={core.ai.model} onSave={({ apiKey, model }) => void saveCore({ ...core, ai: { ...core.ai, apiKey, model } })} />
-      </section>
+      </div>
 
-      <section className="card panel">
-        <h2 className="flush">Appearance and locking</h2>
-        <Field label="Theme" htmlFor="theme">
-          <select id="theme" value={core.theme} onChange={(e) => void saveCore({ ...core, theme: e.target.value as Theme })}>
-            <option value="system">Follow the device</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </Field>
-        <Field label="Lock after this many minutes without use" htmlFor="autolock">
-          <select id="autolock" value={core.autoLockMinutes} onChange={(e) => void saveCore({ ...core, autoLockMinutes: Number(e.target.value) })}>
-            {[1, 2, 5, 10, 15, 30].map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </Field>
-      </section>
+      <h2 className="section-title">Appearance and locking</h2>
+      <div className="card">
+        <Segmented<Theme>
+          legend="Theme"
+          name="theme"
+          value={core.theme}
+          onChange={(theme) => void saveCore({ ...core, theme })}
+          options={[
+            { value: 'system', label: 'Device' },
+            { value: 'light', label: 'Light' },
+            { value: 'dark', label: 'Dark' },
+          ]}
+        />
+        <SelectField label="Lock after" value={core.autoLockMinutes} onChange={(e) => void saveCore({ ...core, autoLockMinutes: Number(e.target.value) })} hint="Locking drops the keys from memory.">
+          {[1, 2, 5, 10, 15, 30].map((m) => (
+            <option key={m} value={m}>
+              {m} minute{m === 1 ? '' : 's'} without use
+            </option>
+          ))}
+        </SelectField>
+      </div>
 
-      <section className="card panel">
-        <h2 className="flush">Change passphrase</h2>
+      <h2 className="section-title">Passphrase</h2>
+      <div className="card">
         <ChangePassphrase />
-      </section>
+      </div>
 
-      <details className="card panel">
+      <h2 className="section-title">Restore</h2>
+      <details className="disclosure">
         <summary>Restore from a backup</summary>
-        <RestoreBackup />
+        <div className="disclosure-body">
+          <RestoreBackup />
+        </div>
       </details>
     </Shell>
   )
@@ -84,18 +92,16 @@ function ChangePassphrase() {
 
   return (
     <form onSubmit={submit} noValidate>
-      <Field label="Current passphrase" htmlFor="current-passphrase">
-        <input id="current-passphrase" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
-      </Field>
-      <Field label="New passphrase" htmlFor="new-passphrase">
-        <input id="new-passphrase" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
-      </Field>
+      <div className="input-row">
+        <TextField label="Current passphrase" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+        <TextField label="New passphrase" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
+      </div>
       {message && (
-        <p className={message.ok ? 'hint' : 'error'} role={message.ok ? 'status' : 'alert'}>
+        <p className={message.ok ? 'hint form-error' : 'error form-error'} role={message.ok ? 'status' : 'alert'}>
           {message.text}
         </p>
       )}
-      <button className="button secondary" disabled={!current || !next}>
+      <button className="button" disabled={!current || !next}>
         Change passphrase
       </button>
     </form>

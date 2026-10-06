@@ -11,6 +11,8 @@ import { AFTER_REPORT_SYSTEM, OVERALL_SYSTEM, summaryMessage } from '../../labs/
 import { digest } from '../../labs/ai/digest'
 import type { Summary } from '../../labs/types'
 import { DISCLAIMER } from '../components/Flags'
+import { Sparkles } from 'lucide-react'
+import { Callout, EmptyState, PageHeader } from '../../trails-ui/components'
 import { useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 import { formatDate } from '../format'
@@ -71,7 +73,7 @@ export function Summaries() {
     const context = request.facts.report?.context
     return (
       <>
-        <h1>{request.kind === 'after-report' ? 'Summarise this report' : 'Overall summary'}</h1>
+        <PageHeader title={request.kind === 'after-report' ? 'Summarise this report' : 'Overall summary'} />
         {error && (
           <p className="error" role="alert">
             {error}
@@ -97,13 +99,12 @@ export function Summaries() {
 
   return (
     <>
-      <h1>Summaries</h1>
-      <p className="muted">
-        With your own API key, LabTrails can ask an AI to explain what changed. It only explains what the code flagged; it doesn't add flags,
-        diagnose or suggest treatment.{mode === 'demo' && ' In the demo these are pre-written examples.'}
-      </p>
+      <PageHeader
+        title="Summaries"
+        subtitle={`Plain-language explanations of what the code flagged. No new flags, no diagnosis, no treatment advice.${mode === 'demo' ? ' In the demo these are pre-written examples.' : ''}`}
+      />
       {canAsk && latest && (
-        <p className="row">
+        <p className="row summaries-actions">
           <button className="button primary" onClick={() => setRequest({ kind: 'after-report', reportId: latest.id, facts: factsFor('after-report', latest.id) })}>
             Summarise the {formatDate(latest.date)} report
           </button>
@@ -113,11 +114,15 @@ export function Summaries() {
         </p>
       )}
       {mode === 'unlocked' && !core.ai.apiKey && (
-        <p className="callout">
-          Summaries use AI with your own Anthropic API key. <Link to="/settings">Add one in Settings</Link>.
-        </p>
+        <Callout icon={Sparkles}>
+          Summaries use AI with your own Anthropic API key. <Link to="/app/settings#ai">Add one in Settings</Link>.
+        </Callout>
       )}
-      {ordered.length === 0 && <p className="muted">No summaries yet.</p>}
+      {ordered.length === 0 && (
+        <EmptyState icon={Sparkles} title="No summaries yet">
+          A summary explains what changed in a report, or across all your results.
+        </EmptyState>
+      )}
       {ordered.map((s) => {
         const report = s.reportId ? reports.find((r) => r.id === s.reportId) : undefined
         const label = s.kind === 'after-report' ? `Summary of the ${report ? formatDate(report.date) : ''} report` : 'Overall summary'
@@ -137,7 +142,7 @@ export function Summaries() {
           </AiOutput>
         )
       })}
-      <p className="disclaimer">{DISCLAIMER}</p>
+      <p className="hint disclaimer">{DISCLAIMER}</p>
     </>
   )
 }

@@ -40,7 +40,7 @@ const pwa = VitePWA({
     name: 'LabTrails',
     short_name: 'LabTrails',
     description: 'Your blood test results, private and in one place.',
-    start_url: '/',
+    start_url: '/app',
     scope: '/',
     display: 'standalone',
     background_color: '#FFFBF2',
@@ -53,6 +53,9 @@ const pwa = VitePWA({
   },
   workbox: {
     globPatterns: ['**/*.{js,css,html,svg,png,woff2,wasm}'],
+    // Not up front: pdf.js's support files (cached on first use, below), the landing page's images
+    // and link preview, and Inter's non-Latin subsets (the UI is English).
+    globIgnores: ['vendor/**', 'landing/**', 'og.png', 'assets/inter-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*'],
     navigateFallback: '/index.html',
     runtimeCaching: [
       {

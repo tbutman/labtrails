@@ -1,4 +1,6 @@
+import { Download, Printer, Share2 } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { Checkbox, ChipGroup, PageHeader, TextAreaField } from '../../trails-ui/components'
 import { analyse } from '../../labs/analysis'
 import { useProfileData } from '../profileContext'
 import { ReportSheet, SHEET_WIDTH } from '../report/ReportSheet'
@@ -76,37 +78,30 @@ export function DoctorReport() {
   return (
     <>
       <div className="no-print">
-        <h1>Report for your doctor</h1>
-        <p>One page with the markers you choose, their trends and your notes. It's a file you print or share yourself; nothing is uploaded.</p>
-        <fieldset className="choices">
-          <legend>Markers to include</legend>
-          {all.map((a) => (
-            <label key={a.marker.id} className="check">
-              <input type="checkbox" checked={selected.includes(a.marker.id)} onChange={(e) => setSelected((s) => (e.target.checked ? [...s, a.marker.id] : s.filter((x) => x !== a.marker.id)))} />
-              <span>{a.marker.name}</span>
-            </label>
-          ))}
-        </fieldset>
-        <label className="check">
-          <input type="checkbox" checked={useInitials} onChange={(e) => setUseInitials(e.target.checked)} />
-          <span>Show initials instead of the name</span>
-        </label>
-        <div className="field">
-          <label htmlFor="report-notes">Your notes and questions (optional, not saved)</label>
-          <textarea id="report-notes" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <PageHeader title="Report for your doctor" subtitle="One page to print or share. It's a file you share yourself; nothing is uploaded." />
+        <div className="card">
+          <ChipGroup legend="Markers to include" options={all.map((a) => ({ value: a.marker.id, label: a.marker.name }))} value={selected} onChange={setSelected} />
+          <Checkbox checked={useInitials} onChange={setUseInitials}>
+            Show initials instead of the name
+          </Checkbox>
+          <TextAreaField label="Your notes and questions (optional, not saved)" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
+          <div className="row">
+            <button className="button primary" onClick={() => window.print()}>
+              <Printer size={16} aria-hidden /> Print or save as PDF
+            </button>
+            <button className="button" onClick={() => void download()}>
+              <Download size={16} aria-hidden /> Download image
+            </button>
+            <button className="button" onClick={() => void share()}>
+              <Share2 size={16} aria-hidden /> Share
+            </button>
+          </div>
+          {status && (
+            <p className="hint form-error" role="status">
+              {status}
+            </p>
+          )}
         </div>
-        <p className="row">
-          <button className="button primary" onClick={() => window.print()}>
-            Print or save as PDF
-          </button>
-          <button className="button" onClick={() => void download()}>
-            Download as image
-          </button>
-          <button className="button" onClick={() => void share()}>
-            Share…
-          </button>
-        </p>
-        {status && <p className="hint" role="status">{status}</p>}
       </div>
       <div className="report-sheet" ref={sheet}>
         <ReportSheet who={who} markers={markers} latest={latest} notes={notes} />

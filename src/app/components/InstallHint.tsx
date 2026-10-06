@@ -2,7 +2,9 @@
 // website's stored data after 7 days of use without visiting it, but not an app added to the Home
 // Screen (WebKit, March 2020: https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/).
 
+import { Download, Smartphone } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Callout } from '../../trails-ui/components'
 
 type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }
 
@@ -30,10 +32,10 @@ export function InstallHint() {
   if (installed) return null
   if (prompt)
     return (
-      <p className="banner">
+      <Callout icon={Download} tone="accent">
         Install LabTrails to open it like an app, even offline.{' '}
         <button
-          className="button secondary small-button"
+          className="button small"
           onClick={async () => {
             await prompt.prompt()
             setPrompt(null)
@@ -41,14 +43,14 @@ export function InstallHint() {
         >
           Install
         </button>
-      </p>
+      </Callout>
     )
   if (iOS())
     return (
-      <p className="banner">
+      <Callout icon={Smartphone} tone="accent">
         <strong>On iPhone, add LabTrails to your Home Screen</strong> (Share, then "Add to Home Screen"). Safari can delete a website's data after
         7 days without a visit; an app on the Home Screen keeps it. Keep a backup either way.
-      </p>
+      </Callout>
     )
   return null
 }

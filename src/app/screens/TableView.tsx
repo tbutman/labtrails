@@ -3,6 +3,7 @@ import { analyse } from '../../labs/analysis'
 import { rangeFlag } from '../../labs/flags/flags'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
+import { PageHeader } from '../../trails-ui/components'
 import { formatDate, formatPoint } from '../format'
 
 export function TableView() {
@@ -13,10 +14,7 @@ export function TableView() {
 
   return (
     <>
-      <h1>All markers by date</h1>
-      <p className="muted small">
-        Newest first. Values are shown in each marker's display unit. <span className="flag range">! Outside the lab's range</span>
-      </p>
+      <PageHeader title="All results" subtitle={<>Every marker by date, newest first. <span className="chip flag">! Outside the lab's range</span></>} />
       <div className="table-wrap" tabIndex={0} aria-label="Results table, scrolls sideways">
         <table>
           <thead>
@@ -52,7 +50,7 @@ function PanelRows({ name, markers, dates }: { name: string; markers: ReturnType
       {markers.map((a) => (
         <tr key={a.marker.id}>
           <th scope="row">
-            <Link to={`${base}/marker/${a.marker.id}`}>{a.marker.name}</Link> <span className="muted small">{a.series.unit}</span>
+            <Link to={`${base}/marker/${a.marker.id}`}>{a.marker.name}</Link> <span className="faint unit-label">{a.series.unit}</span>
           </th>
           {dates.map((d) => {
             const p = a.series.points.find((x) => x.date === d)

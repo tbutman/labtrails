@@ -1,16 +1,18 @@
+import { Info, NotebookPen } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { analyseMarker } from '../../labs/analysis'
 import { getMarker } from '../../labs/catalogue/catalogue'
 import { CHANGE_THRESHOLD, TREND_THRESHOLD } from '../../labs/flags/flags'
 import { convertibleUnits } from '../../labs/units/convert'
+import { Callout, PageHeader } from '../../trails-ui/components'
 import { DISCLAIMER, MarkerFlags } from '../components/Flags'
 import { MarkerChart, ResultsList } from '../components/MarkerChart'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
-import { formatDate, formatPercent } from '../format'
+import { formatDate, formatPercent, formatPoint, formatRange } from '../format'
 
-const RECENTLY: Record<string, string> = { illness: 'illness', 'hard-exercise': 'hard exercise', alcohol: 'alcohol', 'poor-sleep': 'poor sleep' }
+const RECENTLY: Record<string, string> = { illness: 'recent illness', 'hard-exercise': 'recent hard exercise', alcohol: 'recent alcohol', 'poor-sleep': 'poor sleep' }
 
 export function MarkerDetail() {
   const { id = '' } = useParams()
@@ -25,7 +27,7 @@ export function MarkerDetail() {
   if (!marker || !a) {
     return (
       <>
-        <h1>Marker not found</h1>
+        <PageHeader title="Marker not found" back={{ to: base, label: 'Overview' }} />
         <Link to={base}>Back to the overview</Link>
       </>
     )
@@ -38,90 +40,103 @@ export function MarkerDetail() {
 
   return (
     <>
-      <p className="small">
-        <Link to={base}>← Overview</Link>
-      </p>
-      <h1>{marker.name}</h1>
-      <p className="context-list">
+      <PageHeader
+        title={marker.name}
+        subtitle={a.latest ? `${formatPoint(a.latest)} ${a.series.unit} on ${formatDate(a.latest.date)} · lab's range ${formatRange(a.latest.range)}` : undefined}
+        back={{ to: base, label: 'Overview' }}
+      />
+      <div className="row chips-row">
         <MarkerFlags a={a} />
-      </p>
+      </div>
 
-      <section className="card">
-        {units.length > 1 && (
-          <div className="unit-switch">
-            <label htmlFor="unit">Show in</label>
-            <select id="unit" value={a.series.unit} onChange={(e) => {
-                setUnit(e.target.value)
-                void saveApp({ ...app, preferredUnit: { ...app.preferredUnit, [id]: e.target.value } })
-              }}>
-              {units.map((u) => (
-                <option key={u}>{u}</option>
-              ))}
-            </select>
-          </div>
-        )}
+      <div className="card chart-card">
+        <div className="card-header">
+          <h2 className="card-title">Over time</h2>
+          {units.length > 1 && (
+            <label className="unit-switch">
+              <span className="sr-only">Show in</span>
+              <select
+                aria-label="Show in"
+                value={a.series.unit}
+                onChange={(e) => {
+                  setUnit(e.target.value)
+                  void saveApp({ ...app, preferredUnit: { ...app.preferredUnit, [id]: e.target.value } })
+                }}
+              >
+                {units.map((u) => (
+                  <option key={u}>{u}</option>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
         <MarkerChart points={a.series.points} unit={a.series.unit} label={marker.name} contextDates={withContext.map(({ p }) => p.date)} />
-        <p className="muted small">
-          Each pale bar is that lab's own range. A ring with "!" marks a result outside its range. A dot under the axis marks a test with
-          notes (not fasting, recent illness or exercise).
-        </p>
-        {marker.noConversion && <p className="small">{marker.noConversion.reason}</p>}
+        <ul className="chart-legend">
+          <li>
+            <span className="legend-swatch range" aria-hidden="true" /> Each lab's own range
+          </li>
+          <li>
+            <span className="legend-swatch flag" aria-hidden="true" /> Outside its range
+          </li>
+          <li>
+            <span className="legend-swatch note" aria-hidden="true" /> Test with notes
+          </li>
+        </ul>
+        {marker.noConversion && <p className="hint">{marker.noConversion.reason}</p>}
         {a.series.skipped.length > 0 && (
-          <p className="small muted">
+          <p className="hint">
             {a.series.skipped.length} result{a.series.skipped.length > 1 ? 's' : ''} can't be shown in {a.series.unit}.
           </p>
         )}
-      </section>
+      </div>
 
       {(a.change?.notable || a.trend) && (
-        <section>
-          <h2>What the flags mean here</h2>
-          <ul>
+        <Callout icon={Info}>
+          <ul className="plain-list">
             {a.change?.notable && (
               <li>
                 From {formatDate(a.change.from.date)} to {formatDate(a.change.to.date)} it went {a.change.direction}
-                {a.change.relative !== null && ` by ${formatPercent(a.change.relative)}`}.
-                {a.change.crossedRange
-                  ? ' It moved into or out of the lab\'s range, which always counts as a change.'
-                  : ` That's at least ${formatPercent(CHANGE_THRESHOLD)} of the lab's range width.`}
+                {a.change.relative !== null && ` by ${formatPercent(a.change.relative)}`}.{' '}
+                {a.change.crossedRange ? "It moved into or out of the lab's range, which always counts as a change." : `That's at least ${formatPercent(CHANGE_THRESHOLD)} of the lab's range width.`}
               </li>
             )}
             {a.trend && (
               <li>
-                The last {a.trend.results} results all {a.trend.direction === 'rising' ? 'rose' : 'fell'}, by at least {formatPercent(TREND_THRESHOLD)} of
-                the range width in total.
+                The last {a.trend.results} results all {a.trend.direction === 'rising' ? 'rose' : 'fell'}, by at least {formatPercent(TREND_THRESHOLD)} of the range width in total.
               </li>
             )}
           </ul>
-          <p className="small muted">
-            These are simple rules, not clinical thresholds. <Link to="/how-flags-work">How flags work</Link>
-          </p>
-        </section>
+          <span className="hint">
+            Simple rules, not clinical thresholds. <Link to="/how-flags-work">How flags work</Link>
+          </span>
+        </Callout>
       )}
 
       {withContext.length > 0 && (
-        <section>
-          <h2>Notes on these tests</h2>
-          <ul>
-            {withContext.map(({ p, report }) => (
-              <li key={p.resultId}>
-                {formatDate(p.date)}:{' '}
-                {[
-                  report.context?.fasting === 'no' && 'not fasting',
-                  ...(report.context?.recently ?? []).map((r) => `recent ${RECENTLY[r]}`),
-                  report.context?.notes,
-                ]
-                  .filter(Boolean)
-                  .join('; ')}
-              </li>
-            ))}
-          </ul>
-        </section>
+        <>
+          <h2 className="section-title">
+            <NotebookPen size={14} aria-hidden /> Notes on these tests
+          </h2>
+          <div className="card padless">
+            <ul className="list">
+              {withContext.map(({ p, report }) => (
+                <li key={p.resultId} className="list-row">
+                  <span className="list-row-main">
+                    <span className="list-row-title">{formatDate(p.date)}</span>
+                    <span className="list-row-sub">
+                      {[report.context?.fasting === 'no' && 'not fasting', ...(report.context?.recently ?? []).map((r) => RECENTLY[r]), report.context?.notes].filter(Boolean).join(' · ')}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
       )}
 
-      <h2>All results</h2>
+      <h2 className="section-title">All results</h2>
       <ResultsList points={a.series.points} unit={a.series.unit} />
-      <p className="disclaimer">{DISCLAIMER}</p>
+      <p className="hint disclaimer">{DISCLAIMER}</p>
     </>
   )
 }

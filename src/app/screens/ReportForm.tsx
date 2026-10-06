@@ -2,6 +2,7 @@
 // matches the name to the catalogue, parses the value and range, and shows what it understood before
 // anything is saved.
 
+import { CheckCircle2, CircleHelp, Copy, Plus, Save, X } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { MARKERS, PANELS, getMarker } from '../../labs/catalogue/catalogue'
@@ -9,7 +10,7 @@ import { matchMarker } from '../../labs/match/match'
 import type { Alias, Recently, Report, Result, TestContext } from '../../labs/types'
 import { normaliseUnit } from '../../labs/units/normalise'
 import { parseRange, parseValue, type DecimalHint } from '../../labs/units/parse'
-import { Field } from '../components/Field'
+import { ChipGroup, PageHeader, Segmented, TextAreaField, TextField } from '../../trails-ui/components'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 import { formatValue } from '../format'
@@ -18,11 +19,11 @@ type Row = { key: string; name: string; value: string; unit: string; range: stri
 
 const emptyRow = (): Row => ({ key: crypto.randomUUID(), name: '', value: '', unit: '', range: '', flag: '', mapTo: '' })
 
-const RECENTLY: [Recently, string][] = [
-  ['illness', 'Illness or infection'],
-  ['hard-exercise', 'Hard exercise'],
-  ['alcohol', 'Alcohol'],
-  ['poor-sleep', 'Poor sleep'],
+const RECENTLY: { value: Recently; label: string }[] = [
+  { value: 'illness', label: 'Illness or infection' },
+  { value: 'hard-exercise', label: 'Hard exercise' },
+  { value: 'alcohol', label: 'Alcohol' },
+  { value: 'poor-sleep', label: 'Poor sleep' },
 ]
 
 const KEEP = '' // keep the row as printed, unmapped
@@ -48,11 +49,11 @@ export function ReportForm() {
     if (store) void store.list<Alias>('aliases').then(setAliases)
   }, [store])
 
-  if (!store) return <Navigate to="/" replace />
+  if (!store) return <Navigate to="/app" replace />
   if (mode === 'demo')
     return (
       <>
-        <h1>Add a report</h1>
+        <PageHeader title="Add results" back={{ to: base, label: 'Overview' }} />
         <p>Adding reports isn't available in the demo, because nothing in the demo is saved.</p>
         <Link to={base}>Back</Link>
       </>
@@ -97,9 +98,7 @@ export function ReportForm() {
         profileId: profile.id,
         ...(u.markerId ? { markerId: u.markerId } : {}),
         nameAsPrinted: r.name.trim(),
-        ...(u.value.kind === 'number'
-          ? { value: u.value.value, ...(u.value.comparator ? { comparator: u.value.comparator } : {}) }
-          : { textValue: u.value.text }),
+        ...(u.value.kind === 'number' ? { value: u.value.value, ...(u.value.comparator ? { comparator: u.value.comparator } : {}) } : { textValue: u.value.text }),
         ...(r.unit.trim() ? { unitAsPrinted: r.unit.trim() } : {}),
         ...(r.range.trim() ? { range: u.range ?? { text: r.range.trim() } } : {}),
         ...(r.flag.trim() ? { flagAsPrinted: r.flag.trim() } : {}),
@@ -119,81 +118,65 @@ export function ReportForm() {
 
   return (
     <>
-      <p className="small">
-        <Link to={base}>← {profile.name}</Link>
-      </p>
-      <h1>Add a report</h1>
-      <form onSubmit={submit} noValidate>
-        <section className="card panel">
-          <h2 className="flush">The test</h2>
-          <div className="grid-3">
-            <Field label="Date the blood was taken" htmlFor="date">
-              <input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
-            </Field>
-            <Field label="Time (optional)" htmlFor="time">
-              <input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-            </Field>
-            <Field label="Lab (optional)" htmlFor="lab">
-              <input id="lab" value={lab} onChange={(e) => setLab(e.target.value)} />
-            </Field>
+      <PageHeader title="Add results" subtitle="Type them in as printed on the report." back={{ to: base, label: profile.name }} />
+      <form onSubmit={submit} noValidate className="form-layout">
+        <section className="card">
+          <h2 className="card-title">The test</h2>
+          <div className="input-row three">
+            <TextField label="Date the blood was taken" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+            <TextField label="Time (optional)" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+            <TextField label="Lab (optional)" value={lab} onChange={(e) => setLab(e.target.value)} />
           </div>
-          <fieldset className="choices">
-            <legend>Fasting?</legend>
-            {(['yes', 'no', 'unknown'] as const).map((f) => (
-              <label key={f} className="check">
-                <input type="radio" name="fasting" checked={fasting === f} onChange={() => setFasting(f)} />
-                <span>{f === 'yes' ? 'Yes' : f === 'no' ? 'No' : "Don't know"}</span>
-              </label>
-            ))}
-          </fieldset>
-          <Field
+          <Segmented
+            legend="Fasting?"
+            name="fasting"
+            value={fasting}
+            onChange={setFasting}
+            options={[
+              { value: 'yes', label: 'Yes' },
+              { value: 'no', label: 'No' },
+              { value: 'unknown', label: "Don't know" },
+            ]}
+          />
+          <TextAreaField
             label="Medications and supplements (optional)"
-            htmlFor="medications"
+            rows={2}
+            value={medications}
+            onChange={(e) => setMedications(e.target.value)}
             hint="Anything you were taking at the time. Sent to the AI only if you ask for a summary and confirm."
-          >
-            <textarea id="medications" rows={2} value={medications} onChange={(e) => setMedications(e.target.value)} />
-          </Field>
+          />
           {previous?.context?.medications && (
-            <button type="button" className="button secondary small-button" onClick={() => setMedications(previous.context!.medications!)}>
-              Same as last time
+            <button type="button" className="button small same-as-last" onClick={() => setMedications(previous.context!.medications!)}>
+              <Copy size={14} aria-hidden /> Same as last time
             </button>
           )}
-          <fieldset className="choices">
-            <legend>Recently (optional)</legend>
-            {RECENTLY.map(([value, label]) => (
-              <label key={value} className="check">
-                <input
-                  type="checkbox"
-                  checked={recently.includes(value)}
-                  onChange={(e) => setRecently((r) => (e.target.checked ? [...r, value] : r.filter((x) => x !== value)))}
-                />
-                <span>{label}</span>
-              </label>
-            ))}
-          </fieldset>
-          <Field label="Notes (optional)" htmlFor="notes">
-            <textarea id="notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
-          </Field>
+          <ChipGroup legend="Recently (optional)" options={RECENTLY} value={recently} onChange={setRecently} />
+          <TextAreaField label="Notes (optional)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </section>
 
-        <section className="card panel">
-          <h2 className="flush">Results, as printed</h2>
-          <Field label="Numbers on this report are written like" htmlFor="decimal">
-            <select id="decimal" value={decimal} onChange={(e) => setDecimal(e.target.value as DecimalHint)}>
-              <option value=",">5,4 (decimal comma, as in Portugal)</option>
-              <option value=".">5.4 (decimal point, as in the US)</option>
-            </select>
-          </Field>
+        <section className="card">
+          <div className="card-header">
+            <h2 className="card-title">Results</h2>
+            <label className="decimal-switch">
+              <span className="sr-only">Numbers on this report are written like</span>
+              <select aria-label="Numbers on this report are written like" value={decimal} onChange={(e) => setDecimal(e.target.value as DecimalHint)}>
+                <option value=",">5,4 (decimal comma)</option>
+                <option value=".">5.4 (decimal point)</option>
+              </select>
+            </label>
+          </div>
           <datalist id="marker-names">
             {MARKERS.map((m) => (
               <option key={m.id} value={m.name} />
             ))}
           </datalist>
-          {rows.map((r, i) => (
-            <ResultRow key={r.key} row={r} index={i} decimal={decimal} aliases={aliases ?? []} onChange={(patch) => update(r.key, patch)} onRemove={() => setRows((rs) => rs.filter((x) => x.key !== r.key))} />
-          ))}
-          <button type="button" className="button secondary small-button" onClick={() => setRows((rs) => [...rs, emptyRow()])}>
-            Add another result
+          <div className="result-rows">
+            {rows.map((r, i) => (
+              <ResultRow key={r.key} row={r} index={i} decimal={decimal} aliases={aliases ?? []} onChange={(patch) => update(r.key, patch)} onRemove={() => setRows((rs) => rs.filter((x) => x.key !== r.key))} />
+            ))}
+          </div>
+          <button type="button" className="button small" onClick={() => setRows((rs) => [...rs, emptyRow()])}>
+            <Plus size={14} aria-hidden /> Add another result
           </button>
         </section>
 
@@ -202,7 +185,14 @@ export function ReportForm() {
             {error}
           </p>
         )}
-        <button className="button primary">Save the report</button>
+        <div className="form-actions">
+          <Link className="button ghost" to={base}>
+            Cancel
+          </Link>
+          <button className="button primary large">
+            <Save size={18} aria-hidden /> Save the report
+          </button>
+        </div>
       </form>
     </>
   )
@@ -217,47 +207,38 @@ function understand(r: Row, decimal: DecimalHint, aliases: Alias[]) {
 
 function ResultRow({ row, index, decimal, aliases, onChange, onRemove }: { row: Row; index: number; decimal: DecimalHint; aliases: Alias[]; onChange: (p: Partial<Row>) => void; onRemove: () => void }) {
   const u = understand(row, decimal, aliases)
-  const id = (f: string) => `row-${row.key}-${f}`
   const marker = u.markerId ? getMarker(u.markerId) : undefined
   const unitKnown = marker && row.unit.trim() ? marker.units.some((d) => d.unit === normaliseUnit(row.unit)) : true
+  const unitsId = `units-${row.key}`
 
   return (
     <fieldset className="result-row">
       <legend className="sr-only">Result {index + 1}</legend>
       <div className="result-grid">
-        <Field label="Name" htmlFor={id('name')}>
-          <input id={id('name')} list="marker-names" value={row.name} onChange={(e) => onChange({ name: e.target.value, mapTo: '' })} autoComplete="off" />
-        </Field>
-        <Field label="Value" htmlFor={id('value')}>
-          <input id={id('value')} inputMode="decimal" value={row.value} onChange={(e) => onChange({ value: e.target.value })} autoComplete="off" />
-        </Field>
-        <Field label="Unit" htmlFor={id('unit')}>
-          <input id={id('unit')} list={marker ? id('units') : undefined} value={row.unit} onChange={(e) => onChange({ unit: e.target.value })} autoComplete="off" />
-        </Field>
-        <Field label="Range" htmlFor={id('range')}>
-          <input id={id('range')} value={row.range} onChange={(e) => onChange({ range: e.target.value })} autoComplete="off" placeholder="e.g. 70 - 110" />
-        </Field>
-        <Field label="Flag" htmlFor={id('flag')}>
-          <input id={id('flag')} value={row.flag} onChange={(e) => onChange({ flag: e.target.value })} autoComplete="off" placeholder="e.g. H" />
-        </Field>
+        <TextField label="Name" list="marker-names" value={row.name} onChange={(e) => onChange({ name: e.target.value, mapTo: '' })} autoComplete="off" />
+        <TextField label="Value" inputMode="decimal" value={row.value} onChange={(e) => onChange({ value: e.target.value })} autoComplete="off" />
+        <TextField label="Unit" list={marker ? unitsId : undefined} value={row.unit} onChange={(e) => onChange({ unit: e.target.value })} autoComplete="off" />
+        <TextField label="Range" value={row.range} onChange={(e) => onChange({ range: e.target.value })} autoComplete="off" placeholder="e.g. 70 - 110" />
+        <TextField label="Flag" value={row.flag} onChange={(e) => onChange({ flag: e.target.value })} autoComplete="off" placeholder="e.g. H" />
       </div>
       {marker && (
-        <datalist id={id('units')}>
+        <datalist id={unitsId}>
           {marker.units.map((d) => (
             <option key={d.unit} value={d.unit} />
           ))}
         </datalist>
       )}
       {row.name.trim() && (
-        <div className="row-status small" aria-live="polite">
+        <div className="row-status" aria-live="polite">
           {u.match.status === 'matched' && !row.mapTo ? (
-            <span>
-              Understood as <strong>{getMarker(u.match.markerId)?.name}</strong>
+            <span className="understood">
+              <CheckCircle2 size={15} aria-hidden /> Understood as <strong>{getMarker(u.match.markerId)?.name}</strong>
               {u.match.via === 'user' && ' (your mapping)'}
             </span>
           ) : (
-            <label>
-              {u.match.status === 'ambiguous' ? 'Which marker is this? ' : 'Not in the catalogue. Map it to: '}
+            <label className="map-to">
+              <CircleHelp size={15} aria-hidden />
+              {u.match.status === 'ambiguous' ? 'Which marker is this?' : 'Not in the catalogue. Map it to'}
               <select value={row.mapTo} onChange={(e) => onChange({ mapTo: e.target.value })}>
                 <option value={KEEP}>{u.match.status === 'ambiguous' ? 'Choose…' : 'Keep as printed'}</option>
                 {PANELS.map((p) => (
@@ -273,15 +254,14 @@ function ResultRow({ row, index, decimal, aliases, onChange, onRemove }: { row: 
             </label>
           )}
           {row.value.trim() && (
-            <span>
-              {' · '}
-              {u.value.kind === 'number' ? `value ${u.value.comparator ?? ''}${formatValue(u.value.value)}${u.value.ambiguous ? ' (check the decimal mark)' : ''}` : 'kept as text'}
+            <span className="faint">
+              {u.value.kind === 'number' ? `Value ${u.value.comparator ?? ''}${formatValue(u.value.value)}${u.value.ambiguous ? ' (check the decimal mark)' : ''}` : 'Kept as text'}
             </span>
           )}
-          {row.range.trim() && <span>{u.range ? ` · range ${u.range.low ?? '…'} to ${u.range.high ?? '…'}` : ' · range kept as printed'}</span>}
-          {!unitKnown && <span className="error"> · LabTrails doesn't know this unit for {marker?.name}; it'll be kept but can't be converted.</span>}
-          <button type="button" className="link-button" onClick={onRemove}>
-            Remove
+          {row.range.trim() && <span className="faint">{u.range ? `Range ${u.range.low ?? '…'} to ${u.range.high ?? '…'}` : 'Range kept as printed'}</span>}
+          {!unitKnown && <span className="error">LabTrails doesn't know this unit for {marker?.name}; it'll be kept but can't be converted.</span>}
+          <button type="button" className="icon-button remove-row" onClick={onRemove} aria-label={`Remove result ${index + 1}`}>
+            <X size={16} aria-hidden />
           </button>
         </div>
       )}

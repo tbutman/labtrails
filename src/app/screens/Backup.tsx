@@ -1,7 +1,8 @@
+import { Download, Upload } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { WrongPassphraseError } from '../../core'
 import { BackupError, backupFileName, exportBackup, readBackup, restoreBackup } from '../../core/backup/backup'
-import { Field } from '../components/Field'
+import { FileDrop, TextField } from '../../trails-ui/components'
 import { useSession } from '../sessionContext'
 import { APP_ID } from '../types'
 
@@ -28,16 +29,18 @@ export function ExportBackup() {
   }
 
   return (
-    <div>
-      <p>
-        A backup is one file with all your results, still encrypted. Your passphrase opens it. Keep it somewhere other than this device, such
-        as your cloud storage or email, because clearing this browser's data deletes everything here.
-      </p>
-      <p className="hint">
-        {core.lastBackupAt ? `Last backup: ${new Date(core.lastBackupAt).toLocaleDateString('en-GB', { dateStyle: 'medium' })}.` : 'No backup yet.'}
-      </p>
+    <div className="spread wrap">
+      <div>
+        <p className="muted small">
+          One file with all your results, still encrypted; your passphrase opens it. Keep it somewhere other than this device, because clearing this
+          browser's data deletes everything here.
+        </p>
+        <p className="hint">
+          {core.lastBackupAt ? `Last backup: ${new Date(core.lastBackupAt).toLocaleDateString('en-GB', { dateStyle: 'medium' })}.` : 'No backup yet.'}
+        </p>
+      </div>
       <button className="button primary" onClick={() => void download()} disabled={busy}>
-        {busy ? 'Preparing…' : 'Download a backup'}
+        <Download size={16} aria-hidden /> {busy ? 'Preparing…' : 'Download a backup'}
       </button>
     </div>
   )
@@ -74,19 +77,12 @@ export function RestoreBackup() {
 
   return (
     <form onSubmit={submit} noValidate>
-      <p>Choose a LabTrails backup file and enter the passphrase it was made with. It replaces anything already on this device.</p>
-      <Field label="Backup file" htmlFor="backup-file">
-        <input id="backup-file" type="file" accept=".json,application/json" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-      </Field>
-      <Field label="The backup's passphrase" htmlFor="backup-passphrase">
-        <input id="backup-passphrase" type="password" autoComplete="current-password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} />
-      </Field>
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
-      <button className="button secondary" disabled={busy || !passphrase}>
+      <p className="muted small">Choose a LabTrails backup and enter the passphrase it was made with. It replaces anything already on this device.</p>
+      <div className="field">
+        <FileDrop label={file ? file.name : 'Choose a backup file'} hint="A .json file from LabTrails" accept=".json,application/json" icon={Upload} onFile={setFile} />
+      </div>
+      <TextField label="The backup's passphrase" type="password" autoComplete="current-password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} error={error} />
+      <button className="button primary block" disabled={busy || !passphrase}>
         {busy ? 'Restoring…' : 'Restore'}
       </button>
     </form>

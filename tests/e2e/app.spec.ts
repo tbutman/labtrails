@@ -11,12 +11,12 @@ test('the built page carries the Content-Security-Policy', async ({ page }) => {
 
 test('the demo works without a passphrase or key', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Open the demo' }).click()
-  await expect(page.getByRole('note')).toContainText('made-up person')
+  await page.getByRole('button', { name: 'Try the demo' }).first().click()
+  await expect(page.getByText('A made-up person with made-up results')).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Sam (demo)' })).toBeVisible()
-  await expect(page.getByText("Outside the lab's range (above)").first()).toBeVisible()
+  await expect(page.getByText('Above lab range').first()).toBeVisible()
 
-  await page.getByRole('link', { name: /^Glucose/ }).click()
+  await page.getByRole('link', { name: /^Glucose/ }).first().click()
   await expect(page.getByRole('img', { name: /Glucose in mg\/dL: 6 results/ })).toBeVisible()
   await page.getByLabel('Show in').selectOption('mmol/L')
   await expect(page.getByRole('img', { name: /Glucose in mmol\/L/ })).toBeVisible()
@@ -24,17 +24,17 @@ test('the demo works without a passphrase or key', async ({ page }) => {
   await page.getByRole('link', { name: 'Summaries' }).click()
   await expect(page.getByText(/pre-written example/).first()).toBeVisible()
 
-  await page.getByRole('link', { name: 'For your doctor' }).click()
+  await page.getByRole('link', { name: 'Doctor' }).click()
   await expect(page.getByRole('img', { name: 'Lab results report for Sam (demo)' })).toBeVisible()
   await page.getByLabel('Show initials instead of the name').check()
   await expect(page.getByRole('img', { name: 'Lab results report for S. (.' })).toBeVisible()
 
-  await page.getByRole('button', { name: 'Leave the demo' }).click()
-  await expect(page.getByRole('heading', { name: 'Set up your vault' })).toBeVisible()
+  await page.getByRole('button', { name: 'Leave demo' }).click()
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Every blood test')
 })
 
 test('a vault: create, add a person and a report, lock, unlock', async ({ page }) => {
-  await page.goto('/')
+  await page.goto('/app')
   await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
   await page.getByLabel('Passphrase again').fill(PASS)
   await page.getByRole('button', { name: 'Create the vault' }).click()
@@ -47,7 +47,7 @@ test('a vault: create, add a person and a report, lock, unlock', async ({ page }
   await page.getByRole('button', { name: 'Add' }).click()
   await expect(page.getByRole('heading', { name: 'Alex Example' })).toBeVisible()
 
-  await page.getByRole('link', { name: 'Add a report' }).click()
+  await page.getByRole('link', { name: 'Add results' }).click()
   await page.getByLabel('Date the blood was taken').fill('2026-09-30')
   await page.getByLabel('Yes').check()
   const names = page.getByLabel('Name', { exact: true })
@@ -64,8 +64,8 @@ test('a vault: create, add a person and a report, lock, unlock', async ({ page }
   await units.nth(1).fill('mg/dL')
   await ranges.nth(1).fill('> 40')
   await page.getByRole('button', { name: 'Save the report' }).click()
-  await expect(page.getByText("Outside the lab's range (above)")).toBeVisible()
-  await expect(page.getByText('52.5')).toBeVisible()
+  await expect(page.getByText('Above lab range').first()).toBeVisible()
+  await expect(page.getByText('52.5').first()).toBeVisible()
 
   // Locking hides everything; a wrong passphrase doesn't open it.
   await page.getByRole('button', { name: 'Lock' }).click()
@@ -102,7 +102,7 @@ test('a vault: create, add a person and a report, lock, unlock', async ({ page }
 
 test('the app is installable: manifest, icons and a service worker', async ({ page, request }) => {
   const manifest = await (await request.get('/manifest.webmanifest')).json()
-  expect(manifest).toMatchObject({ name: 'LabTrails', display: 'standalone', start_url: '/' })
+  expect(manifest).toMatchObject({ name: 'LabTrails', display: 'standalone', start_url: '/app' })
   for (const icon of manifest.icons) expect((await request.get(icon.src)).ok()).toBe(true)
   await page.goto('/')
   const registered = await page.evaluate(async () => !!(await navigator.serviceWorker.ready.then((r) => r.active)))
@@ -117,8 +117,8 @@ test('the app reloads offline once visited', async ({ page, context }) => {
   await page.reload()
   await context.setOffline(true)
   await page.reload()
-  await expect(page.getByRole('button', { name: 'Open the demo' })).toBeVisible()
-  await page.getByRole('button', { name: 'Open the demo' }).click()
+  await expect(page.getByRole('button', { name: 'Try the demo' }).first()).toBeVisible()
+  await page.getByRole('button', { name: 'Try the demo' }).first().click()
   await expect(page.getByRole('heading', { name: 'Sam (demo)' })).toBeVisible()
   await context.setOffline(false)
 })

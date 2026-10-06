@@ -11,5 +11,5 @@ export function useProfileData(): ProfileData {
 
 /** The URL prefix for the current person's screens. */
 export function useBase(): string {
-  return `/p/${useProfileData().profile.id}`
+  return `/app/p/${useProfileData().profile.id}`
 }
