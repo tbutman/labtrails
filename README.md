@@ -9,6 +9,10 @@ are encrypted and stay in your own browser. Website: [labtrails.app](https://lab
 up).
 
 <p>
+  <img src="docs/screenshots/landing.png" width="720" alt="The LabTrails landing page: every blood test, one clear timeline">
+</p>
+
+<p>
   <img src="docs/screenshots/overview.png" width="240" alt="The overview: each marker's latest value, the lab's range and its flags">
   <img src="docs/screenshots/marker.png" width="240" alt="Glucose over three years, each result drawn against its own lab's range, the latest outside it">
   <img src="docs/screenshots/marker-dark.png" width="240" alt="Ferritin falling over six results, in the dark theme">
@@ -77,7 +81,7 @@ sees, a malicious version of the app), read the [threat model](THREAT_MODEL.md).
 
 ## Getting started
 
-1. Open [labtrails.app](https://labtrails.app) and try the **demo**: a made-up person with three years of
+1. Open [labtrails.app](https://labtrails.app) and choose **Try the demo**: a made-up person with three years of
    results. No passphrase or key needed.
 2. To keep your own results, **set up a vault** with a passphrase. Four or more random words work well.
 3. **Add a person**, then a report: type the results in as printed, or read a report with AI.
