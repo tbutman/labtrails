@@ -1,53 +1,56 @@
+// The app's start (/app): set up a vault, unlock it, or pick a person. The landing page is at /.
+
+import { ArchiveRestore, ChevronRight, KeyRound, Plus, ShieldCheck, Users } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { MIN_PASSPHRASE_LENGTH, WeakPassphraseError, WrongPassphraseError } from '../../core'
 import type { Profile } from '../../labs/types'
-import { DEMO_PROFILE } from '../demo'
-import { Field } from '../components/Field'
+import { AppIcon, Callout, Checkbox, EmptyState, PageHeader, TextField } from '../../trails-ui/components'
+import { APP } from '../brand'
 import { InstallHint } from '../components/InstallHint'
 import { Shell } from '../components/Layout'
+import { DEMO_PROFILE } from '../demo'
 import { useSession } from '../sessionContext'
 import { RestoreBackup } from './Backup'
 
 export function Home() {
   const { mode } = useSession()
-  if (mode === 'loading') return <Shell>{<p className="muted">Loading…</p>}</Shell>
-  if (mode === 'demo') return <Navigate to={`/p/${DEMO_PROFILE.id}`} replace />
+  if (mode === 'loading') return <Shell narrow>{<div className="skeleton loading-card" />}</Shell>
+  if (mode === 'demo') return <Navigate to={`${APP}/p/${DEMO_PROFILE.id}`} replace />
   if (mode === 'unlocked') return <Profiles />
-  return <Welcome />
+  return <Auth />
 }
 
-function Welcome() {
+function Auth() {
   const { mode, startDemo } = useSession()
   const navigate = useNavigate()
+  const [restoring, setRestoring] = useState(false)
   return (
     <Shell>
-      <h1>Your blood test results, private and in one place</h1>
-      <p>
-        Keep your lab reports together, see each marker over time against the lab's own range, and spot what's outside the range or has
-        changed, to discuss with your doctor.
-      </p>
-      <div className="grid-2">
-        <section className="card">{mode === 'locked' ? <Unlock /> : <CreateVault />}</section>
-        <section className="card">
-          <h2 className="flush">Try the demo</h2>
-          <p>Three years of made-up results from two made-up labs, one in the US and one in Portugal. No passphrase, no API key.</p>
-          <button
-            className="button secondary"
-            onClick={async () => {
-              await startDemo()
-              navigate(`/p/${DEMO_PROFILE.id}`)
-            }}
-          >
-            Open the demo
-          </button>
-        </section>
+      <div className="auth">
+        <div className="auth-card">
+          <div className="auth-head">
+            <AppIcon />
+            <h1>{mode === 'locked' ? 'Welcome back' : 'Set up your vault'}</h1>
+            <p>{mode === 'locked' ? 'Unlock to see your results.' : 'Your results are encrypted with a passphrase and stay in this browser.'}</p>
+          </div>
+          <div className="card">{restoring ? <RestoreBackup /> : mode === 'locked' ? <Unlock /> : <CreateVault />}</div>
+          <div className="auth-links">
+            <button className="link-button" onClick={() => setRestoring((r) => !r)}>
+              {restoring ? 'Back' : 'Restore from a backup'}
+            </button>
+            <button
+              className="link-button"
+              onClick={async () => {
+                await startDemo()
+                navigate(`${APP}/p/${DEMO_PROFILE.id}`)
+              }}
+            >
+              Try the demo instead
+            </button>
+          </div>
+        </div>
       </div>
-      <About />
-      <details className="card panel">
-        <summary>Restore from a backup</summary>
-        <RestoreBackup />
-      </details>
     </Shell>
   )
 }
@@ -78,31 +81,27 @@ function CreateVault() {
 
   return (
     <form onSubmit={submit} noValidate>
-      <h2 className="flush">Set up your vault</h2>
-      <p className="small">Your results are encrypted with a passphrase and stored only in this browser.</p>
-      <Field label="Passphrase" htmlFor="passphrase" hint="At least 12 characters. Four or more random words are easy to type and hard to guess.">
-        <input id="passphrase" type="password" autoComplete="new-password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} aria-describedby="passphrase-hint" />
-      </Field>
-      <Field label="Passphrase again" htmlFor="passphrase-again">
-        <input id="passphrase-again" type="password" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} />
-      </Field>
-      <label className="check">
-        <input type="checkbox" checked={understood} onChange={(e) => setUnderstood(e.target.checked)} />
-        <span>
-          <strong>There's no way to reset it.</strong> If I forget it, my results can't be recovered, so I'll keep a backup.
-        </span>
-      </label>
+      <TextField
+        label="Passphrase"
+        type="password"
+        autoComplete="new-password"
+        value={passphrase}
+        onChange={(e) => setPassphrase(e.target.value)}
+        hint="At least 12 characters. Four or more random words are easy to type and hard to guess."
+      />
+      <TextField label="Passphrase again" type="password" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} />
+      <Checkbox checked={understood} onChange={setUnderstood}>
+        <strong>There's no way to reset it.</strong> If I forget it, my results can't be recovered, so I'll keep a backup.
+      </Checkbox>
       {error && (
-        <p className="error" role="alert">
+        <p className="error form-error" role="alert">
           {error}
         </p>
       )}
-      <button className="button primary" disabled={busy}>
-        {busy ? 'Setting up…' : 'Create the vault'}
+      <button className="button primary block large" disabled={busy}>
+        <ShieldCheck size={18} aria-hidden /> {busy ? 'Setting up…' : 'Create the vault'}
       </button>
-      <p className="disclaimer">
-        LabTrails records and charts results; it doesn't diagnose anything or give medical advice. Discuss your results with your doctor.
-      </p>
+      <p className="hint form-footnote">LabTrails records and charts results; it doesn't diagnose anything or give medical advice.</p>
     </form>
   )
 }
@@ -128,12 +127,9 @@ function Unlock() {
 
   return (
     <form onSubmit={submit} noValidate>
-      <h2 className="flush">Unlock</h2>
-      <Field label="Passphrase" htmlFor="unlock-passphrase" error={error}>
-        <input id="unlock-passphrase" type="password" autoComplete="current-password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} autoFocus />
-      </Field>
-      <button className="button primary" disabled={busy || !passphrase}>
-        {busy ? 'Unlocking…' : 'Unlock'}
+      <TextField label="Passphrase" type="password" autoComplete="current-password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} error={error} autoFocus />
+      <button className="button primary block large" disabled={busy || !passphrase}>
+        <KeyRound size={18} aria-hidden /> {busy ? 'Unlocking…' : 'Unlock'}
       </button>
     </form>
   )
@@ -152,60 +148,56 @@ function Profiles() {
 
   return (
     <Shell>
-      <h1>People</h1>
+      <PageHeader
+        title="People"
+        subtitle="Whose results this vault keeps."
+        actions={
+          profiles && profiles.length > 0 ? (
+            <Link className="button primary" to={`${APP}/profiles/new`}>
+              <Plus size={16} aria-hidden /> Add a person
+            </Link>
+          ) : undefined
+        }
+      />
       <InstallHint />
       {nudge && (
-        <p className="banner" role="status">
-          You have changes that aren't in a backup. Clearing this browser's data would delete them. <Link to="/settings">Download a backup</Link>
-        </p>
+        <Callout icon={ArchiveRestore} tone="warning">
+          You have changes that aren't in a backup. Clearing this browser's data would delete them. <Link to={`${APP}/settings`}>Download a backup</Link>
+        </Callout>
       )}
       {profiles === null ? (
-        <p className="muted">Loading…</p>
+        <div className="skeleton loading-card" />
       ) : profiles.length === 0 ? (
-        <p>Add the first person whose results you want to keep: probably you.</p>
+        <EmptyState
+          icon={Users}
+          title="Add the first person"
+          action={
+            <Link className="button primary" to={`${APP}/profiles/new`}>
+              <Plus size={16} aria-hidden /> Add a person
+            </Link>
+          }
+        >
+          Probably you. You can add others later, such as a partner, with their agreement.
+        </EmptyState>
       ) : (
-        <ul className="marker-list card">
-          {profiles.map((p) => (
-            <li key={p.id}>
-              <Link className="marker-row" to={`/p/${p.id}`}>
-                <span className="marker-name">{p.name}</span>
-                <span className="marker-value muted">Open</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="card padless">
+          <ul className="list">
+            {profiles.map((p) => (
+              <li key={p.id}>
+                <Link className="list-row" to={`${APP}/p/${p.id}`}>
+                  <span className="avatar" aria-hidden="true">
+                    {p.name.slice(0, 1).toUpperCase()}
+                  </span>
+                  <span className="list-row-main">
+                    <span className="list-row-title">{p.name}</span>
+                  </span>
+                  <ChevronRight size={18} className="faint" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
-      <p>
-        <Link className="button primary" to="/profiles/new">
-          Add a person
-        </Link>
-      </p>
-      <About />
     </Shell>
-  )
-}
-
-function About() {
-  return (
-    <>
-      <h2>How it works</h2>
-      <ul>
-        <li>
-          <strong>Your results stay on your device</strong>, encrypted in your browser. There are no accounts and no server database. One vault
-          per device for now: to move your results, use a backup.
-        </li>
-        <li>
-          <strong>AI is optional and uses your own key.</strong> If you ask it to read a report or write a summary, your browser sends that
-          request straight to the AI provider.
-        </li>
-        <li>
-          <strong>The code flags; the AI explains; you confirm.</strong> What's outside a range or has changed is decided by simple, published
-          rules. <Link to="/how-flags-work">How flags work</Link>
-        </li>
-        <li>
-          <strong>Not medical advice.</strong> LabTrails records and charts results. It doesn't diagnose anything; that's your doctor's job.
-        </li>
-      </ul>
-    </>
   )
 }

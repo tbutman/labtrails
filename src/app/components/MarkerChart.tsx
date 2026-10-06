@@ -144,29 +144,28 @@ function ChartSvg({ points, unit, label, contextDates = [], W }: ChartProps & { 
 
 export function ResultsList({ points, unit }: { points: SeriesPoint[]; unit: string }) {
   return (
-    <ul className="marker-list">
-      {[...points].reverse().map((p) => {
-        const f = rangeFlag(p)
-        return (
-          <li key={p.resultId} className="marker-row static">
-            <span>
-              {formatDate(p.date)}
-              {p.convertedFrom && <span className="muted small"> · converted from {p.convertedFrom}</span>}
-            </span>
-            <span className="marker-value">
-              <strong>{formatPoint(p)}</strong> {unit}
-            </span>
-            <span className="marker-meta muted small">
-              Lab's range {formatRange(p.range)}
-              {f && (
-                <span className="flag range">
-                  ! Outside the lab's range ({f.side}){f.labDisagrees ? '; the lab printed a different flag' : ''}
+    <div className="card padless">
+      <ul className="list">
+        {[...points].reverse().map((p) => {
+          const f = rangeFlag(p)
+          return (
+            <li key={p.resultId} className="list-row">
+              <span className="list-row-main">
+                <span className="list-row-title">{formatDate(p.date)}</span>
+                <span className="list-row-sub">
+                  Lab's range {formatRange(p.range)}
+                  {p.convertedFrom && ` · converted from ${p.convertedFrom}`}
+                  {f?.labDisagrees && ' · the lab printed a different flag'}
                 </span>
-              )}
-            </span>
-          </li>
-        )
-      })}
-    </ul>
+              </span>
+              {f && <span className="chip flag">! {f.side === 'above' ? 'Above' : 'Below'}</span>}
+              <span className="result-value">
+                {formatPoint(p)} <span className="unit">{unit}</span>
+              </span>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }

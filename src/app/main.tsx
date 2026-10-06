@@ -1,18 +1,17 @@
-import '@fontsource/quicksand/600.css'
-import '@fontsource/quicksand/700.css'
-import '../core/ui/tokens.css'
-import '../core/ui/components.css'
+import '../trails-ui/tokens.css'
+import '../trails-ui/components.css'
 import './styles/accent.css'
 import './styles/app.css'
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router'
-import { ProfileLayout, Root } from './components/Layout'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router'
+import { LegacyProfile, ProfileLayout, Root } from './components/Layout'
 import { SessionProvider } from './session'
-import { Home } from './screens/Home'
 import { DoctorReport } from './screens/DoctorReport'
+import { Home } from './screens/Home'
 import { HowFlagsWork } from './screens/HowFlagsWork'
+import { Landing } from './screens/Landing'
 import { MarkerDetail } from './screens/MarkerDetail'
 import { Overview } from './screens/Overview'
 import { ProfileForm } from './screens/ProfileForm'
@@ -27,25 +26,28 @@ const router = createBrowserRouter([
   {
     element: <Root />,
     children: [
-  { path: '/', element: <Home /> },
-  { path: '/how-flags-work', element: <HowFlagsWork /> },
-  { path: '/settings', element: <Settings /> },
-  { path: '/profiles/new', element: <ProfileForm /> },
-  {
-    path: '/p/:profileId',
-    element: <ProfileLayout />,
-    children: [
-      { index: true, element: <Overview /> },
-      { path: 'marker/:id', element: <MarkerDetail /> },
-      { path: 'table', element: <TableView /> },
-      { path: 'reports', element: <Reports /> },
-      { path: 'reports/new', element: <ReportForm /> },
-      { path: 'reports/read', element: <ReadReport /> },
-      { path: 'summaries', element: <Summaries /> },
-      { path: 'doctor', element: <DoctorReport /> },
-    ],
-  },
-  { path: '*', element: <Home /> },
+      { path: '/', element: <Landing /> },
+      { path: '/how-flags-work', element: <HowFlagsWork /> },
+      { path: '/app', element: <Home /> },
+      { path: '/app/settings', element: <Settings /> },
+      { path: '/app/profiles/new', element: <ProfileForm /> },
+      {
+        path: '/app/p/:profileId',
+        element: <ProfileLayout />,
+        children: [
+          { index: true, element: <Overview /> },
+          { path: 'marker/:id', element: <MarkerDetail /> },
+          { path: 'table', element: <TableView /> },
+          { path: 'reports', element: <Reports /> },
+          { path: 'reports/new', element: <ReportForm /> },
+          { path: 'reports/read', element: <ReadReport /> },
+          { path: 'summaries', element: <Summaries /> },
+          { path: 'doctor', element: <DoctorReport /> },
+        ],
+      },
+      { path: '/p/:profileId/*', element: <LegacyProfile /> },
+      { path: '/settings', element: <Navigate to="/app/settings" replace /> },
+      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
 ])

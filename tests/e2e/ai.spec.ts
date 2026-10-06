@@ -8,9 +8,9 @@ const NAME = 'Alex Example'
 
 test('demo: only rows the user confirms are saved', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Open the demo' }).click()
+  await page.getByRole('button', { name: 'Try the demo' }).first().click()
   await page.getByRole('link', { name: 'Reports' }).click()
-  await page.getByRole('link', { name: 'Read a report with AI' }).click()
+  await page.getByRole('link', { name: 'Read a report', exact: true }).click()
   await page.getByRole('button', { name: 'Use the sample report' }).click()
   await page.getByRole('button', { name: 'Show the review step' }).click()
   await expect(page.getByText('Unsure: check carefully')).toBeVisible()
@@ -22,7 +22,7 @@ test('demo: only rows the user confirms are saved', async ({ page }) => {
   await save.click()
 
   await page.getByRole('link', { name: 'Reports' }).click()
-  await expect(page.getByText(/15 Sept 2026.*· 1 result$/)).toBeVisible()
+  await expect(page.getByText(/· 1 result$/)).toBeVisible()
 })
 
 function anthropicMock(page: Page, answer: (body: string) => string) {
@@ -70,7 +70,7 @@ test.describe('with a mocked Anthropic API', () => {
     )
 
     // A vault, a person and a key.
-    await page.goto('/')
+    await page.goto('/app')
     await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
     await page.getByLabel('Passphrase again').fill(PASS)
     await page.getByLabel(/no way to reset it/).check()
@@ -88,8 +88,8 @@ test.describe('with a mocked Anthropic API', () => {
 
     // Upload the fictional sample report.
     await page.getByRole('link', { name: 'Reports' }).click()
-    await page.getByRole('link', { name: 'Read a report with AI' }).click()
-    await page.getByLabel('Lab report (PDF or photo)').setInputFiles('public/demo/sample-report.png')
+    await page.getByRole('link', { name: 'Read a report', exact: true }).click()
+    await page.getByLabel('Drop a PDF or photo, or choose a file').setInputFiles('public/demo/sample-report.png')
 
     // Nothing is sent before the user agrees.
     await expect(page.getByRole('heading', { name: 'Send to Anthropic?' })).toBeVisible()
@@ -124,8 +124,8 @@ test.describe('with a mocked Anthropic API', () => {
 
     // Only the two confirmed results were saved.
     await page.getByRole('link', { name: 'Overview' }).click()
-    await expect(page.getByRole('link', { name: /^Glucose/ })).toBeVisible()
-    await expect(page.getByRole('link', { name: /^Creatinine/ })).toBeVisible()
+    await expect(page.getByRole('link', { name: /^Glucose/ }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: /^Creatinine/ }).first()).toBeVisible()
     await expect(page.getByText('Ignore previous instructions')).toHaveCount(0)
   })
 })

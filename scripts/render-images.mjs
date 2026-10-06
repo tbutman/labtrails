@@ -13,8 +13,8 @@ import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const out = (p) => join(root, 'public', p)
-const quicksand = readFileSync(join(root, 'node_modules/@fontsource/quicksand/files/quicksand-latin-700-normal.woff2')).toString('base64')
-const fontFace = `@font-face{font-family:Q;src:url(data:font/woff2;base64,${quicksand}) format('woff2')}`
+const inter = readFileSync(join(root, 'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2')).toString('base64')
+const fontFace = `@font-face{font-family:Q;font-weight:100 900;src:url(data:font/woff2;base64,${inter}) format('woff2')}`
 const page0 = (body, css = '') => `<!doctype html><html><head><meta charset="utf-8"><style>${fontFace}html,body{margin:0;background:transparent}svg{display:block}${css}</style></head><body>${body}</body></html>`
 
 // The trail mark: three teal dots rising on ink. Maskable icons keep the mark inside the safe zone.
@@ -45,13 +45,13 @@ ${pts.map((v, i) => (i === 5 ? `<circle cx="${x(i)}" cy="${y(v)}" r="13" fill="#
   return page0(
     `<main><div>
 <div class="w"><svg width="70" height="50" viewBox="0 0 28 20"><path d="M4 15 C 9 14, 12 10, 14 9 S 20 5, 24 4" fill="none" stroke="#7FD8C5" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="15" r="3" fill="#4FC6AE"/><circle cx="14" cy="9" r="3" fill="#4FC6AE"/><circle cx="24" cy="4" r="3" fill="#4FC6AE"/></svg><div>lab<span>trails</span></div></div>
-<h1>Your blood test results, private and in one place</h1>
+<h1>Every blood test, one clear timeline.</h1>
 <p>Each marker over time, against each lab's own range. Encrypted on your device. Free and open source.</p>
 </div>${chart}</main>`,
     `main{width:1200px;height:630px;background:#12162B;color:#F1EFE6;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:space-between;padding:0 80px;box-sizing:border-box}
-.w{font-family:Q,system-ui;font-size:64px;font-weight:700;display:flex;align-items:center;gap:20px}.w span{color:#7FD8C5}
-h1{font-family:Q,system-ui;font-size:48px;line-height:1.15;margin:36px 0 18px;max-width:580px}
-p{font-size:24px;color:#A9ACC2;margin:0;max-width:560px;line-height:1.4}`,
+.w{font-family:Q,system-ui;font-size:60px;font-weight:650;letter-spacing:-.03em;display:flex;align-items:center;gap:20px}.w span{color:#7FD8C5}
+h1{font-family:Q,system-ui;font-size:50px;font-weight:750;letter-spacing:-.035em;line-height:1.06;margin:36px 0 18px;max-width:580px}
+p{font-family:Q,system-ui;font-size:24px;color:#A9ACC2;margin:0;max-width:560px;line-height:1.4}`,
   )
 }
 

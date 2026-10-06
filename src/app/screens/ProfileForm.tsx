@@ -1,7 +1,9 @@
+import { UserPlus } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router'
 import type { Profile } from '../../labs/types'
-import { Field } from '../components/Field'
+import { Callout, PageHeader, Segmented, TextField } from '../../trails-ui/components'
+import { APP } from '../brand'
 import { Shell } from '../components/Layout'
 import { useSession } from '../sessionContext'
 
@@ -12,7 +14,7 @@ export function ProfileForm() {
   const [sex, setSex] = useState<'' | 'female' | 'male'>('')
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [error, setError] = useState('')
-  if (!store || mode === 'demo') return <Navigate to="/" replace />
+  if (!store || mode === 'demo') return <Navigate to={APP} replace />
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -27,28 +29,37 @@ export function ProfileForm() {
     }
     await store.put('profiles', profile)
     changed()
-    navigate(`/p/${profile.id}`)
+    navigate(`${APP}/p/${profile.id}`)
   }
 
   return (
-    <Shell>
-      <h1>Add a person</h1>
+    <Shell narrow>
+      <PageHeader title="Add a person" back={{ to: APP, label: 'People' }} />
       <form className="card" onSubmit={submit} noValidate>
-        <Field label="Name or nickname" htmlFor="name" error={error}>
-          <input id="name" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" />
-        </Field>
-        <Field label="Sex (optional)" htmlFor="sex" hint="Some labs print different ranges by sex. LabTrails always uses the range printed on the report.">
-          <select id="sex" value={sex} onChange={(e) => setSex(e.target.value as typeof sex)}>
-            <option value="">Not set</option>
-            <option value="female">Female</option>
-            <option value="male">Male</option>
-          </select>
-        </Field>
-        <Field label="Date of birth (optional)" htmlFor="dob" hint="Used only to give an age to the AI if you ask for a summary. The date itself is never sent.">
-          <input id="dob" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
-        </Field>
-        <p className="hint">If these are someone else's results, make sure they're happy for you to keep them here, and to send them to the AI if you use it.</p>
-        <button className="button primary">Add</button>
+        <TextField label="Name or nickname" value={name} onChange={(e) => setName(e.target.value)} autoComplete="off" error={error} />
+        <Segmented
+          legend="Sex (optional)"
+          name="sex"
+          value={sex}
+          onChange={setSex}
+          options={[
+            { value: '', label: 'Not set' },
+            { value: 'female', label: 'Female' },
+            { value: 'male', label: 'Male' },
+          ]}
+          hint="Some labs print different ranges by sex. LabTrails always uses the range printed on the report."
+        />
+        <TextField
+          label="Date of birth (optional)"
+          type="date"
+          value={dateOfBirth}
+          onChange={(e) => setDateOfBirth(e.target.value)}
+          hint="Used only to give an age to the AI if you ask for a summary. The date itself is never sent."
+        />
+        <Callout>If these are someone else's results, make sure they're happy for you to keep them here, and to send them to the AI if you use it.</Callout>
+        <button className="button primary large">
+          <UserPlus size={18} aria-hidden /> Add
+        </button>
       </form>
     </Shell>
   )

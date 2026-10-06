@@ -1,8 +1,10 @@
+import { FilePlus2, FileSearch, ScanText, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import type { DocumentRecord, RecordStore } from '../../core'
 import { DocumentViewer } from '../../core/documents/DocumentViewer'
 import type { Result } from '../../labs/types'
+import { Chip, EmptyState, PageHeader } from '../../trails-ui/components'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 import { formatDate, plural } from '../format'
@@ -24,74 +26,89 @@ export function Reports() {
     changed()
   }
 
+  const actions = (
+    <>
+      <Link className="button primary" to={`${base}/reports/read`}>
+        <ScanText size={16} aria-hidden /> Read a report
+      </Link>
+      {mode === 'unlocked' && (
+        <Link className="button" to={`${base}/reports/new`}>
+          <FilePlus2 size={16} aria-hidden /> Enter by hand
+        </Link>
+      )}
+    </>
+  )
+
   return (
     <>
-      <h1>Reports</h1>
-      <p className="row">
-        <Link className="button primary" to={`${base}/reports/read`}>
-          Read a report with AI
-        </Link>
-        {mode === 'unlocked' && (
-          <Link className="button" to={`${base}/reports/new`}>
-            Enter one by hand
-          </Link>
-        )}
-      </p>
-      {sorted.length === 0 && <p className="muted">No reports yet.</p>}
+      <PageHeader title="Reports" subtitle="Each test, with its results exactly as printed." actions={actions} />
+      {sorted.length === 0 && (
+        <EmptyState icon={FileSearch} title="No reports yet">
+          Read a lab report with AI, or enter the results by hand.
+        </EmptyState>
+      )}
       {sorted.map((r) => {
         const rows = results.filter((x) => x.reportId === r.id)
         return (
-          <details key={r.id} className="card panel">
+          <details key={r.id} className="disclosure">
             <summary>
-              <strong>{formatDate(r.date)}</strong>
-              {r.time && <span className="muted"> at {r.time}</span>}{r.lab ? ` · ${r.lab}` : ''} · {plural(rows.length, 'result')}
+              <span className="report-summary">
+                <span>{formatDate(r.date)}</span>
+                <span className="faint report-meta">
+                  {[r.time, r.lab, plural(rows.length, 'result')].filter(Boolean).join(' · ')}
+                </span>
+              </span>
             </summary>
-            {r.context && (
-              <ul className="context-list" aria-label="Test context">
-                {r.context.fasting && <li className="flag neutral">{FASTING[r.context.fasting]}</li>}
-                {r.context.recently?.map((x) => (
-                  <li key={x} className="flag neutral">
-                    {RECENTLY[x]}
-                  </li>
-                ))}
-                {r.context.medications && <li className="flag neutral">Medications: {r.context.medications}</li>}
-              </ul>
-            )}
-            {r.context?.notes && <p className="small">Notes: {r.context.notes}</p>}
-            {r.documentId && store && <Original store={store} documentId={r.documentId} />}
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th scope="col">As printed</th>
-                    <th scope="col">Value</th>
-                    <th scope="col">Unit</th>
-                    <th scope="col">Range as printed</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((x) => (
-                    <tr key={x.id}>
-                      <th scope="row">
-                        {x.nameAsPrinted}
-                        {!x.markerId && <span className="muted small"> (not mapped)</span>}
-                      </th>
-                      <td>
-                        {x.comparator ?? ''}
-                        {x.value ?? x.textValue}
-                      </td>
-                      <td>{x.unitAsPrinted}</td>
-                      <td>{x.range?.text}</td>
-                    </tr>
+            <div className="disclosure-body">
+              {r.context && (
+                <div className="chip-group report-context" aria-label="Test context">
+                  {r.context.fasting && <Chip tone="outline">{FASTING[r.context.fasting]}</Chip>}
+                  {r.context.recently?.map((x) => (
+                    <Chip key={x} tone="outline">
+                      {RECENTLY[x]}
+                    </Chip>
                   ))}
-                </tbody>
-              </table>
+                  {r.context.medications && <Chip tone="outline">Medications: {r.context.medications}</Chip>}
+                </div>
+              )}
+              {r.context?.notes && <p className="small muted">Notes: {r.context.notes}</p>}
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">As printed</th>
+                      <th scope="col">Value</th>
+                      <th scope="col">Unit</th>
+                      <th scope="col">Range as printed</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((x) => (
+                      <tr key={x.id}>
+                        <th scope="row">
+                          {x.nameAsPrinted}
+                          {!x.markerId && <span className="faint"> · not mapped</span>}
+                        </th>
+                        <td>
+                          {x.comparator ?? ''}
+                          {x.value ?? x.textValue}
+                        </td>
+                        <td>{x.unitAsPrinted}</td>
+                        <td>{x.range?.text}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="row report-actions">
+                {r.documentId && store && <Original store={store} documentId={r.documentId} />}
+                {mode === 'unlocked' && (
+                  <button className="button small ghost danger" onClick={() => void remove(r.id, formatDate(r.date))}>
+                    <Trash2 size={14} aria-hidden /> Delete report
+                  </button>
+                )}
+              </div>
             </div>
-            {mode === 'unlocked' && (
-              <button className="link-button danger" onClick={() => void remove(r.id, formatDate(r.date))}>
-                Delete this report
-              </button>
-            )}
           </details>
         )
       })}
@@ -107,7 +124,7 @@ function Original({ store, documentId }: { store: RecordStore; documentId: strin
   }, [store, documentId])
   if (!doc) return null
   return (
-    <div className="panel">
+    <div className="original">
       <button className="button small" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
         {open ? 'Hide the original report' : 'Show the original report'}
       </button>
