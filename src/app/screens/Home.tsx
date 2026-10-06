@@ -4,6 +4,7 @@ import { MIN_PASSPHRASE_LENGTH, WeakPassphraseError, WrongPassphraseError } from
 import type { Profile } from '../../labs/types'
 import { DEMO_PROFILE } from '../demo'
 import { Field } from '../components/Field'
+import { InstallHint } from '../components/InstallHint'
 import { Shell } from '../components/Layout'
 import { useSession } from '../sessionContext'
 import { RestoreBackup } from './Backup'
@@ -152,6 +153,7 @@ function Profiles() {
   return (
     <Shell>
       <h1>People</h1>
+      <InstallHint />
       {nudge && (
         <p className="banner" role="status">
           You have changes that aren't in a backup. Clearing this browser's data would delete them. <Link to="/settings">Download a backup</Link>

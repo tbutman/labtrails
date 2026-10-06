@@ -94,3 +94,12 @@ test('a vault: create, add a person and a report, lock, unlock', async ({ page }
   expect(raw).not.toContain('Glicose')
   expect(raw).not.toContain('2026-09-30')
 })
+
+test('the app is installable: manifest, icons and a service worker', async ({ page, request }) => {
+  const manifest = await (await request.get('/manifest.webmanifest')).json()
+  expect(manifest).toMatchObject({ name: 'LabTrails', display: 'standalone', start_url: '/' })
+  for (const icon of manifest.icons) expect((await request.get(icon.src)).ok()).toBe(true)
+  await page.goto('/')
+  const registered = await page.evaluate(async () => !!(await navigator.serviceWorker.ready.then((r) => r.active)))
+  expect(registered).toBe(true)
+})
