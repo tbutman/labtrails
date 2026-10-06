@@ -1,4 +1,4 @@
-// LabTrails' plug-in for the shared import (src/trails-import): how a lab report is read, what counts
+// LabTrails' plug-in for the shared import (src/core/import): how a lab report is read, what counts
 // as already saved, and what saving creates.
 
 import type { RecordStore } from '../../core'
@@ -9,8 +9,8 @@ import { alreadySavedRows, parseFasting, similarReport } from '../../labs/extrac
 import { extractionPrompt, recordsFromConfirmed, toProposedRows, type ConfirmedResultRow, type ProposedResultRow } from '../../labs/extraction/proposals'
 import { EXTRACTION_SCHEMA, validateExtraction, type Extraction } from '../../labs/extraction/schema'
 import type { Alias, Report, Result } from '../../labs/types'
-import type { ImportAdapter } from '../../trails-import/adapter'
-import type { StoredDoc } from '../../trails-import/duplicates'
+import type { ImportAdapter } from '../../core/import/adapter'
+import type { StoredDoc } from '../../core/import/duplicates'
 import { DEMO_EXTRACTION } from '../demo'
 import { EXTRACTION_COLUMNS } from '../extractionColumns'
 import { formatDate, plural } from '../format'

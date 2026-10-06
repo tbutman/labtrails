@@ -2,8 +2,21 @@
 
 The shared import flow for the Trails apps: several files or zips at once, duplicates caught at three
 levels, one agreement for a batch, documents read one after another, and a review queue. Written in
-LabTrails first; it moves into the shared core (owned by BabyTrails) next to `documents/`, `review/`
-and `ai/`, and each app plugs in through an `ImportAdapter`. It contains no app-specific code.
+LabTrails first (`src/trails-import/`); it now lives in the shared core (owned by BabyTrails) as
+`src/core/import/`, next to `documents/`, `review/` and `ai/`, and each app plugs in through an
+`ImportAdapter`. It contains no app-specific code. Changes are logged in the Trails coordination notes
+so LabTrails can re-sync.
+
+**Changed in the core** (6 October 2026, after the move from LabTrails' `3755a1b`):
+- **Document kinds per file.** An adapter can pass `kinds` (each `{ value, label, read }`) and
+  `kindFor(file)`. The queue then shows a type picker on each file; kinds with `read: false` are kept
+  without reading, and documents are stored with the chosen kind. BabyTrails uses it for growth
+  reports and booklet pages (read), and doctor's notes, ultrasound images and other files (kept).
+  Without `kinds`, nothing changes: every file is stored as `documentKind`. The queue has a new
+  `kind` action, allowed while a file is ready or set aside as a duplicate.
+- Documents are dated with the local date, not UTC (which could be a day off).
+- "Checking against your saved results…" now reads "Checking against what's already saved…".
+- Imports use relative paths inside the core (`../review/model`, `../store/types`, …).
 
 ## The flow
 
@@ -52,9 +65,17 @@ const adapter: ImportAdapter<MyMeta> = {
   sendSheet: { notSending: [...], notes: [...] },
   estimate: ({ pdfs, images }) => ({ inputTokens, outputTokens }),
   storeOnlyByDefault: (file) => false, // BabyTrails: ultrasound images are kept, never read
+  kinds: [{ value: 'report', label: 'Report', read: true }, { value: 'note', label: 'Note', read: false }], // optional
+  kindFor: (file) => 'report',     // optional: the kind a file starts as
   sample: { url: '/demo/sample.pdf', title: 'Sample (fictional).pdf' }, // for the demo
 }
 ```
+
+BabyTrails' adapter is `src/app/import/babyAdapter.ts`: a row is already saved when a measurement on
+the same date has the same printed values (weight to 10 g, lengths to 1 mm); a document is "similar"
+when at least half its rows, but not all, are already saved. File names suggest a kind (English and
+Portuguese: "ecografia" or "scan" → ultrasound, "nota" or "letter" → doctor's note, "boletim" →
+booklet page), which the user can change.
 
 LabTrails' adapter is `src/app/import/labAdapter.tsx`: rows already saved are those with the same
 marker, value and unit on a report with the same date; a "similar" report is one on the same date where
@@ -63,6 +84,8 @@ at least three values and 60% of the comparable rows match (`src/labs/extraction
 ## Tests
 
 `tests/unit/import.test.ts` covers intake (types, zips, nested zips, caps, a damaged zip), fingerprint
-duplicates against the vault and across drops, and the queue's rules. LabTrails' browser test
+duplicates against the vault and across drops, the queue's rules, and document kinds. BabyTrails'
+`tests/unit/babyImport.test.ts` covers its adapter, and `tests/e2e/import.spec.ts` the flow in the
+demo (duplicates, an ultrasound kept unread, measurements not saved twice). LabTrails' browser test
 `tests/e2e/import.spec.ts` runs the whole flow in the demo: a zip, all three duplicate levels, a file
 kept for later, and editing a report's details.

@@ -21,6 +21,8 @@ export type Unit<P> = {
   document?: StoredDoc
   status: UnitStatus
   storeOnly: boolean
+  /** The document kind it will be stored as, when the app offers a choice (adapter.kinds). */
+  kind?: string
   duplicateOf?: { title: string; date?: string; inBatch?: boolean }
   error?: string
   proposal?: P
@@ -31,6 +33,7 @@ export type Unit<P> = {
 export type Action<P> =
   | { type: 'remove'; id: string }
   | { type: 'store-only'; id: string; value: boolean }
+  | { type: 'kind'; id: string; kind: string; storeOnly: boolean }
   | { type: 'import-anyway'; id: string }
   | { type: 'stored-document'; id: string; document: StoredDoc }
   | { type: 'reading'; id: string }
@@ -42,23 +45,36 @@ export type Action<P> =
   | { type: 'skipped'; id: string }
   | { type: 'add'; units: Unit<P>[] }
 
-export function unitsFromFiles<P>(files: IntakeFile[], stored: Map<string, StoredDoc>, storeOnly: (f: IntakeFile) => boolean = () => false): Unit<P>[] {
+export function unitsFromFiles<P>(
+  files: IntakeFile[],
+  stored: Map<string, StoredDoc>,
+  storeOnly: (f: IntakeFile) => boolean = () => false,
+  kindFor?: (f: IntakeFile) => string,
+): Unit<P>[] {
   return files.map((file, i) => {
     const existing = stored.get(file.sha256)
     // An identical file earlier in the list (this drop or an earlier one in the same import).
     const earlier = files.slice(0, i).find((f) => f.sha256 === file.sha256)
     const duplicateOf = existing ? { title: existing.title, date: existing.date } : earlier ? { title: earlier.name, inBatch: true } : undefined
-    return { id: file.id, file, status: duplicateOf ? 'duplicate' : 'ready', storeOnly: storeOnly(file), ...(duplicateOf ? { duplicateOf } : {}) }
+    return {
+      id: file.id,
+      file,
+      status: duplicateOf ? 'duplicate' : 'ready',
+      storeOnly: storeOnly(file),
+      ...(kindFor ? { kind: kindFor(file) } : {}),
+      ...(duplicateOf ? { duplicateOf } : {}),
+    }
   })
 }
 
 export function unitsFromDocuments<P>(documents: StoredDoc[]): Unit<P>[] {
-  return documents.map((document) => ({ id: document.id, document, status: 'ready', storeOnly: false }))
+  return documents.map((document) => ({ id: document.id, document, status: 'ready', storeOnly: false, kind: document.kind }))
 }
 
 const MOVES: Record<Action<unknown>['type'], UnitStatus[]> = {
   remove: ['ready', 'duplicate', 'failed'],
   'store-only': ['ready'],
+  kind: ['ready', 'duplicate'],
   'import-anyway': ['duplicate'],
   'stored-document': ['ready', 'reading', 'failed'],
   reading: ['ready'],
@@ -83,6 +99,8 @@ export function queueReducer<P>(units: Unit<P>[], action: Action<P>): Unit<P>[] 
   switch (action.type) {
     case 'store-only':
       return update({ storeOnly: action.value })
+    case 'kind':
+      return update({ kind: action.kind, storeOnly: action.storeOnly })
     case 'import-anyway':
       return update({ status: 'ready', duplicateOf: undefined })
     case 'stored-document':

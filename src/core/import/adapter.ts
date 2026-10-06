@@ -3,7 +3,7 @@
 // queue) is the same in every Trails app.
 
 import type { ComponentType } from 'react'
-import type { Column, ConfirmedRow, ProposedRow } from '../core/review/model'
+import type { Column, ConfirmedRow, ProposedRow } from '../review/model'
 import type { StoredDoc } from './duplicates'
 import type { IntakeFile } from './intake'
 
@@ -21,6 +21,8 @@ export type CheckResult = {
   /** An existing record this document seems to repeat (a different file of the same report). */
   similar?: { label: string; detail: string }
 }
+
+export type DocumentKindOption = { value: string; label: string; read: boolean }
 
 export type ImportAdapter<M> = {
   appName: string
@@ -46,6 +48,15 @@ export type ImportAdapter<M> = {
   estimate: (files: { pdfs: number; images: number }) => { inputTokens: number; outputTokens: number }
   /** Files to keep without reading by default (BabyTrails: ultrasound images). */
   storeOnlyByDefault?: (file: IntakeFile) => boolean
+  /**
+   * Optional: the kinds of document the app stores, shown as a type picker on each file in the queue.
+   * Files of a kind with `read: false` are kept without reading (BabyTrails: doctor's notes, which
+   * are summarised from their own page, and ultrasound images, which are never read). Without
+   * `kinds`, every file is stored as `documentKind`.
+   */
+  kinds?: DocumentKindOption[]
+  /** The kind a new file starts as, e.g. guessed from its name. Defaults to `documentKind`. */
+  kindFor?: (file: IntakeFile) => string
   /** For the demo: a made-up sample document to try the flow with. */
   sample?: { url: string; title: string }
 }

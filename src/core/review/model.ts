@@ -15,6 +15,10 @@ export type Column = {
   // Extra checks, after the type's own; return a message for the user, or undefined. Receives the
   // cleaned value: numbers with a decimal point, dates as YYYY-MM-DD.
   validate?: (value: string, row: Record<string, string>) => string | undefined
+  // A softer check that doesn't block saving: something worth a second look ("far above the chart
+  // for this age"). Receives the cleaned value and the whole row, cleaned (numbers as numbers, dates
+  // as YYYY-MM-DD); only called when the row has no errors.
+  warn?: (value: string, row: Record<string, string | number | undefined>) => string | undefined
 }
 
 export type ProposedRow = {
@@ -146,6 +150,32 @@ export function rowErrors(row: ReviewRow, columns: Column[], order?: DateOrder):
   return errors
 }
 
+// Warnings for a row with no errors: each column's warn, given the cleaned row.
+export function rowWarnings(row: ReviewRow, columns: Column[], order?: DateOrder): Record<string, string> {
+  if (!columns.some((c) => c.warn) || Object.keys(rowErrors(row, columns, order)).length) return {}
+  const clean = cleanRow(row, columns, order)
+  const warnings: Record<string, string> = {}
+  for (const c of columns) {
+    const value = clean[c.key]
+    if (value === undefined || !c.warn) continue
+    const message = c.warn(String(value), clean)
+    if (message) warnings[c.key] = message
+  }
+  return warnings
+}
+
+function cleanRow(r: ReviewRow, columns: Column[], order?: DateOrder): Record<string, string | number | undefined> {
+  const out: Record<string, string | number | undefined> = {}
+  for (const c of columns) {
+    const value = (r.values[c.key] ?? '').trim()
+    if (!value) out[c.key] = undefined
+    else if (c.type === 'number') out[c.key] = Number(normaliseNumber(value))
+    else if (c.type === 'date') out[c.key] = parseDate(value, order)
+    else out[c.key] = value
+  }
+  return out
+}
+
 export type ConfirmedRow = Record<string, string | number | undefined> & { sourceText?: string; page?: number }
 
 // The only way values leave the review: accepted rows that pass every check, converted to numbers
@@ -153,15 +183,5 @@ export type ConfirmedRow = Record<string, string | number | undefined> & { sourc
 export function confirmedRows(rows: ReviewRow[], columns: Column[], order?: DateOrder): ConfirmedRow[] {
   return rows
     .filter((r) => r.status === 'accepted' && Object.keys(rowErrors(r, columns, order)).length === 0)
-    .map((r) => {
-      const out: ConfirmedRow = { sourceText: r.sourceText, page: r.page }
-      for (const c of columns) {
-        const value = (r.values[c.key] ?? '').trim()
-        if (!value) out[c.key] = undefined
-        else if (c.type === 'number') out[c.key] = Number(normaliseNumber(value))
-        else if (c.type === 'date') out[c.key] = parseDate(value, order)
-        else out[c.key] = value
-      }
-      return out
-    })
+    .map((r): ConfirmedRow => ({ sourceText: r.sourceText, page: r.page, ...cleanRow(r, columns, order) }))
 }

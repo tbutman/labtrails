@@ -4,8 +4,8 @@ The parts of BabyTrails that any local-first, bring-your-own-key records app nee
 this folder. Nothing here knows about children or growth; app types live in the app.
 
 **Copying it:** copy `src/core/` as a whole and note the source commit in your README.
-- Dependencies: `idb`, `hash-wasm`, `pdfjs-dist`, `@fontsource-variable/inter`, `lucide-react`, and `react` and
-  `react-router` for the components.
+- Dependencies: `idb`, `hash-wasm`, `pdfjs-dist`, `fflate` (zips, for `import/`), `@fontsource-variable/inter`,
+  `lucide-react`, and `react` and `react-router` for the components.
 - Also copy `scripts/copy-pdfjs.mjs` and run it before `dev`, `build` and `test` (it copies pdf.js's
   WebAssembly decoders, fonts and character maps into `public/vendor/pdfjs/`, git-ignored, so the
   viewer loads nothing from other origins).
@@ -25,6 +25,7 @@ this folder. Nothing here knows about children or growth; app types live in the 
 | `documents/` | Ready |
 | `review/` | Ready |
 | `ai/` | Ready |
+| `import/` | Ready |
 | `ui/` (Trails UI v2) | Ready |
 
 ## Opening
@@ -118,6 +119,14 @@ await saveAppSettings(store, app)
 ```
 
 Settings are stored encrypted, in the `settings` collection, so the API key is never in plain form.
+
+## `import/`: several documents at once
+
+The shared import: files or zips (opened in the browser, with limits), SHA-256 fingerprints so
+documents already in the vault are set aside before anything is sent, one agreement for a batch,
+documents stored first and then read one by one with retry, a review queue, and a summary. Apps plug
+in through an `ImportAdapter`; documents not read yet carry `meta.importStatus: 'unread'`. Interface
+and rules: [`import/README.md`](import/README.md).
 
 ## `ui/`: Trails UI v2
 

@@ -122,12 +122,10 @@ npm run test:e2e  # browser tests against the production build
 - [SPEC.md](SPEC.md): what the first version does and why.
 - `src/labs/`: the catalogue, unit conversions (every factor cited in `catalogue/sources.ts` and
   tested), parsing, matching and the flag rules. All pure and tested.
-- `src/trails-import/` is the shared import flow (multiple files and zips, duplicates, the review queue),
-  written here to move into the shared core next.
-- `src/core/` (the encrypted vault, storage, backup, settings, documents, the review screen, the AI
-  client and the Trails UI kit) is shared with LabTrails' sister app, [BabyTrails](https://github.com/tbutman/babytrails),
+- `src/core/` (the encrypted vault, storage, backup, settings, documents, the import flow, the review
+  screen, the AI client and the Trails UI kit) is shared with LabTrails' sister app, [BabyTrails](https://github.com/tbutman/babytrails),
   and copied from it with `scripts/sync-core.sh`. The source commit is in `src/core/SOURCE`; currently
-  [babytrails@523cd99](https://github.com/tbutman/babytrails/commit/523cd99).
+  [babytrails@817af37](https://github.com/tbutman/babytrails/commit/817af37).
 - Every push and pull request runs lint, typecheck, unit tests, the build and the browser tests. The
   browser tests fail if the app requests anything from any site other than itself (and, in the tests
   that use a mocked AI, Anthropic's API). They also run [axe](https://github.com/dequelabs/axe-core)

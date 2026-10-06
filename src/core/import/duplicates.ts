@@ -1,8 +1,8 @@
 // Recognising files that are already in the vault, by their SHA-256 fingerprint, before anything is
 // sent to the AI (which also saves the cost of reading them again).
 
-import type { RecordStore } from '../core'
-import { documentBytes, type DocumentRecord } from '../core/documents/documents'
+import type { RecordStore } from '../store/types'
+import { documentBytes, type DocumentRecord } from '../documents/documents'
 import { sha256 } from './intake'
 
 /** What the import keeps in a document's `meta`, alongside the app's own fields. */

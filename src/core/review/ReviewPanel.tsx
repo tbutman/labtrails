@@ -11,6 +11,7 @@ import {
   needsDateOrder,
   rawDates,
   rowErrors,
+  rowWarnings,
   type Column,
   type ConfirmedRow,
   type DateOrder,
@@ -75,6 +76,7 @@ export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, co
         {rows.length === 0 && <p className="muted">Nothing was found. You can add values yourself.</p>}
         {rows.map((row, i) => {
           const errors = rowErrors(row, columns, order)
+          const warnings = rowWarnings(row, columns, order)
           return (
             <fieldset key={row.id} className={`review-row card status-${row.status} confidence-${row.confidence}`}>
               <legend className="legend">
@@ -123,6 +125,7 @@ export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, co
                         />
                       )}
                       {errors[c.key] && row.status !== 'rejected' && <p className="error">{errors[c.key]}</p>}
+                      {!errors[c.key] && warnings[c.key] && row.status !== 'rejected' && <p className="field-warning">{warnings[c.key]}</p>}
                     </div>
                   )
                 })}
