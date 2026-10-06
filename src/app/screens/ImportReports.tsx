@@ -23,7 +23,10 @@ export function ImportReports() {
     void (async () => {
       const a = await store.list<Alias>('aliases')
       const ids = (params.get('documents') ?? '').split(',').filter(Boolean)
-      const docs = (await store.list<StoredDoc>('documents')).filter((d) => ids.includes(d.id) && d.profileId === profile.id)
+      const all = (await store.list<StoredDoc>('documents')).filter((d) => d.profileId === profile.id)
+      // A grouped report is read as a whole: every page of a group named in the link comes along.
+      const groups = new Set(all.filter((d) => ids.includes(d.id) && d.group).map((d) => d.group!.id))
+      const docs = all.filter((d) => ids.includes(d.id) || (d.group && groups.has(d.group.id)))
       if (live) {
         setAliases(a)
         setInitial(docs)

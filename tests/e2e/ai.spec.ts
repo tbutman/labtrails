@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import type { Page, Route } from '@playwright/test'
 import { test, expect, ANTHROPIC } from './fixtures'
 
@@ -179,5 +180,55 @@ test.describe('with a mocked Anthropic API', () => {
     await page.getByRole('link', { name: 'Overview' }).click()
     // The three dates make a trend on the overview.
     await expect(page.getByRole('link', { name: /^Glucose/ }).first()).toContainText('Rising · 3')
+  })
+
+  test('photos of one report are read together, saved once and shown with every page', async ({ page }) => {
+    const bodies = await anthropicMock(page, () =>
+      JSON.stringify({
+        sampleDate: { printed: '15/09/2026', guessedFormat: 'DMY' },
+        lab: 'Laboratório Exemplo',
+        fastingPrinted: null,
+        // A table that runs over two photos: one row on each page.
+        rows: [row('Glicose', '96', 'mg/dL', '70 - 110', 'glucose'), { ...row('Creatinina', '0,91', 'mg/dL', '0,70 - 1,20', 'creatinine'), page: 2 }],
+      }),
+    )
+    await vaultWithKey(page)
+    await page.getByRole('link', { name: 'Reports', exact: true }).click()
+    await page.getByRole('link', { name: 'Import reports' }).first().click()
+    await page.getByLabel('Add PDFs, photos or zip files').setInputFiles([
+      { name: 'relatorio-folha-2.png', mimeType: 'image/png', buffer: readFileSync('public/icons/icon-192.png') },
+      { name: 'relatorio-folha-1.png', mimeType: 'image/png', buffer: readFileSync('public/demo/sample-report.png') },
+    ])
+
+    // Tick the photos in page order.
+    await page.getByRole('button', { name: 'Pages of one report?' }).click()
+    const pick = (name: string) => page.getByRole('listitem').filter({ hasText: name }).getByRole('checkbox', { name: /Add as a page|Page \d/ })
+    await pick('relatorio-folha-1.png').check()
+    await pick('relatorio-folha-2.png').check()
+    await page.getByRole('button', { name: 'Make these 2 photos one report' }).click()
+    await expect(page.getByRole('list', { name: /Pages of relatorio-folha-1\.png/ }).getByRole('listitem')).toHaveText([/Page 1\s*relatorio-folha-1\.png/, /Page 2\s*relatorio-folha-2\.png/])
+
+    // One request, both pages in order, with the note that numbers them.
+    await page.getByRole('button', { name: 'Read 1 report' }).click()
+    await page.getByRole('button', { name: 'Send' }).click()
+    await expect(page.getByRole('heading', { name: 'Check report 1 of 1' })).toBeVisible()
+    expect(bodies).toHaveLength(1)
+    const content = JSON.parse(bodies[0]).messages[0].content as { type: string; text?: string }[]
+    expect(content.filter((b) => b.type === 'image')).toHaveLength(2)
+    expect(content.at(-1)?.text).toContain('pages 1 to 2 of one lab report')
+
+    await expect(page.getByText('Page 1 of 2')).toBeVisible()
+    for (const tick of await page.getByLabel('This matches the document').all()) await tick.check()
+    await page.getByRole('button', { name: 'Save 2 rows' }).click()
+    await expect(page.getByText('2 results on 15 Sept 2026')).toBeVisible()
+    await page.getByRole('button', { name: 'Done' }).click()
+
+    // One report; its original shows both pages.
+    await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: 'Reports' }).click()
+    await expect(page.locator('summary')).toHaveCount(1)
+    await page.locator('summary', { hasText: '15 Sept 2026' }).click()
+    await page.getByRole('button', { name: 'Show the original report (2 pages)' }).click()
+    await expect(page.getByText('Page 1 of 2')).toBeVisible()
+    await expect(page.getByText('Page 2 of 2')).toBeVisible()
   })
 })

@@ -5,11 +5,12 @@
 // Nothing is sent before the user agrees; nothing is saved before they've checked it; and files are
 // stored before reading, so anything not read yet stays listed in the app ("Not read yet").
 
-import { CircleAlert, Copy, FileText, FileUp, Image, Loader2, RotateCcw, Trash2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, CircleAlert, Copy, Files, FileText, FileUp, Image, Loader2, RotateCcw, Trash2, Ungroup, X } from 'lucide-react'
 import { useEffect, useReducer, useRef, useState, type ReactNode } from 'react'
 import type { RecordStore } from '../store/types'
 import { SendSheet } from '../ai/SendSheet'
 import { addDocument, documentBytes } from '../documents/documents'
+import { DocumentPages } from '../documents/DocumentPages'
 import { DocumentViewer } from '../documents/DocumentViewer'
 import { ReviewPanel } from '../review/ReviewPanel'
 import type { ConfirmedRow, ProposedRow } from '../review/model'
@@ -18,7 +19,7 @@ import type { CheckResult, DocumentKindOption, ImportAdapter, ReadResult } from 
 import { storedFingerprints, type ImportMeta, type StoredDoc } from './duplicates'
 import { intake, type Skipped } from './intake'
 import './import.css'
-import { counts, queueReducer, unitBytes, unitName, unitsFromDocuments, unitsFromFiles, unitType, type Unit } from './queue'
+import { canBePage, counts, queueReducer, unitBytes, unitName, unitPages, unitsFromDocuments, unitsFromFiles, unitType, type Unit } from './queue'
 
 type Proposal<M> = ReadResult<M>
 type Checked = CheckResult & { fresh: ProposedRow[] }
@@ -56,7 +57,6 @@ export function ImportWizard<M>({
   const [phase, setPhase] = useState<Phase>('queue')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [page, setPage] = useState(1)
   const [metaEdits, setMetaEdits] = useState<Record<string, M>>({})
   const [checks, setChecks] = useState<Record<string, Checked>>({})
   const running = useRef(false)
@@ -92,22 +92,36 @@ export function ImportWizard<M>({
     await addFiles([new File([blob], adapter.sample.title, { type: blob.type })])
   }
 
+  // A new unit's file (or, for pages of one document, each page) stored as a document.
+  async function storeUnit(u: Unit<Proposal<M>>, importStatus: ImportMeta['importStatus']) {
+    const files = u.pages ?? (u.file ? [u.file] : [])
+    const group = u.pages ? crypto.randomUUID() : undefined
+    const docs: StoredDoc[] = []
+    for (const [i, f] of files.entries()) {
+      docs.push(
+        (await addDocument(store, new Blob([f.bytes], { type: f.mimeType }), {
+          profileId,
+          date: today(),
+          kind: u.kind ?? adapter.documentKind,
+          title: f.name.split('/').pop() ?? f.name,
+          meta: { sha256: f.sha256, importStatus } satisfies ImportMeta,
+          ...(group ? { group: { id: group, page: i + 1 } } : {}),
+        })) as StoredDoc,
+      )
+    }
+    if (u.pages) dispatch({ type: 'stored-pages', id: u.id, documents: docs })
+    else if (docs[0]) dispatch({ type: 'stored-document', id: u.id, document: docs[0] })
+  }
+
+  const docsOf = (u: Unit<Proposal<M>>) => u.pageDocuments ?? (u.document ? [u.document] : [])
+
   // Store every waiting file as a document first, so nothing is lost if the user leaves mid-way.
   async function begin() {
     setBusy(true)
     for (const u of units.filter((x) => x.status === 'ready')) {
-      if (!u.document && u.file) {
-        const meta: ImportMeta = { sha256: u.file.sha256, importStatus: u.storeOnly ? 'stored' : 'unread' }
-        const doc = (await addDocument(store, new Blob([u.file.bytes], { type: u.file.mimeType }), {
-          profileId,
-          date: today(),
-          kind: u.kind ?? adapter.documentKind,
-          title: u.file.name.split('/').pop() ?? u.file.name,
-          meta,
-        })) as StoredDoc
-        dispatch({ type: 'stored-document', id: u.id, document: doc })
-      } else if (u.document && u.storeOnly) {
-        await store.put('documents', { ...u.document, meta: { ...u.document.meta, importStatus: 'stored' } })
+      if (!u.document && u.file) await storeUnit(u, u.storeOnly ? 'stored' : 'unread')
+      else if (u.document && u.storeOnly) {
+        for (const d of docsOf(u)) await store.put('documents', { ...d, meta: { ...d.meta, importStatus: 'stored' } })
       }
       if (u.storeOnly) dispatch({ type: 'stored', id: u.id })
     }
@@ -124,8 +138,12 @@ export function ImportWizard<M>({
     dispatch({ type: 'reading', id: next.id })
     void (async () => {
       try {
-        const doc = next.document!
-        const result = await adapter.read(doc, await documentBytes(store, doc))
+        const pages = docsOf(next)
+        // Pages of one document are read together, when the app can (request 17).
+        const result =
+          pages.length > 1 && adapter.readPages
+            ? await adapter.readPages(await Promise.all(pages.map(async (doc) => ({ doc, bytes: await documentBytes(store, doc) }))))
+            : await adapter.read(next.document!, await documentBytes(store, next.document!))
         dispatch({ type: 'read', id: next.id, proposal: result })
       } catch (err) {
         dispatch({ type: 'failed', id: next.id, error: err instanceof Error ? err.message : 'Something went wrong.' })
@@ -154,20 +172,23 @@ export function ImportWizard<M>({
   async function markDoc(doc: StoredDoc | undefined, importStatus: ImportMeta['importStatus']) {
     if (doc) await store.put('documents', { ...doc, meta: { ...doc.meta, importStatus } })
   }
+  // Every page of a unit, from the store (the adapter may have updated the first one while saving).
+  async function markUnit(unit: Unit<Proposal<M>>, importStatus: ImportMeta['importStatus']) {
+    for (const d of docsOf(unit)) await markDoc((await store.get<StoredDoc>('documents', d.id)) ?? d, importStatus)
+  }
 
   async function save(unit: Unit<Proposal<M>>, rows: ConfirmedRow[]) {
     const meta = metaEdits[unit.id] ?? unit.proposal!.meta
     const outcome = await adapter.save(unit.document!, rows, meta)
-    await markDoc((await store.get<StoredDoc>('documents', unit.document!.id)) ?? unit.document, 'read')
+    await markUnit(unit, 'read')
     dispatch({ type: 'saved', id: unit.id, outcome })
-    setPage(1)
   }
 
   // ---------- Screens ----------
 
   if (phase === 'consent') {
     const pdfs = toRead.filter((u) => unitType(u) === 'application/pdf').length
-    const images = toRead.length - pdfs
+    const images = toRead.filter((u) => unitType(u) !== 'application/pdf').reduce((n, u) => n + unitPages(u), 0)
     const size = toRead.reduce((n, u) => n + unitBytes(u), 0)
     const per = adapter.estimate({ pdfs: 1, images: 0 })
     const perImage = adapter.estimate({ pdfs: 0, images: 1 })
@@ -211,6 +232,7 @@ export function ImportWizard<M>({
         {header(`Check ${adapter.noun.one} ${position} of ${total}`)}
         <p className="muted import-file">
           <FileText size={15} aria-hidden /> {doc.title}
+          {unitPages(reviewing) > 1 && ` and ${unitPages(reviewing) - 1} more page${unitPages(reviewing) > 2 ? 's' : ''}`}
           {c.reading > 0 && (
             <span className="faint">
               {' '}
@@ -221,7 +243,7 @@ export function ImportWizard<M>({
         {p.similar && (
           <Callout icon={Copy}>
             <strong>This looks like {p.similar.label}.</strong> {p.similar.detail}{' '}
-            <button className="link-button" onClick={() => void markDoc(doc, 'read').then(() => dispatch({ type: 'skipped', id: reviewing.id }))}>
+            <button className="link-button" onClick={() => void markUnit(reviewing, 'read').then(() => dispatch({ type: 'skipped', id: reviewing.id }))}>
               Skip this one
             </button>
           </Callout>
@@ -254,7 +276,7 @@ export function ImportWizard<M>({
         {p.fresh.length === 0 ? (
           <div className="card">
             <p>Everything in this {adapter.noun.one} is already saved.</p>
-            <button className="button primary" onClick={() => void markDoc(doc, 'read').then(() => dispatch({ type: 'skipped', id: reviewing.id }))}>
+            <button className="button primary" onClick={() => void markUnit(reviewing, 'read').then(() => dispatch({ type: 'skipped', id: reviewing.id }))}>
               Mark as read and continue
             </button>
           </div>
@@ -264,7 +286,13 @@ export function ImportWizard<M>({
             columns={adapter.columns}
             proposed={p.fresh}
             context={p.alreadySaved}
-            source={(pg) => <DocumentViewer store={store} doc={doc} page={pg ?? page} onPageChange={setPage} alt={`The ${adapter.noun.one}`} />}
+            source={(pg, onPage) =>
+              reviewing.pageDocuments && reviewing.pageDocuments.length > 1 ? (
+                <DocumentPages store={store} pages={reviewing.pageDocuments} page={pg ?? 1} onPageChange={onPage} alt={`The ${adapter.noun.one}`} />
+              ) : (
+                <DocumentViewer store={store} doc={doc} page={pg ?? 1} onPageChange={onPage} alt={`The ${adapter.noun.one}`} />
+              )
+            }
             onConfirm={(rows) => save(reviewing, rows)}
             onCancel={() => dispatch({ type: 'skipped', id: reviewing.id })}
             confirmLabel={(n) => `Save ${n} row${n === 1 ? '' : 's'}${units.some((u) => u.id !== reviewing.id && ['ready', 'reading', 'review'].includes(u.status) && !u.storeOnly) ? ' and continue' : ''}`}
@@ -317,7 +345,7 @@ export function ImportWizard<M>({
           {error}
         </p>
       )}
-      {units.length > 0 && <QueueList units={units} dispatch={dispatch} kinds={adapter.kinds} />}
+      {units.length > 0 && <QueueList units={units} dispatch={dispatch} kinds={adapter.kinds} pages={adapter.readPages ? adapter.noun.one : undefined} />}
       {skipped.length > 0 && (
         <details className="disclosure import-skipped">
           <summary>
@@ -353,15 +381,7 @@ export function ImportWizard<M>({
                   void (async () => {
                     // Store everything without reading; it stays listed as "Not read yet".
                     for (const u of units.filter((x) => x.status === 'ready')) {
-                      if (u.file && !u.document) {
-                        await addDocument(store, new Blob([u.file.bytes], { type: u.file.mimeType }), {
-                          profileId,
-                          date: today(),
-                          kind: u.kind ?? adapter.documentKind,
-                          title: u.file.name.split('/').pop() ?? u.file.name,
-                          meta: { sha256: u.file.sha256, importStatus: u.storeOnly ? 'stored' : 'unread' } satisfies ImportMeta,
-                        })
-                      }
+                      if (u.file && !u.document) await storeUnit(u, u.storeOnly ? 'stored' : 'unread')
                       dispatch({ type: 'stored', id: u.id })
                     }
                   })()
@@ -426,73 +446,150 @@ function QueueList<M>({
   dispatch,
   kinds,
   working = false,
+  pages,
 }: {
   units: Unit<M>[]
   dispatch: (a: Parameters<typeof queueReducer<M>>[1]) => void
   kinds?: DocumentKindOption[]
   working?: boolean
+  /** The adapter's noun when it can read pages of one document together; grouping is offered then. */
+  pages?: string
 }) {
+  // Picking photos to group, in the order they're ticked.
+  const [picking, setPicking] = useState<string[] | null>(null)
+  const groupable = units.filter(canBePage)
+  const offerGroup = !!pages && !working && groupable.length >= 2
   return (
-    <div className="card padless import-queue">
-      <ul className="list">
-        {units.map((u) => {
-          const s = u.status === 'ready' && u.storeOnly ? { label: 'Keep without reading', tone: 'outline' as const } : STATUS[u.status]
-          return (
-            <li key={u.id} className="list-row">
-              <span className="import-icon" aria-hidden="true">
-                {unitType(u) === 'application/pdf' ? <FileText size={18} /> : <Image size={18} />}
-              </span>
-              <span className="list-row-main">
-                <span className="list-row-title import-name">{unitName(u)}</span>
-                <span className="list-row-sub">
-                  {mb(unitBytes(u))}
-                  {u.duplicateOf && ` · same file as ${u.duplicateOf.inBatch ? `${u.duplicateOf.title}, above` : `"${u.duplicateOf.title}"${u.duplicateOf.date ? `, added ${u.duplicateOf.date}` : ''}`}`}
-                  {u.error && ` · ${u.error}`}
-                  {u.outcome && ` · ${u.outcome}`}
+    <>
+      <div className="card padless import-queue">
+        <ul className="list">
+          {units.map((u) => {
+            const s = u.status === 'ready' && u.storeOnly ? { label: 'Keep without reading', tone: 'outline' as const } : STATUS[u.status]
+            const n = unitPages(u)
+            const picked = picking?.indexOf(u.id) ?? -1
+            return (
+              <li key={u.id} className="list-row">
+                <span className="import-icon" aria-hidden="true">
+                  {n > 1 ? <Files size={18} /> : unitType(u) === 'application/pdf' ? <FileText size={18} /> : <Image size={18} />}
                 </span>
-              </span>
-              <Chip tone={s.tone}>{s.label}</Chip>
-              {!working && kinds && ['ready', 'duplicate'].includes(u.status) && (
-                <select
-                  className="import-kind"
-                  aria-label={`What is ${unitName(u)}?`}
-                  value={u.kind}
-                  onChange={(e) => {
-                    const kind = kinds.find((k) => k.value === e.target.value)!
-                    dispatch({ type: 'kind', id: u.id, kind: kind.value, storeOnly: !kind.read })
-                  }}
-                >
-                  {kinds.map((k) => (
-                    <option key={k.value} value={k.value}>
-                      {k.label}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {!working && u.status === 'ready' && (!kinds || kinds.find((k) => k.value === u.kind)?.read !== false) && (
-                <label className="import-toggle small">
-                  <input type="checkbox" checked={u.storeOnly} onChange={(e) => dispatch({ type: 'store-only', id: u.id, value: e.target.checked })} /> Keep without reading
-                </label>
-              )}
-              {!working && u.status === 'duplicate' && (
-                <button className="button small ghost" onClick={() => dispatch({ type: 'import-anyway', id: u.id })}>
-                  Import anyway
-                </button>
-              )}
-              {u.status === 'failed' && (
-                <button className="button small ghost" onClick={() => dispatch({ type: 'retry', id: u.id })} aria-label={`Try ${unitName(u)} again`}>
-                  <RotateCcw size={14} aria-hidden /> Retry
-                </button>
-              )}
-              {!working && ['ready', 'duplicate', 'failed'].includes(u.status) && (
-                <button className="icon-button" onClick={() => dispatch({ type: 'remove', id: u.id })} aria-label={`Remove ${unitName(u)}`}>
-                  {u.status === 'failed' ? <Trash2 size={16} aria-hidden /> : <X size={16} aria-hidden />}
-                </button>
-              )}
-            </li>
-          )
-        })}
-      </ul>
-    </div>
+                <span className="list-row-main">
+                  <span className="list-row-title import-name">
+                    {unitName(u)}
+                    {n > 1 && ` and ${n - 1} more page${n > 2 ? 's' : ''}`}
+                  </span>
+                  <span className="list-row-sub">
+                    {n > 1 && `${n} pages of one ${pages ?? 'document'} · `}
+                    {mb(unitBytes(u))}
+                    {u.duplicateOf && ` · same file as ${u.duplicateOf.inBatch ? `${u.duplicateOf.title}, above` : `"${u.duplicateOf.title}"${u.duplicateOf.date ? `, added ${u.duplicateOf.date}` : ''}`}`}
+                    {u.error && ` · ${u.error}`}
+                    {u.outcome && ` · ${u.outcome}`}
+                  </span>
+                  {u.pages && !working && u.status === 'ready' && (
+                    <ol className="import-pages" aria-label={`Pages of ${unitName(u)}`}>
+                      {u.pages.map((f, i) => (
+                        <li key={f.id}>
+                          <span className="page-number">Page {i + 1}</span>
+                          <span className="import-name">{f.name}</span>
+                          <button type="button" className="icon-button" disabled={i === 0} onClick={() => dispatch({ type: 'move-page', id: u.id, from: i, to: i - 1 })} aria-label={`Move ${f.name} up`}>
+                            <ArrowUp size={14} aria-hidden />
+                          </button>
+                          <button type="button" className="icon-button" disabled={i === u.pages!.length - 1} onClick={() => dispatch({ type: 'move-page', id: u.id, from: i, to: i + 1 })} aria-label={`Move ${f.name} down`}>
+                            <ArrowDown size={14} aria-hidden />
+                          </button>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </span>
+                {picking && canBePage(u) ? (
+                  <label className="import-pick">
+                    <input
+                      type="checkbox"
+                      checked={picked >= 0}
+                      onChange={(e) => setPicking((p) => (e.target.checked ? [...(p ?? []), u.id] : (p ?? []).filter((id) => id !== u.id)))}
+                    />
+                    {picked >= 0 ? `Page ${picked + 1}` : 'Add as a page'}
+                  </label>
+                ) : (
+                  <Chip tone={s.tone}>{s.label}</Chip>
+                )}
+                {!working && kinds && ['ready', 'duplicate'].includes(u.status) && (
+                  <select
+                    className="import-kind"
+                    aria-label={`What is ${unitName(u)}?`}
+                    value={u.kind}
+                    onChange={(e) => {
+                      const kind = kinds.find((k) => k.value === e.target.value)!
+                      dispatch({ type: 'kind', id: u.id, kind: kind.value, storeOnly: !kind.read })
+                    }}
+                  >
+                    {kinds.map((k) => (
+                      <option key={k.value} value={k.value}>
+                        {k.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {!working && u.status === 'ready' && !u.pages && (!kinds || kinds.find((k) => k.value === u.kind)?.read !== false) && (
+                  <label className="import-toggle small">
+                    <input type="checkbox" checked={u.storeOnly} onChange={(e) => dispatch({ type: 'store-only', id: u.id, value: e.target.checked })} /> Keep without reading
+                  </label>
+                )}
+                {!working && u.pages && u.status === 'ready' && (
+                  <button className="button small ghost" onClick={() => dispatch({ type: 'ungroup', id: u.id })}>
+                    <Ungroup size={14} aria-hidden /> Separate pages
+                  </button>
+                )}
+                {!working && u.status === 'duplicate' && (
+                  <button className="button small ghost" onClick={() => dispatch({ type: 'import-anyway', id: u.id })}>
+                    Import anyway
+                  </button>
+                )}
+                {u.status === 'failed' && (
+                  <button className="button small ghost" onClick={() => dispatch({ type: 'retry', id: u.id })} aria-label={`Try ${unitName(u)} again`}>
+                    <RotateCcw size={14} aria-hidden /> Retry
+                  </button>
+                )}
+                {!working && ['ready', 'duplicate', 'failed'].includes(u.status) && (
+                  <button className="icon-button" onClick={() => dispatch({ type: 'remove', id: u.id })} aria-label={`Remove ${unitName(u)}`}>
+                    {u.status === 'failed' ? <Trash2 size={16} aria-hidden /> : <X size={16} aria-hidden />}
+                  </button>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+      {offerGroup && (
+        <div className="row import-group-bar">
+          {picking ? (
+            <>
+              <button
+                type="button"
+                className="button primary small"
+                disabled={picking.length < 2}
+                onClick={() => {
+                  dispatch({ type: 'group', ids: picking })
+                  setPicking(null)
+                }}
+              >
+                <Files size={14} aria-hidden /> Make {picking.length >= 2 ? `these ${picking.length} photos` : 'them'} one {pages}
+              </button>
+              <button type="button" className="button ghost small" onClick={() => setPicking(null)}>
+                Cancel
+              </button>
+              <span className="hint">Tick the photos in page order.</span>
+            </>
+          ) : (
+            <>
+              <button type="button" className="button small" onClick={() => setPicking([])}>
+                <Files size={14} aria-hidden /> Pages of one {pages}?
+              </button>
+              <span className="hint">If several photos show the pages of one {pages}, group them so they're read and checked together.</span>
+            </>
+          )}
+        </div>
+      )}
+    </>
   )
 }

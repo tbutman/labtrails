@@ -11,7 +11,7 @@ set -euo pipefail
 commit="${1:?usage: scripts/sync-core.sh <commit> [babytrails clone]}"
 source_repo="${2:-../babytrails}"
 here="$(cd "$(dirname "$0")/.." && pwd)"
-tests=(tests/unit/vault.test.ts tests/unit/backup.test.ts tests/unit/settings.test.ts tests/unit/documents.test.ts tests/unit/review.test.ts tests/unit/ai.test.ts tests/unit/import.test.ts)
+tests=(tests/unit/vault.test.ts tests/unit/backup.test.ts tests/unit/settings.test.ts tests/unit/documents.test.ts tests/unit/review.test.ts tests/unit/ai.test.ts tests/unit/import.test.ts tests/unit/importPages.test.ts)
 # Helper scripts the core needs (copy-pdfjs self-hosts pdf.js's decoders and fonts).
 scripts=(scripts/copy-pdfjs.mjs)
 

@@ -22,8 +22,9 @@ import {
 type Props = {
   columns: Column[]
   proposed: ProposedRow[]
-  // The source: usually a DocumentViewer showing one page. Receives the page to show.
-  source?: (page: number | undefined) => ReactNode
+  // The source: usually a DocumentViewer showing one page. Receives the page to show, and a way for its
+  // own previous/next buttons to change it (so "Show page" and the buttons move the same page).
+  source?: (page: number | undefined, onPageChange: (page: number) => void) => ReactNode
   onConfirm: (rows: ConfirmedRow[]) => Promise<void> | void
   onCancel: () => void
   confirmLabel?: (count: number) => string
@@ -59,7 +60,7 @@ export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, co
 
   return (
     <div className="review">
-      {source && <div className="review-source">{source(page)}</div>}
+      {source && <div className="review-source">{source(page, setPage)}</div>}
       <div className="review-rows stack">
         {askOrder && (
           <div className="callout" role="group" aria-label="Date order">

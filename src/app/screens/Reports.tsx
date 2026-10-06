@@ -2,7 +2,8 @@ import { FileClock, FilePlus2, FileSearch, Pencil, Plus, ScanText, Trash2 } from
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router'
 import type { DocumentRecord, RecordStore } from '../../core'
-import { deleteDocument } from '../../core/documents/documents'
+import { deleteDocument, pagesOf } from '../../core/documents/documents'
+import { DocumentPages } from '../../core/documents/DocumentPages'
 import { DocumentViewer } from '../../core/documents/DocumentViewer'
 import type { StoredDoc } from '../../core/import/duplicates'
 import { printedNumber, reportDecimal } from '../../labs/edit'
@@ -30,12 +31,19 @@ export function Reports() {
   }, [store, profile.id, version])
   // Files waiting to be read: marked so by the import, or older ones no report points at.
   const linked = new Set(reports.map((r) => r.documentId).filter(Boolean))
-  const unread = docs.filter((d) => d.meta?.importStatus === 'unread' || (!d.meta?.importStatus && !linked.has(d.id)))
-  const kept = docs.filter((d) => d.meta?.importStatus === 'stored')
+  // Photos stored as pages of one report are listed once, by their first page.
+  const firsts = docs.filter((d) => !d.group || d.group.page === 1)
+  const unread = firsts.filter((d) => d.meta?.importStatus === 'unread' || (!d.meta?.importStatus && !linked.has(d.id)))
+  const kept = firsts.filter((d) => d.meta?.importStatus === 'stored')
+  const pages = (d: StoredDoc) => pagesOf(d, docs)
+  const docLabel = (d: StoredDoc) => (d.group ? `${d.title} · ${plural(pages(d).length, 'page')}` : d.title)
+  const readLink = (list: StoredDoc[]) => `${base}/reports/read?documents=${list.flatMap(pages).map((d) => d.id).join(',')}`
 
   async function removeDoc(doc: StoredDoc) {
-    if (!store || !window.confirm(`Delete "${doc.title}"? This can't be undone, except from a backup.`)) return
-    await deleteDocument(store, doc)
+    const all = pages(doc)
+    const what = all.length > 1 ? `"${doc.title}" and its other ${plural(all.length - 1, 'page')}` : `"${doc.title}"`
+    if (!store || !window.confirm(`Delete ${what}? This can't be undone, except from a backup.`)) return
+    for (const page of all) await deleteDocument(store, page)
     changed()
   }
 
@@ -73,10 +81,10 @@ export function Reports() {
               {unread.map((d) => (
                 <li key={d.id} className="list-row">
                   <span className="list-row-main">
-                    <span className="list-row-title">{d.title}</span>
+                    <span className="list-row-title">{docLabel(d)}</span>
                     <span className="list-row-sub">Added {formatDate(d.createdAt.slice(0, 10))}</span>
                   </span>
-                  <Link className="button small" to={`${base}/reports/read?documents=${d.id}`}>
+                  <Link className="button small" to={readLink([d])}>
                     Read
                   </Link>
                   <button className="icon-button" onClick={() => void removeDoc(d)} aria-label={`Delete ${d.title}`}>
@@ -88,7 +96,7 @@ export function Reports() {
           </div>
           {unread.length > 1 && (
             <p className="row unread-all">
-              <Link className="button small primary" to={`${base}/reports/read?documents=${unread.map((d) => d.id).join(',')}`}>
+              <Link className="button small primary" to={readLink(unread)}>
                 Read all {unread.length}
               </Link>
             </p>
@@ -103,9 +111,9 @@ export function Reports() {
               {kept.map((d) => (
                 <li key={d.id} className="list-row">
                   <span className="list-row-main">
-                    <span className="list-row-title">{d.title}</span>
+                    <span className="list-row-title">{docLabel(d)}</span>
                   </span>
-                  <Link className="button small" to={`${base}/reports/read?documents=${d.id}`}>
+                  <Link className="button small" to={readLink([d])}>
                     Read now
                   </Link>
                 </li>
@@ -204,19 +212,24 @@ export function Reports() {
   )
 }
 
+/** The report as it was imported: one document, or every page of a group of photos. */
 export function Original({ store, documentId }: { store: RecordStore; documentId: string }) {
-  const [doc, setDoc] = useState<DocumentRecord | null>(null)
+  const [pages, setPages] = useState<DocumentRecord[]>([])
   const [open, setOpen] = useState(false)
   useEffect(() => {
-    void store.get<DocumentRecord>('documents', documentId).then((d) => setDoc(d ?? null))
+    void (async () => {
+      const doc = await store.get<DocumentRecord>('documents', documentId)
+      setPages(doc ? (doc.group ? pagesOf(doc, await store.list<DocumentRecord>('documents')) : [doc]) : [])
+    })()
   }, [store, documentId])
-  if (!doc) return null
+  if (!pages.length) return null
+  const many = pages.length > 1
   return (
     <div className="original">
       <button className="button small" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        {open ? 'Hide the original report' : 'Show the original report'}
+        {open ? 'Hide the original report' : many ? `Show the original report (${pages.length} pages)` : 'Show the original report'}
       </button>
-      {open && <DocumentViewer store={store} doc={doc} alt="The original lab report" />}
+      {open && (many ? <DocumentPages store={store} pages={pages} alt="The original lab report" /> : <DocumentViewer store={store} doc={pages[0]} alt="The original lab report" />)}
     </div>
   )
 }
