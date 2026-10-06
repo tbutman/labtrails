@@ -72,10 +72,27 @@ queue:
   rows already saved are left out of the review, so nothing is doubled on the charts.
 - **One agreement for the batch,** then each report is stored, read and checked in turn. Anything not
   read yet stays listed, so leaving mid-way loses nothing.
+- **Reports that carry their own history.** Many labs print earlier results next to the new ones, in
+  columns by date. The AI copies each result once per date with that column's date, the review shows
+  the date on every row, and saving makes one report per date. A PDF with four dates fills in four
+  points on every chart, and dates already in the vault show up as already saved.
 
 <p>
   <img src="screenshots/import-queue.png" width="560" alt="The import queue, with a repeated file set aside as already imported">
   <img src="screenshots/review.png" width="560" alt="Checking rows read from a made-up report, with the report beside them">
+</p>
+
+## Fixing what was misread
+
+Reviewing every row catches most mistakes, but not all. Any saved result can now be corrected on its
+own: fix a misread value, add a result the AI missed, delete one, or map a name the catalogue didn't
+know to a marker. A mapping is remembered, so the next report printed the same way matches by itself,
+and it can be applied to every earlier result with that name. The same fields and parser serve manual
+entry, so a value reads the same however it got in, and numbers are shown with the report's own
+decimal mark.
+
+<p>
+  <img src="screenshots/correct-result.png" width="560" alt="Correcting a saved result: a name the catalogue doesn't know, about to be mapped to a marker">
 </p>
 
 ## Two apps, one core, two agents
@@ -94,6 +111,21 @@ form fields to metric cards and landing-page sections. Each app has its own land
 template. Colour contrast is checked against WCAG 2.1 by a unit test in both apps; it caught a teal
 that was 4.3:1 on one surface, below the 4.5:1 minimum.
 
+## Accessible and fast
+
+Accessibility is tested, not assumed. In CI, axe checks all twelve screens against WCAG 2.1 AA in the
+light and dark themes, at phone and desktop widths, and a separate check fails any screen that scrolls
+sideways. That check found a real bug: on a phone, the table of every marker made the whole page 888
+pixels wide on a 375-pixel screen, because screen-reader-only labels inside table cells escaped the
+scroll container. Keyboard and screen-reader users get a "Skip to content" link, and after each screen
+change, focus moves to the new heading and the tab's title names the screen.
+
+The landing page now loads alone: app screens are fetched when first opened (and kept offline by the
+service worker), the encryption code loads just after the first render, and the font is preloaded.
+Its JavaScript and CSS went from 187 kB to 136 kB compressed. On Lighthouse's simulated mid-range
+phone, the landing page scores 97 for performance (from 95), 98 for accessibility and 100 for best
+practices, with first text on screen at 1.8 s (from 2.1 s) and no layout shift.
+
 ## Shipping and what broke
 
 The apps are served as static files from my home server through a Cloudflare Tunnel, deployed by
@@ -108,24 +140,38 @@ problems, each now guarded by a test:
   would lock the vault and drop anything being typed.
 - A shared encryption test failed now and then. It turned out to be a false positive: random encrypted
   bytes, written as base64, occasionally contain the four letters it checked for.
+- One deploy left the live app blank. Requesting the new build's script a moment before the server had
+  installed it returned a 404, and because nginx sent its one-year cache header even on 404s,
+  Cloudflare kept serving that 404 after the file arrived. Missing files are now served "don't cache",
+  and CI checks it.
+- The same deploy ran 12 minutes late: three apps' timers asking GitHub's API for the latest release
+  every two minutes added up to more than its 60 unauthenticated requests an hour. Deploys now read
+  the release from GitHub's public redirect instead, and arrive within a minute.
 
 ## What was tested
 
-- **291 unit tests**, including every unit conversion both ways, English and Portuguese marker names,
+- **308 unit tests**, including every unit conversion both ways, English and Portuguese marker names,
   the flag rules with ranges from different labs, the extraction validator, summary facts never
-  containing the name or date of birth, zips and zip bombs, duplicate detection, colour contrast, and
-  the shared core's encryption, backup and review rules.
-- **8 browser tests** against the production build, every one failing if the app contacts any site
+  containing the name or date of birth, zips and zip bombs, duplicate detection, cumulative reports
+  split by date, correcting results without changing anything else, colour contrast, and the shared
+  core's encryption, backup and review rules.
+- **15 browser tests** against the production build, every one failing if the app contacts any site
   other than itself: a full vault round trip that leaves nothing readable in the browser's database,
-  the demo, installing and reloading offline, a whole import with all three duplicate levels, and,
-  with a mocked AI, that nothing is sent before the user agrees, the person's name never appears in a
-  request, only ticked rows are saved, and AI text with HTML in it is shown as text.
-- **CI** runs lint, typecheck, the tests, the build and the nginx check on every push.
+  the demo, installing and reloading offline, a whole import with all three duplicate levels,
+  correcting, mapping, adding and deleting single results, axe on every screen in both themes at two
+  widths, the keyboard path, and, with a mocked AI, that nothing is sent before the user agrees, the
+  person's name never appears in a request, only ticked rows are saved, a three-date report becomes
+  three reports, and AI text with HTML in it is shown as text.
+- **CI** runs lint, typecheck, the tests, the build and the nginx check (including that missing files
+  are never cached) on every push.
 
 ## What's next
 
 - Testing with my own reports, from both countries.
-- Grouping several photos as the pages of one report, and lab-history PDFs with several dates.
-- Correcting a single saved value, and per-marker change thresholds based on published biological
-  variation instead of one percentage for every marker.
-- Later: questions about your history, more AI providers, encrypted sync, and a Portuguese interface.
+- Several photos read as the pages of one report, built into the shared core so BabyTrails' booklet
+  pages get it too.
+- Asking questions about your history, as a shared module whose answers may only use numbers the code
+  computed.
+- Per-marker change thresholds based on published biological variation, instead of one percentage for
+  every marker.
+- Later: more AI providers, encrypted sync between devices, and a Portuguese interface.

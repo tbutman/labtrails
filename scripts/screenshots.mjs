@@ -60,6 +60,14 @@ p = await demo(desk)
 await p.getByRole('link', { name: 'Table' }).first().click()
 await p.screenshot({ path: out('table') })
 
+// Correcting a result: a name the catalogue doesn't know, about to be mapped.
+p = await demo(desk)
+await p.getByRole('link', { name: 'Reports', exact: true }).first().click()
+await p.locator('summary').first().click()
+await p.getByRole('link', { name: 'Correct Cistatina C' }).first().click()
+await p.getByRole('heading', { name: 'Correct a result' }).waitFor()
+await p.locator('form.card').screenshot({ path: out('correct-result') })
+
 // The landing page and the dashboard, at high resolution, for the README and portfolio.
 const hi = { viewport: { width: 1360, height: 860 }, deviceScaleFactor: 2, colorScheme: 'light' }
 const landing = await (await browser.newContext(hi)).newPage()
