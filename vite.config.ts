@@ -33,6 +33,19 @@ function cspMeta(): Plugin {
 // downloaded, as BabyTrails does: switching mid-task would lock the vault and drop anything being typed.
 // It precaches the app's files, caches pdf.js's larger support files the first time a PDF needs them,
 // and never caches anything else, so AI requests always go to the network.
+// The Latin subset of Inter is needed for the first text on every page. Preloading it from the HTML
+// starts the download with the scripts instead of after the stylesheet has been parsed.
+function preloadFont(): Plugin {
+  return {
+    name: 'preload-inter-latin',
+    apply: 'build',
+    transformIndexHtml: (_html, ctx) => {
+      const font = Object.keys(ctx.bundle ?? {}).find((f) => /inter-latin-wght-normal-.*\.woff2$/.test(f))
+      return font ? [{ tag: 'link', attrs: { rel: 'preload', href: `/${font}`, as: 'font', type: 'font/woff2', crossorigin: '' }, injectTo: 'head' }] : []
+    },
+  }
+}
+
 const pwa = VitePWA({
   registerType: 'prompt',
   injectRegister: false,
@@ -69,7 +82,7 @@ const pwa = VitePWA({
 })
 
 export default defineConfig({
-  plugins: [react(), cspMeta(), pwa],
+  plugins: [react(), cspMeta(), preloadFont(), pwa],
   build: { assetsInlineLimit: 0 },
   test: {
     include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx', 'src/**/*.test.ts'],

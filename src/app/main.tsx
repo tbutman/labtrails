@@ -3,51 +3,43 @@ import '../core/ui/components.css'
 import './styles/accent.css'
 import './styles/app.css'
 
-import { StrictMode } from 'react'
+import { StrictMode, type ComponentType } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, Navigate, RouterProvider } from 'react-router'
+import { createBrowserRouter, Navigate, RouterProvider, type LazyRouteFunction, type RouteObject } from 'react-router'
 import { LegacyProfile, ProfileLayout, Root } from './components/Layout'
 import { SessionProvider } from './session'
-import { DoctorReport } from './screens/DoctorReport'
-import { Home } from './screens/Home'
-import { HowFlagsWork } from './screens/HowFlagsWork'
 import { Landing } from './screens/Landing'
-import { MarkerDetail } from './screens/MarkerDetail'
-import { Overview } from './screens/Overview'
-import { ProfileForm } from './screens/ProfileForm'
-import { ImportReports } from './screens/ImportReports'
-import { ReportEdit } from './screens/ReportEdit'
-import { ResultEdit } from './screens/ResultEdit'
-import { ReportForm } from './screens/ReportForm'
-import { Reports } from './screens/Reports'
-import { Settings } from './screens/Settings'
-import { Summaries } from './screens/Summaries'
-import { TableView } from './screens/TableView'
+
+// The landing page loads first and alone; each screen of the app of the app is fetched when it's first opened
+// (and precached by the service worker, so it works offline once the app has been visited).
+const screen =
+  <M extends Record<string, unknown>>(load: () => Promise<M>, name: keyof M): LazyRouteFunction<RouteObject> =>
+  async () => ({ Component: (await load())[name] as ComponentType })
 
 const router = createBrowserRouter([
   {
     element: <Root />,
     children: [
       { path: '/', element: <Landing /> },
-      { path: '/how-flags-work', element: <HowFlagsWork /> },
-      { path: '/app', element: <Home /> },
-      { path: '/app/settings', element: <Settings /> },
-      { path: '/app/profiles/new', element: <ProfileForm /> },
+      { path: '/how-flags-work', lazy: screen(() => import('./screens/HowFlagsWork'), 'HowFlagsWork') },
+      { path: '/app', lazy: screen(() => import('./screens/Home'), 'Home') },
+      { path: '/app/settings', lazy: screen(() => import('./screens/Settings'), 'Settings') },
+      { path: '/app/profiles/new', lazy: screen(() => import('./screens/ProfileForm'), 'ProfileForm') },
       {
         path: '/app/p/:profileId',
         element: <ProfileLayout />,
         children: [
-          { index: true, element: <Overview /> },
-          { path: 'marker/:id', element: <MarkerDetail /> },
-          { path: 'table', element: <TableView /> },
-          { path: 'reports', element: <Reports /> },
-          { path: 'reports/new', element: <ReportForm /> },
-          { path: 'reports/read', element: <ImportReports /> },
-          { path: 'reports/:reportId/edit', element: <ReportEdit /> },
-          { path: 'reports/:reportId/results/new', element: <ResultEdit /> },
-          { path: 'reports/:reportId/results/:resultId', element: <ResultEdit /> },
-          { path: 'summaries', element: <Summaries /> },
-          { path: 'doctor', element: <DoctorReport /> },
+          { index: true, lazy: screen(() => import('./screens/Overview'), 'Overview') },
+          { path: 'marker/:id', lazy: screen(() => import('./screens/MarkerDetail'), 'MarkerDetail') },
+          { path: 'table', lazy: screen(() => import('./screens/TableView'), 'TableView') },
+          { path: 'reports', lazy: screen(() => import('./screens/Reports'), 'Reports') },
+          { path: 'reports/new', lazy: screen(() => import('./screens/ReportForm'), 'ReportForm') },
+          { path: 'reports/read', lazy: screen(() => import('./screens/ImportReports'), 'ImportReports') },
+          { path: 'reports/:reportId/edit', lazy: screen(() => import('./screens/ReportEdit'), 'ReportEdit') },
+          { path: 'reports/:reportId/results/new', lazy: screen(() => import('./screens/ResultEdit'), 'ResultEdit') },
+          { path: 'reports/:reportId/results/:resultId', lazy: screen(() => import('./screens/ResultEdit'), 'ResultEdit') },
+          { path: 'summaries', lazy: screen(() => import('./screens/Summaries'), 'Summaries') },
+          { path: 'doctor', lazy: screen(() => import('./screens/DoctorReport'), 'DoctorReport') },
         ],
       },
       { path: '/p/:profileId/*', element: <LegacyProfile /> },

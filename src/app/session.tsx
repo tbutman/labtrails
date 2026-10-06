@@ -2,7 +2,7 @@
 // store and settings that go with it.
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { MemoryStore, openTrails, type RecordStore, type Trails } from '../core'
+import type { MemoryStore, RecordStore, Trails } from '../core'
 import { DEFAULT_CORE_SETTINGS, loadAppSettings, loadCoreSettings, saveAppSettings, saveCoreSettings, type CoreSettings } from '../core/settings/settings'
 import { startAutoLock } from '../core/vault/autoLock'
 import { seedDemo } from '../data/profile'
@@ -24,7 +24,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let live = true
-    void openTrails({ appId: APP_ID, collections: APP_COLLECTIONS }).then(async (t) => {
+    // The vault (and its key derivation, the largest part of it) loads after the first render, so the
+    // landing page shows without waiting for it.
+    void import('../core').then(async ({ openTrails }) => {
+      const t = await openTrails({ appId: APP_ID, collections: APP_COLLECTIONS })
       const exists = await t.vault.exists()
       if (!live) return
       setTrails(t)
@@ -80,6 +83,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       },
       lock: () => trails?.vault.lock(),
       startDemo: async () => {
+        const { MemoryStore } = await import('../core')
         const store = new MemoryStore()
         await seedDemo(store)
         setDemo(store)
