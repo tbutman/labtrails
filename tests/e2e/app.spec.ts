@@ -104,6 +104,11 @@ test('the app is installable: manifest, icons and a service worker', async ({ pa
   const manifest = await (await request.get('/manifest.webmanifest')).json()
   expect(manifest).toMatchObject({ name: 'LabTrails', display: 'standalone', start_url: '/app' })
   for (const icon of manifest.icons) expect((await request.get(icon.src)).ok()).toBe(true)
+  // A new version must take over without waiting for every tab to close, or returning visitors
+  // keep seeing the old app after a deploy.
+  const sw = await (await request.get('/sw.js')).text()
+  expect(sw).toContain('self.skipWaiting()')
+  expect(sw).toContain('clientsClaim()')
   await page.goto('/')
   const registered = await page.evaluate(async () => !!(await navigator.serviceWorker.ready.then((r) => r.active)))
   expect(registered).toBe(true)

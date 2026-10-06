@@ -57,6 +57,11 @@ const pwa = VitePWA({
     // and link preview, and Inter's non-Latin subsets (the UI is English).
     globIgnores: ['vendor/**', 'landing/**', 'og.png', 'assets/inter-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*'],
     navigateFallback: '/index.html',
+    // A new version takes over as soon as it's installed, instead of waiting until every tab is
+    // closed: returning visitors see a deploy on their next page load. (registerType alone doesn't
+    // set these when the worker registers from its own file.)
+    skipWaiting: true,
+    clientsClaim: true,
     runtimeCaching: [
       {
         urlPattern: ({ sameOrigin, url }) => sameOrigin && url.pathname.startsWith('/vendor/pdfjs/'),
