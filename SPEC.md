@@ -218,25 +218,28 @@ neutrophils as a count or a percentage) uses the unit to choose.
 **Two traps the catalogue handles explicitly:**
 - **Urea and BUN are different measurements.** Portuguese labs report urea (Ureia); US labs report
   blood urea nitrogen (BUN). They're two markers, with a documented conversion between them (urea
-  mg/dL ≈ BUN mg/dL × 2.14, from the molar masses of urea and of its two nitrogen atoms)
-  **(factor unverified until cited in code)**. The chart never mixes them silently: it converts and
+  mg/dL ≈ BUN mg/dL × 2.14, from the molar masses of urea and of its two nitrogen atoms; cited in
+  `src/labs/catalogue/sources.ts`). The chart never mixes them silently: it converts and
   says so.
 - **Some markers can't be converted.** Lp(a) in mg/dL and nmol/L measure different things and
-  shouldn't be converted with one factor **(unverified; source to be cited)**. Such markers chart
+  shouldn't be converted with one factor (European Atherosclerosis Society consensus, 2022; cited in
+  code). Such markers chart
   only results in the same unit, and say why.
 
 **Conversion factors** (conventional US unit → SI unit), each to be cited in code from a reliable
 source and covered by a test. Factors for single substances come from molar masses, which are
 checked against a published SI conversion table (for example the AMA Manual of Style's SI
 conversion table, or Young, "Implementation of SI units for clinical laboratory data", *Annals of
-Internal Medicine* 1987). **All factors below are unverified until each is cited in code on day 1.**
+Internal Medicine* 1987). **Verified 6 October 2026:** each factor is derived from a PubChem molar
+mass and cross-checked against the AMA table; the citations are in `src/labs/catalogue/sources.ts`
+and every factor has a test. Creatinine was corrected from 88.42 to 88.4.
 
 | Marker | Conventional | SI | Multiply by |
 | --- | --- | --- | --- |
 | Glucose | mg/dL | mmol/L | 0.0555 |
 | Total, HDL, LDL and non-HDL cholesterol | mg/dL | mmol/L | 0.02586 |
 | Triglycerides | mg/dL | mmol/L | 0.01129 |
-| Creatinine | mg/dL | µmol/L | 88.42 |
+| Creatinine | mg/dL | µmol/L | 88.4 |
 | Urea | mg/dL | mmol/L | 0.1665 |
 | BUN | mg/dL | mmol/L (urea) | 0.357 |
 | Uric acid | mg/dL | µmol/L | 59.48 |
@@ -253,7 +256,7 @@ Internal Medicine* 1987). **All factors below are unverified until each is cited
 | Total testosterone | ng/dL | nmol/L | 0.03467 |
 | Oestradiol | pg/mL | pmol/L | 3.671 |
 | Cortisol | µg/dL | nmol/L | 27.59 |
-| Insulin | µIU/mL | pmol/L | 6.0 (some sources use 6.945; the source chosen is stated) |
+| Insulin | µIU/mL | pmol/L | 6.00 (Knopp et al. 2019; the older 6.945, still in the AMA table, comes from a superseded 1959 standard) |
 | Haemoglobin, albumin, total protein | g/dL | g/L | 10 |
 | CRP | mg/dL | mg/L | 10 |
 | HbA1c | % (NGSP) | mmol/mol (IFCC) | IFCC = (NGSP − 2.15) × 10.929, from the IFCC–NGSP master equation |

@@ -1,0 +1,67 @@
+name: Build and release
+
+# Every push and pull request is linted, type-checked, tested and built. Every push to main is also
+# published as a GitHub release; the home server polls for the newest release and installs it (see
+# deploy/), so nothing here needs credentials for, or network access to, the server.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Package
+        run: |
+          tar -czf site.tar.gz -C dist .
+          sha256sum site.tar.gz > site.tar.gz.sha256
+      - uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: |
+            site.tar.gz
+            site.tar.gz.sha256
+          retention-days: 7
+
+  release:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: site
+      - name: Publish release
+        run: |
+          tag="site-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}"
+          gh release create "$tag" site.tar.gz site.tar.gz.sha256 \
+            --target "$GITHUB_SHA" --title "$tag" --notes "Built from ${GITHUB_SHA}."
+      - name: Keep the ten newest builds
+        run: |
+          gh release list --limit 100 --json tagName --jq '.[].tagName | select(startswith("site-"))' |
+            tail -n +11 | xargs -r -n1 gh release delete --yes --cleanup-tag
