@@ -20,7 +20,6 @@ KEEP="${SITE_KEEP:-5}"
 RELEASES="$ROOT/releases"
 CURRENT="$ROOT/current"
 PINNED="$ROOT/pinned"
-ETAG_FILE="$ROOT/.latest-etag"
 
 log() { echo "trails-deploy ($REPO): $*"; }
 
@@ -44,7 +43,7 @@ case "${1:-}" in
     exit 0
     ;;
   unpin)
-    rm -f "$PINNED" "$ETAG_FILE"
+    rm -f "$PINNED"
     log "automatic deploys resumed"
     exit 0
     ;;
@@ -60,23 +59,15 @@ mkdir -p "$RELEASES"
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 
-# Conditional request: an unchanged release returns 304, which does not count against
-# GitHub's unauthenticated rate limit.
-etag_header=()
-if [[ -f "$ETAG_FILE" && -L "$CURRENT" ]]; then
-  etag_header=(-H "If-None-Match: $(cat "$ETAG_FILE")")
-fi
-status="$(curl -sS --max-time 20 -o "$work/release.json" -D "$work/headers" -w '%{http_code}' \
-  -H 'Accept: application/vnd.github+json' "${etag_header[@]}" \
-  "https://api.github.com/repos/$REPO/releases/latest")"
-case "$status" in
-  304) exit 0 ;;
-  200) ;;
-  *) log "GitHub API returned HTTP $status"; exit 1 ;;
-esac
-
-tag="$(jq -r '.tag_name' "$work/release.json")"
-[[ "$tag" =~ ^site-[0-9]+-[0-9a-f]{7}$ ]] || { log "unexpected release tag: $tag"; exit 1; }
+# The newest release's tag, from where github.com's "latest release" page redirects. That's the
+# website, not the REST API: unauthenticated API calls are limited to 60 an hour per address, which
+# several apps' timers on one server exceed (and a 304 still counts without a token).
+rm -f "$ROOT/.latest-etag" # left by earlier versions, which used the API
+location="$(curl -sS --max-time 20 -o /dev/null -w '%{redirect_url}' "https://github.com/$REPO/releases/latest")" \
+  || { log "couldn't reach GitHub"; exit 1; }
+tag="${location##*/releases/tag/}"
+[[ "$location" == "https://github.com/$REPO/releases/tag/"* && "$tag" =~ ^site-[0-9]+-[0-9a-f]{7}$ ]] \
+  || { log "unexpected answer from GitHub: ${location:-no redirect}"; exit 1; }
 
 if [[ "$(live_tag)" != "$tag" ]]; then
   base="https://github.com/$REPO/releases/download/$tag"
@@ -99,6 +90,3 @@ if [[ "$(live_tag)" != "$tag" ]]; then
     rm -rf "${RELEASES:?}/$old"
   done
 fi
-
-# Remember the release we checked, only after it is live.
-grep -i '^etag:' "$work/headers" | head -n1 | cut -d' ' -f2- | tr -d '\r' > "$ETAG_FILE" || true

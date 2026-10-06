@@ -28,9 +28,13 @@ nginx (trails-web) ──► Cloudflare Tunnel (outbound only) ──► https:/
   every Trails app, each from its own `server` block and its own folder (`/srv/labtrails/current`).
 - Each app has its own **system user** (`labtrails-deploy`) that can write only its own folder,
   and its own timer.
-- `trails-deploy.sh` is a copy of tbutman.com's deploy script, so a change there can't break the
-  apps. It installs the newest release, keeps the last five, and has `rollback` (switch to the
-  previous release and pin it) and `unpin`.
+- `trails-deploy.sh` started as a copy of tbutman.com's deploy script, so a change there can't break
+  the apps. It installs the newest release, keeps the last five, and has `rollback` (switch to the
+  previous release and pin it) and `unpin`. It finds the newest release from github.com's "latest
+  release" redirect, not the REST API: the API allows 60 unauthenticated requests an hour per
+  address, and several timers every two minutes exceed that.
+- **The server has one copy of `trails-deploy.sh`** (`/usr/local/bin`), installed by whichever app's
+  setup ran last. Keep it identical in every Trails repository.
 - The server-specific setup script (users, folders, the Compose project, the tunnel network) lives
   in the private infrastructure repository, not here.
 
@@ -46,7 +50,10 @@ nginx (trails-web) ──► Cloudflare Tunnel (outbound only) ──► https:/
 - **No access log.** The app has no server-side data, and there are no analytics. nginx errors go
   to the container log, capped at 3 × 10 MB.
 - The service worker and manifest are served `no-cache`, so updates reach installed apps; hashed
-  build files are cached for a year.
+  build files are cached for a year. **Missing files are served `no-store`**: a 404 for a new
+  build's file, requested a moment before the release is installed, would otherwise be cached by
+  Cloudflare for a year and break the app. `check-nginx.sh` tests this. If it ever happens, purge
+  the URL in Cloudflare (Caching → Configuration → Custom Purge).
 
 ## Cloudflare settings for the domain
 
