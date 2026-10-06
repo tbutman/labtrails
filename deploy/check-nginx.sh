@@ -55,4 +55,17 @@ expect_type /p/some/route text/html
   || { echo "FAIL www redirect"; fail=1; }
 curl -s -o /dev/null -H "Host: evil.example" "http://127.0.0.1:$PORT/" && { echo "FAIL unknown host was answered"; fail=1; }
 
+# Missing files must not be cacheable, or Cloudflare keeps the 404 after the file arrives.
+for path in /assets/missing-abc123.js /assets/missing-abc123.mjs /vendor/missing.js; do
+  headers="$(curl -sI -H "Host: $HOST" "http://127.0.0.1:$PORT$path")"
+  grep -q "^HTTP/1.1 404" <<<"$headers" || { echo "FAIL $path: expected 404"; fail=1; }
+  grep -qi "^cache-control: no-store" <<<"$headers" || { echo "FAIL $path: a 404 without Cache-Control: no-store"; fail=1; }
+  grep -qi "^cache-control:.*max-age" <<<"$headers" && { echo "FAIL $path: a 404 with a max-age"; fail=1; }
+  grep -qi "^content-security-policy:" <<<"$headers" || { echo "FAIL $path: a 404 without the security headers"; fail=1; }
+done
+# Real files keep their long cache lifetime.
+asset="$(cd "$DIST" && ls assets/*.js | head -1)"
+curl -sI -H "Host: $HOST" "http://127.0.0.1:$PORT/$asset" | grep -qi "^cache-control: public, max-age=31536000, immutable" \
+  || { echo "FAIL /$asset: lost its long cache lifetime"; fail=1; }
+
 if [[ $fail -eq 0 ]]; then echo "nginx check passed"; else echo "nginx check FAILED"; exit 1; fi
