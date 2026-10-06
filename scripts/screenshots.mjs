@@ -36,14 +36,18 @@ await p.getByRole('img', { name: /Ferritin/ }).waitFor()
 await p.screenshot({ path: out('marker-dark') })
 
 p = await demo(desk)
-await p.getByRole('link', { name: 'Reports' }).first().click()
-await p.getByRole('link', { name: 'Read a report' }).first().click()
-await p.getByRole('button', { name: 'Use the sample report' }).click()
-await p.getByRole('button', { name: 'Show the review step' }).click()
-await p.getByText('Unsure: check carefully').waitFor()
+await p.getByRole('link', { name: 'Reports', exact: true }).first().click()
+await p.getByRole('link', { name: 'Import reports' }).first().click()
+await p.getByRole('button', { name: 'Add the sample report' }).click()
+await p.getByText('Ready', { exact: true }).waitFor()
+await p.getByRole('button', { name: 'Add the sample report' }).click()
+await p.getByText('Already imported').waitFor()
+await p.mouse.move(0, 0)
+await p.screenshot({ path: out('import-queue') })
+await p.getByRole('button', { name: 'Read 1 report' }).click()
+await p.getByRole('heading', { name: 'Check report 1 of 1' }).waitFor()
 await p.waitForTimeout(500)
 await p.screenshot({ path: out('review') })
-
 // The landing page's showcase images come from the same shots.
 await p.screenshot({ path: 'public/landing/review.png' })
 
@@ -55,6 +59,24 @@ await p.locator('.report-sheet svg').screenshot({ path: 'public/landing/doctor-r
 p = await demo(desk)
 await p.getByRole('link', { name: 'Table' }).first().click()
 await p.screenshot({ path: out('table') })
+
+// Correcting a result: a name the catalogue doesn't know, about to be mapped.
+p = await demo(desk)
+await p.getByRole('link', { name: 'Reports', exact: true }).first().click()
+await p.locator('summary').first().click()
+await p.getByRole('link', { name: 'Correct Cistatina C' }).first().click()
+await p.getByRole('heading', { name: 'Correct a result' }).waitFor()
+await p.locator('form.card').screenshot({ path: out('correct-result') })
+
+// The landing page and the dashboard, at high resolution, for the README and portfolio.
+const hi = { viewport: { width: 1360, height: 860 }, deviceScaleFactor: 2, colorScheme: 'light' }
+const landing = await (await browser.newContext(hi)).newPage()
+await landing.goto(base)
+await landing.waitForTimeout(900)
+await landing.screenshot({ path: out('landing') })
+p = await demo(hi)
+await p.waitForTimeout(300)
+await p.screenshot({ path: out('dashboard') })
 
 await browser.close()
 console.log('Screenshots written to docs/screenshots/')

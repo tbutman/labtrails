@@ -22,8 +22,14 @@ The first version, not yet released.
   results printed the same way).
 - AI summaries of a report or of everything, explaining only what the code flagged.
 - A one-page report for your doctor, printed, saved as PDF or shared as an image.
+- Import several reports at once, or a zip of them, with duplicates caught: files already imported,
+  a second copy of a saved report, and rows already saved. Files kept for later wait under "Not read
+  yet". The AI also copies the lab name and fasting status for you to confirm.
+- Edit a report's details (date, time, lab, notes) after saving.
+- A landing page, and a redesign on the shared Trails design system (Inter, one component kit,
+  contrast checked in both themes); the app itself is at /app.
 - A demo with a made-up person, labs and sample report.
-- Installable, and works offline.
+- Installable and works offline, with a Reload banner when a new version is ready.
 - Accessibility: a "Skip to content" link; after each screen change, focus moves to its heading and
   the tab's title names it; checked with axe on every screen in both themes, at phone and desktop
   widths. Fixed the Table screen scrolling sideways on phones.
