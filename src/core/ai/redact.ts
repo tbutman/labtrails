@@ -14,5 +14,7 @@ export function redactNames(text: string, names: (string | undefined)[], placeho
   if (!words.length) return text
   // \p{L} so names with accents are matched as whole words, not inside other words.
   const pattern = new RegExp(`(?<![\\p{L}\\p{N}])(${words.map(escape).join('|')})(?![\\p{L}\\p{N}])`, 'giu')
-  return text.replace(pattern, placeholder)
+  // A full name becomes one placeholder, not one per word ("Sam Example" → "your baby").
+  const repeated = new RegExp(`${escape(placeholder)}(?:\\s+${escape(placeholder)})+`, 'g')
+  return text.replace(pattern, placeholder).replace(repeated, placeholder)
 }

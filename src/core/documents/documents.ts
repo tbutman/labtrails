@@ -14,6 +14,8 @@ export type DocumentRecord<Kind extends string = string, Meta = unknown> = {
   blobId: string
   createdAt: string
   meta?: Meta
+  /** One page of a document photographed as several (request 17): pages share an id, numbered from 1. */
+  group?: { id: string; page: number }
 }
 
 export const SUPPORTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif'] as const
@@ -54,7 +56,7 @@ export async function readDocumentFile(file: Blob): Promise<{ bytes: Uint8Array<
   return { bytes, mimeType }
 }
 
-export type NewDocument<Kind extends string, Meta> = Pick<DocumentRecord<Kind, Meta>, 'profileId' | 'date' | 'kind' | 'title' | 'meta'>
+export type NewDocument<Kind extends string, Meta> = Pick<DocumentRecord<Kind, Meta>, 'profileId' | 'date' | 'kind' | 'title' | 'meta'> & Partial<Pick<DocumentRecord<Kind, Meta>, 'group'>>
 
 export async function addDocument<Kind extends string, Meta>(
   store: RecordStore,
@@ -90,4 +92,10 @@ export function listDocuments<Kind extends string, Meta>(store: RecordStore, pro
   return store
     .list<DocumentRecord<Kind, Meta>>('documents')
     .then((docs) => docs.filter((d) => profileId === undefined || d.profileId === profileId).sort((a, b) => b.date.localeCompare(a.date)))
+}
+
+/** A document and the other pages of its group, in page order (just the document if it has none). */
+export function pagesOf<D extends Pick<DocumentRecord, 'id' | 'group'>>(doc: D, all: D[]): D[] {
+  if (!doc.group) return [doc]
+  return all.filter((d) => d.group?.id === doc.group!.id).sort((a, b) => a.group!.page - b.group!.page)
 }

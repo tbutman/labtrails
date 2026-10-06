@@ -7,6 +7,25 @@ LabTrails first (`src/trails-import/`); it now lives in the shared core (owned b
 `ImportAdapter`. It contains no app-specific code. Changes are logged in the Trails coordination notes
 so LabTrails can re-sync.
 
+**Pages of one document** (coordination request 17, 6 October 2026). Optional and backward
+compatible: an adapter without `readPages` sees no change.
+- **Queue:** `group` (ready photos, in the order given, become one unit with `pages: IntakeFile[]`;
+  PDFs, files kept without reading and duplicates can't be pages), `ungroup` (each page becomes its
+  own unit again, with its file's id), `move-page`, and `stored-pages`. `canBePage(unit)`,
+  `unitPages(unit)`. In the queue, "Pages of one {noun}?" lets the user tick photos in page order,
+  then reorder or separate them.
+- **Storage:** each page is its own `DocumentRecord` (one blob each, its own fingerprint), linked by
+  the new optional `group: { id, page }` (`src/core/documents/documents.ts`, with `pagesOf(doc, all)`).
+  `unitsFromDocuments` brings a stored group back as one unit, in page order, so "Not read yet" works.
+- **Reading:** `adapter.readPages(pages: { doc, bytes }[])` is called with every page together; each
+  row's `page` is its page number. The send sheet counts each page as a photo.
+- **Review and viewing:** `DocumentPages` (`src/core/documents/DocumentPages.tsx`) shows one page at a
+  time with a pager, or every page in order. A saved record points at the first page's document; all
+  pages are marked read. Apps list a group once (`group.page === 1`) and show all its pages.
+- **Fixed:** `ReviewPanel`'s `source` now receives `(page, onPageChange)`, so a viewer's previous/next
+  buttons and the rows' "Show page" move the same page. Before, a multi-page PDF's buttons didn't move
+  the review's page.
+
 **Changed in the core** (6 October 2026, after the move from LabTrails' `3755a1b`):
 - **Document kinds per file.** An adapter can pass `kinds` (each `{ value, label, read }`) and
   `kindFor(file)`. The queue then shows a type picker on each file; kinds with `read: false` are kept

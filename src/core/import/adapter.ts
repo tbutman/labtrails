@@ -36,6 +36,12 @@ export type ImportAdapter<M> = {
   canRead: boolean
   /** Reads one stored document. Throw an Error with a message for the user to mark it failed. */
   read: (doc: StoredDoc, bytes: Uint8Array<ArrayBuffer>) => Promise<ReadResult<M>>
+  /**
+   * Optional: reads several photos as the pages of one document, together (request 17), so a table
+   * that runs across pages comes back as one extraction; each row's `page` is its page number. With
+   * it, the queue offers to group photos; without it, nothing changes.
+   */
+  readPages?: (pages: { doc: StoredDoc; bytes: Uint8Array<ArrayBuffer> }[]) => Promise<ReadResult<M>>
   /** Compares what was read with what's already saved. */
   check?: (result: ReadResult<M>) => Promise<CheckResult>
   /** Saves the confirmed rows; returns a short description of what was created. */

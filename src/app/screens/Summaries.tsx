@@ -11,9 +11,9 @@ import { AFTER_REPORT_SYSTEM, OVERALL_SYSTEM, summaryMessage } from '../../labs/
 import { digest } from '../../labs/ai/digest'
 import type { Summary } from '../../labs/types'
 import { DISCLAIMER } from '../components/Flags'
-import { Sparkles } from 'lucide-react'
+import { MessageCircleQuestion, Sparkles } from 'lucide-react'
 import { Callout, EmptyState, PageHeader } from '../../core/ui/components'
-import { useProfileData } from '../profileContext'
+import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 import { formatDate } from '../format'
 
@@ -21,6 +21,7 @@ type Request = { kind: Summary['kind']; reportId?: string; facts: SummaryFacts }
 
 export function Summaries() {
   const { profile, reports, results, summaries } = useProfileData()
+  const base = useBase()
   const { mode, store, core, app, changed } = useSession()
   const [params] = useSearchParams()
   const [request, setRequest] = useState<Request | null>(null)
@@ -102,6 +103,11 @@ export function Summaries() {
       <PageHeader
         title="Summaries"
         subtitle={`Plain-language explanations of what the code flagged. No new flags, no diagnosis, no treatment advice.${mode === 'demo' ? ' In the demo these are pre-written examples.' : ''}`}
+        actions={
+          <Link className="button" to={`${base}/ask`}>
+            <MessageCircleQuestion size={16} aria-hidden /> Ask about your results
+          </Link>
+        }
       />
       {canAsk && latest && (
         <p className="row summaries-actions">

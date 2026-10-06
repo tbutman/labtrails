@@ -3,6 +3,7 @@
 
 import type { RecordStore } from '../../core'
 import { AiError, askJson, imageBlock, pdfBlock, shrinkImage, type ContentBlock } from '../../core/ai/client'
+import { pagesOf } from '../../core/documents/documents'
 import type { ConfirmedRow } from '../../core/review/model'
 import { EXTRACTION_SYSTEM } from '../../labs/ai/prompts'
 import { alreadySavedRows, parseFasting, similarReport } from '../../labs/extraction/duplicates'
@@ -40,6 +41,17 @@ export function savedSummary(results: number, dates: string[]): string {
   return `${plural(results, 'result')} in ${sorted.length} reports, ${formatDate(sorted[0])} to ${formatDate(sorted[sorted.length - 1])}`
 }
 
+/** What goes with a group of photos, so the AI numbers the pages the way the review shows them. */
+export function pagesNote(count: number): string {
+  return `These ${count} images are pages 1 to ${count} of one lab report, in order. Read them as one report; a table may continue from one page to the next. For each row, page is the number of the image it appears on (1 to ${count}).`
+}
+
+async function block(doc: StoredDoc, bytes: Uint8Array<ArrayBuffer>): Promise<ContentBlock> {
+  if (doc.mimeType === 'application/pdf') return pdfBlock(bytes)
+  const small = await shrinkImage(bytes, doc.mimeType as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif')
+  return imageBlock(small.bytes, small.mediaType)
+}
+
 export function labAdapter(deps: {
   store: RecordStore
   profileId: string
@@ -57,6 +69,22 @@ export function labAdapter(deps: {
     return { reports, results }
   }
 
+  const extract = async (blocks: ContentBlock[], text: string) => {
+    if (!deps.apiKey) throw new Error('Add your Anthropic API key in Settings to read reports.')
+    const { value } = await askJson(
+      // A cumulative report with several dates can run to a few hundred rows.
+      { apiKey: deps.apiKey, model: deps.model, system: EXTRACTION_SYSTEM, content: [...blocks, { type: 'text', text }], maxTokens: 16000 },
+      EXTRACTION_SCHEMA,
+      validated,
+    )
+    return value
+  }
+  const proposals = (extraction: Extraction, dropped: number) => ({
+    rows: toProposedRows(extraction, deps.aliases),
+    meta: { lab: extraction.lab ?? '', fasting: parseFasting(extraction.fastingPrinted), dates: printedDates(extraction).length },
+    dropped,
+  })
+
   return {
     appName: 'LabTrails',
     documentKind: 'lab-report',
@@ -71,33 +99,22 @@ export function labAdapter(deps: {
     estimate: ({ pdfs, images }) => ({ inputTokens: pdfs * 9000 + images * 4000, outputTokens: (pdfs + images) * 2000 }),
 
     async read(doc, bytes) {
-      let extraction: Extraction
-      let dropped = 0
       if (deps.demo) {
         if (doc.title !== SAMPLE_TITLE) throw new Error('In the demo, only the sample report can be read.')
-        extraction = DEMO_EXTRACTION
-      } else {
-        if (!deps.apiKey) throw new Error('Add your Anthropic API key in Settings to read reports.')
-        let block: ContentBlock
-        if (doc.mimeType === 'application/pdf') block = pdfBlock(bytes)
-        else {
-          const small = await shrinkImage(bytes, doc.mimeType as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif')
-          block = imageBlock(small.bytes, small.mediaType)
-        }
-        const { value } = await askJson(
-          // A cumulative report with several dates can run to a few hundred rows.
-          { apiKey: deps.apiKey, model: deps.model, system: EXTRACTION_SYSTEM, content: [block, { type: 'text', text: extractionPrompt() }], maxTokens: 16000 },
-          EXTRACTION_SCHEMA,
-          validated,
-        )
-        extraction = value.extraction
-        dropped = value.dropped
+        return proposals(DEMO_EXTRACTION, 0)
       }
-      return {
-        rows: toProposedRows(extraction, deps.aliases),
-        meta: { lab: extraction.lab ?? '', fasting: parseFasting(extraction.fastingPrinted), dates: printedDates(extraction).length },
-        dropped,
-      }
+      const v = await extract([await block(doc, bytes)], extractionPrompt())
+      return proposals(v.extraction, v.dropped)
+    },
+
+    // Photos of one paper report, read together so a table that runs across pages comes back as one
+    // extraction (coordination request 17). Each row's page is the photo it was read from.
+    async readPages(pages) {
+      if (deps.demo) throw new Error('In the demo, only the sample report can be read.')
+      const blocks = []
+      for (const p of pages) blocks.push(await block(p.doc, p.bytes))
+      const v = await extract(blocks, `${pagesNote(pages.length)}\n\n${extractionPrompt()}`)
+      return proposals(v.extraction, v.dropped)
     },
 
     async check(result) {
@@ -130,8 +147,10 @@ export function labAdapter(deps: {
       const newest = [...reports].sort((a, b) => b.date.localeCompare(a.date))[0]
       for (const r of reports) await store.put('reports', meta.fasting && r === newest ? { ...r, context: { ...r.context, fasting: meta.fasting } } : r)
       for (const r of results) await store.put('results', r)
+      // Every page of a group carries the report's date and lab, like a single document.
       const latest = (await store.get<StoredDoc>('documents', doc.id)) ?? doc
-      if (newest) await store.put('documents', { ...latest, date: newest.date, meta: { ...latest.meta, lab: meta.lab.trim() || undefined } })
+      const pages = pagesOf(latest, await store.list<StoredDoc>('documents'))
+      if (newest) for (const page of pages) await store.put('documents', { ...page, date: newest.date, meta: { ...page.meta, lab: meta.lab.trim() || undefined } })
       await deps.onSaved()
       return savedSummary(results.length, reports.map((r) => r.date))
     },

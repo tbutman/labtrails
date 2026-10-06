@@ -1008,7 +1008,10 @@ a.metric:hover {
 }
 
 /* Tables */
+/* position: relative keeps absolutely positioned children (screen-reader-only labels in cells)
+   inside the scroll container; without it they escape and widen the whole page on phones. */
 .table-wrap {
+  position: relative;
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1542,7 +1545,11 @@ details.disclosure > .disclosure-body {
     grid-template-columns: 2fr 1fr 1fr 1fr;
   }
 }
-.footer-grid h4 {
+/* Column titles: paragraphs styled as small headings, so the page's heading levels don't jump from
+   the call to action's h2 to an h4. */
+.footer-grid .footer-title {
+  font-weight: 650;
+  line-height: 1.2;
   font-size: var(--text-xs);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1746,4 +1753,43 @@ details.disclosure > .disclosure-body {
   border-bottom: 1px solid var(--border);
   font-size: var(--text-sm);
   text-align: center;
+}
+
+/* Ask about the numbers (src/core/ask/AskThreadView.tsx) */
+.ask-thread {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+.ask-question {
+  justify-self: end;
+  max-width: min(36rem, 90%);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg) var(--radius-lg) var(--radius-sm) var(--radius-lg);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+/* Keyboard access (navigation.tsx): a skip link that appears when focused, and no ring on headings or
+   the page that receive focus after a screen change (they aren't controls). */
+.skip-link {
+  position: fixed;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--text);
+  color: var(--bg);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.skip-link:focus {
+  transform: none;
+}
+main[tabindex='-1']:focus,
+h1[tabindex='-1']:focus {
+  outline: none;
 }

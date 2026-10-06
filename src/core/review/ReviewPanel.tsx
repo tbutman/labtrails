@@ -22,20 +22,24 @@ import {
 type Props = {
   columns: Column[]
   proposed: ProposedRow[]
-  // The source: usually a DocumentViewer showing one page. Receives the page to show.
-  source?: (page: number | undefined) => ReactNode
+  // The source: usually a DocumentViewer showing one page. Receives the page to show, and a way for its
+  // own previous/next buttons to change it (so "Show page" and the buttons move the same page).
+  source?: (page: number | undefined, onPageChange: (page: number) => void) => ReactNode
   onConfirm: (rows: ConfirmedRow[]) => Promise<void> | void
   onCancel: () => void
   confirmLabel?: (count: number) => string
+  // Other rows from the same document that aren't being reviewed (already saved, say). Only used to
+  // tell whether its dates are day first or month first.
+  context?: ProposedRow[]
 }
 
 const CONFIDENCE_LABEL = { high: 'Clear in the document', medium: 'Check this', low: 'Unsure: check carefully' }
 // Told apart by words and outline, not colour.
 const CHIP_TONE = { high: '', medium: ' outline', low: ' strong' }
 
-export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, confirmLabel }: Props) {
+export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, confirmLabel, context = [] }: Props) {
   const [rows, setRows] = useState<ReviewRow[]>(() => initRows(proposed, columns))
-  const [order, setOrder] = useState<DateOrder | undefined>(() => detectDateOrder(rawDates(initRows(proposed, columns), columns)))
+  const [order, setOrder] = useState<DateOrder | undefined>(() => detectDateOrder(rawDates(initRows([...proposed, ...context], columns), columns)))
   const [page, setPage] = useState<number | undefined>(proposed.find((p) => p.page)?.page)
   const [saving, setSaving] = useState(false)
   const askOrder = useMemo(() => !order && needsDateOrder(rawDates(rows, columns)), [order, rows, columns])
@@ -56,7 +60,7 @@ export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, co
 
   return (
     <div className="review">
-      {source && <div className="review-source">{source(page)}</div>}
+      {source && <div className="review-source">{source(page, setPage)}</div>}
       <div className="review-rows stack">
         {askOrder && (
           <div className="callout" role="group" aria-label="Date order">
