@@ -1,4 +1,4 @@
-import type { Brand } from '../trails-ui/components'
+import type { Brand } from '../core/ui/components'
 
 export const BRAND: Brand = {
   name: 'LabTrails',

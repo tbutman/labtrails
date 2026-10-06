@@ -21,14 +21,16 @@ describe('backup', () => {
     const appId = `backup${n++}`
     const a = await device(appId, ['children', 'measurements', 'labs-only'])
     await a.vault.create(PASS)
-    await a.store.put('children', { id: 'c1', name: 'Alex' })
+    // A name with a space: base64 ciphertext can't contain one, so the check below can't match by
+    // chance (a short name like "Alex" turns up in ~2 MB of random base64 about one run in eight).
+    await a.store.put('children', { id: 'c1', name: 'Alex Example' })
     await a.store.put('measurements', { id: 'm1', childId: 'c1', weightKg: 7.9 })
     await a.store.put('labs-only', { id: 'x', note: 'a collection this app version may not know' })
     const blob = new Uint8Array(1500000).map((_, i) => i % 251)
     const blobId = await a.store.putBlob(blob)
     await a.store.put('documents', { id: 'd1', profileId: 'c1', blobId })
     const file = await exportBackup(a.db, appId)
-    expect(await file.text()).not.toContain('Alex')
+    expect(await file.text()).not.toContain('Alex Example')
 
     // Restore over the same database, as on a new device after clearing.
     a.vault.lock()
@@ -36,13 +38,12 @@ describe('backup', () => {
     await a.db.clear('blobs')
     await restoreBackup(a.db, await readBackup(file, appId), PASS)
     await a.vault.unlock(PASS)
-    expect(await a.store.get('children', 'c1')).toEqual({ id: 'c1', name: 'Alex' })
+    expect(await a.store.get('children', 'c1')).toEqual({ id: 'c1', name: 'Alex Example' })
     expect(await a.store.list('measurements')).toEqual([{ id: 'm1', childId: 'c1', weightKg: 7.9 }])
     expect(await a.store.get('labs-only', 'x')).toBeDefined()
     const got = await a.store.getBlob(blobId)
     expect(got && Buffer.from(got).equals(Buffer.from(blob))).toBe(true)
-    // A 1.5 MB file is encrypted, exported, verified and restored; allow for slow, busy machines.
-  }, 20_000)
+  })
 
   it('needs the passphrase and changes nothing when it is wrong', async () => {
     const appId = `backup${n++}`

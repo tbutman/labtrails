@@ -3,7 +3,7 @@ import { analyse } from '../../labs/analysis'
 import { rangeFlag } from '../../labs/flags/flags'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
-import { PageHeader } from '../../trails-ui/components'
+import { PageHeader } from '../../core/ui/components'
 import { formatDate, formatPoint } from '../format'
 
 export function TableView() {

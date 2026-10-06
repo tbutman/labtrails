@@ -1,6 +1,6 @@
 import type { MarkerAnalysis } from '../labs/analysis'
 import { rangeFlag } from '../labs/flags/flags'
-import type { SparkPoint } from '../trails-ui/components'
+import type { SparkPoint } from '../core/ui/components'
 
 /** A marker's last results as sparkline points, each with its own range, flagged ones marked. */
 export function sparkPoints(a: MarkerAnalysis, last = 8): SparkPoint[] {

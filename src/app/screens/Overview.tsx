@@ -1,7 +1,7 @@
 import { CircleAlert, FilePlus2, FileSearch, HelpCircle, ScanText } from 'lucide-react'
 import { Link } from 'react-router'
 import { analyse, unmapped, type MarkerAnalysis } from '../../labs/analysis'
-import { Callout, EmptyState, MetricCard, PageHeader, Sparkline } from '../../trails-ui/components'
+import { Callout, EmptyState, MetricCard, PageHeader, Sparkline } from '../../core/ui/components'
 import { DISCLAIMER, MarkerFlags } from '../components/Flags'
 import { sparkPoints } from '../spark'
 import { useBase, useProfileData } from '../profileContext'

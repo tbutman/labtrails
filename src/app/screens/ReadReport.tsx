@@ -6,7 +6,7 @@
 import { useEffect, useState } from 'react'
 import { FileUp, Sparkles } from 'lucide-react'
 import { Link, useNavigate } from 'react-router'
-import { Callout, FileDrop, PageHeader } from '../../trails-ui/components'
+import { Callout, FileDrop, PageHeader } from '../../core/ui/components'
 import { addDocument, deleteDocument, documentBytes, DocumentError, type DocumentRecord } from '../../core'
 import { AiError, askJson, imageBlock, pdfBlock, shrinkImage, type ContentBlock } from '../../core/ai/client'
 import { SendSheet } from '../../core/ai/SendSheet'

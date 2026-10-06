@@ -1,8 +1,9 @@
 # Trails UI v2
 
 The design system for the Trails apps, [BabyTrails](https://babytrails.app) and
-[LabTrails](https://labtrails.app). Written in LabTrails first, then moved into the shared core
-(`src/core/ui/`), which BabyTrails owns; both apps then use it from there.
+[LabTrails](https://labtrails.app). Written in LabTrails first (as `src/trails-ui/`), then moved into
+the shared core (`src/core/ui/`), which BabyTrails owns; both apps use it from there. Changes are
+logged in the Trails coordination notes so LabTrails can re-sync.
 
 ## What's here
 
@@ -12,6 +13,15 @@ The design system for the Trails apps, [BabyTrails](https://babytrails.app) and
 | `components.css` | Base styles and every component: app bar and phone tab bar, page header, buttons, form fields, segmented controls, toggle chips, switches, file drop zone, cards, callouts, lists, chips, metric cards and sparklines, stats, empty states, skeletons, tables, disclosures, landing-page sections, auth screens. It also styles the core's existing components (ReviewPanel, SendSheet, AiOutput, DocumentViewer, ApiKeySettings) by their class names. |
 | `components.tsx` | React wrappers: `TrailMark`, `Wordmark`, `AppIcon`, `AppBar`, `PageHeader`, `Callout`, `EmptyState`, `Field`, `TextField`, `SelectField`, `TextAreaField`, `Segmented`, `ChipGroup`, `Switch`, `Checkbox`, `FileDrop`, `Chip`, `Sparkline`, `MetricCard`. |
 | `landing.tsx` | Landing-page sections: `LandingNav`, `Hero`, `Section`, `FeatureGrid`, `Steps`, `Showcase`, `PrivacyPanel`, `Faq`, `CtaBand`, `SiteFooter` (with the sister-app link). |
+| `UpdatePrompt.tsx` | The "a new version is ready, Reload" banner (see the core README). |
+
+**Added in the core** (6 October 2026, after the move), at the end of `components.css`: the auth
+helpers (`.auth-links`, `.form-error`, `.form-footnote`), `.disclaimer`, loading shapes
+(`.loading-title`, `.loading-card`), `.avatar`, the landing preview (`.preview`, `.preview-main`,
+`.preview-head`, `.preview-float`) and `.showcases` (moved from LabTrails' `app.css`, so both landing
+pages share them), `.chip.strong` (a chip that stands out without colour, used for low-confidence
+review rows), `.ai-text` and `.update-banner`. The tokens' header comment now says 4 px steps, as the
+values are.
 
 Dependencies: `@fontsource-variable/inter` and `lucide-react` (ISC; icons are passed in as
 components, so each app bundles only the icons it uses), plus `react-router` for links.
@@ -19,13 +29,15 @@ components, so each app bundles only the icons it uses), plus `react-router` for
 ## Using it
 
 ```ts
-import './trails-ui/tokens.css'
-import './trails-ui/components.css'
+import './core/ui/tokens.css'
+import './core/ui/components.css'
 import './app/accent.css' // the app's colours, below
 import './app/app.css' // anything only this app needs
 ```
 
-Each app sets its colours for both modes, and nothing else:
+Each app sets its colours for both modes, and nothing else (BabyTrails' honey is in
+`src/app/accent.css`, with its contrast ratios; `tests/unit/contrast.test.ts` checks the rules below
+against the CSS files):
 
 ```css
 :root {
