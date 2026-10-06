@@ -1,14 +1,11 @@
 import { Link } from 'react-router'
 import { CHANGE_THRESHOLD, TREND_MIN_RESULTS, TREND_THRESHOLD } from '../../labs/flags/flags'
-import { Wordmark } from '../components/Layout'
+import { Shell } from '../components/Layout'
 import { formatPercent } from '../format'
 
 export function HowFlagsWork() {
   return (
-    <div className="page">
-      <header className="header">
-        <Wordmark />
-      </header>
+    <Shell>
       <h1>How flags work</h1>
       <p>
         LabTrails' flags come from three simple rules in its code, which anyone can read. The AI never decides what's flagged; it only
@@ -43,6 +40,6 @@ export function HowFlagsWork() {
       <p>
         <Link to="/">← Home</Link>
       </p>
-    </div>
+    </Shell>
   )
 }

@@ -1,12 +1,15 @@
 import { Link } from 'react-router'
 import { analyse, unmapped } from '../../labs/analysis'
 import { DISCLAIMER, MarkerFlags } from '../components/Flags'
-import { useProfileData } from '../profileContext'
-import { formatDate, formatPoint, formatRange } from '../format'
+import { useBase, useProfileData } from '../profileContext'
+import { useSession } from '../sessionContext'
+import { formatDate, formatPoint, formatRange, plural } from '../format'
 
 export function Overview() {
   const { profile, reports, results } = useProfileData()
-  const panels = analyse(results, reports)
+  const base = useBase()
+  const { app, mode } = useSession()
+  const panels = analyse(results, reports, app.preferredUnit)
   const latest = [...reports].sort((a, b) => a.date.localeCompare(b.date)).at(-1)
   const flagged = panels.flatMap((p) => p.markers).filter((m) => m.latestFlag || m.change?.notable || m.trend)
   const unknown = [...new Set(unmapped(results).map((r) => r.nameAsPrinted))]
@@ -15,8 +18,16 @@ export function Overview() {
     <>
       <h1>{profile.name}</h1>
       <p className="muted">
-        {reports.length} reports{latest && `, latest ${formatDate(latest.date)}`}. {flagged.length} markers have a flag.
+        {plural(reports.length, 'report')}{latest && `, latest ${formatDate(latest.date)}`}. {plural(flagged.length, 'marker has', 'markers have')} a flag.
       </p>
+      {mode === 'unlocked' && (
+        <p>
+          <Link className="button" to={`${base}/reports/new`}>
+            Add a report
+          </Link>
+        </p>
+      )}
+      {reports.length === 0 && <p>No results yet. Add a report to see each marker over time.</p>}
 
       {panels.map((panel) => (
         <section key={panel.id} className="card panel" aria-labelledby={`panel-${panel.id}`}>
@@ -26,7 +37,7 @@ export function Overview() {
           <ul className="marker-list">
             {panel.markers.map((a) => (
               <li key={a.marker.id}>
-                <Link className="marker-row" to={`/demo/marker/${a.marker.id}`}>
+                <Link className="marker-row" to={`${base}/marker/${a.marker.id}`}>
                   <span className="marker-name">{a.marker.name}</span>
                   <span className="marker-value">
                     {a.latest ? (

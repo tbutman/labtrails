@@ -1,12 +1,14 @@
 import { Link } from 'react-router'
 import { analyse } from '../../labs/analysis'
 import { rangeFlag } from '../../labs/flags/flags'
-import { useProfileData } from '../profileContext'
+import { useBase, useProfileData } from '../profileContext'
+import { useSession } from '../sessionContext'
 import { formatDate, formatPoint } from '../format'
 
 export function TableView() {
   const { reports, results } = useProfileData()
-  const panels = analyse(results, reports)
+  const { app } = useSession()
+  const panels = analyse(results, reports, app.preferredUnit)
   const dates = [...new Set(reports.map((r) => r.date))].sort().reverse()
 
   return (
@@ -39,6 +41,7 @@ export function TableView() {
 }
 
 function PanelRows({ name, markers, dates }: { name: string; markers: ReturnType<typeof analyse>[number]['markers']; dates: string[] }) {
+  const base = useBase()
   return (
     <>
       <tr className="panel-row">
@@ -49,7 +52,7 @@ function PanelRows({ name, markers, dates }: { name: string; markers: ReturnType
       {markers.map((a) => (
         <tr key={a.marker.id}>
           <th scope="row">
-            <Link to={`/demo/marker/${a.marker.id}`}>{a.marker.name}</Link> <span className="muted small">{a.series.unit}</span>
+            <Link to={`${base}/marker/${a.marker.id}`}>{a.marker.name}</Link> <span className="muted small">{a.series.unit}</span>
           </th>
           {dates.map((d) => {
             const p = a.series.points.find((x) => x.date === d)

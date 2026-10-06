@@ -1,6 +1,6 @@
 import type { Profile, Report, Result, Summary } from '../labs/types'
 import { DEMO_PROFILE, DEMO_REPORTS, DEMO_RESULTS, DEMO_SUMMARIES } from '../app/demo'
-import type { RecordStore } from './store'
+import type { RecordStore } from '../core'
 
 export type ProfileData = { profile: Profile; reports: Report[]; results: Result[]; summaries: Summary[] }
 

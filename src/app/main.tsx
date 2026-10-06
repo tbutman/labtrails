@@ -1,40 +1,49 @@
-import '@fontsource/quicksand/500.css'
 import '@fontsource/quicksand/600.css'
-import './styles/tokens.css'
+import '@fontsource/quicksand/700.css'
+import '../core/ui/tokens.css'
 import './styles/accent.css'
 import './styles/app.css'
 
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router'
-import { DemoLayout } from './components/Layout'
+import { ProfileLayout } from './components/Layout'
+import { SessionProvider } from './session'
+import { Home } from './screens/Home'
 import { HowFlagsWork } from './screens/HowFlagsWork'
 import { MarkerDetail } from './screens/MarkerDetail'
 import { Overview } from './screens/Overview'
+import { ProfileForm } from './screens/ProfileForm'
+import { ReportForm } from './screens/ReportForm'
 import { Reports } from './screens/Reports'
+import { Settings } from './screens/Settings'
 import { Summaries } from './screens/Summaries'
 import { TableView } from './screens/TableView'
-import { Welcome } from './screens/Welcome'
 
 const router = createBrowserRouter([
-  { path: '/', element: <Welcome /> },
+  { path: '/', element: <Home /> },
   { path: '/how-flags-work', element: <HowFlagsWork /> },
+  { path: '/settings', element: <Settings /> },
+  { path: '/profiles/new', element: <ProfileForm /> },
   {
-    path: '/demo',
-    element: <DemoLayout />,
+    path: '/p/:profileId',
+    element: <ProfileLayout />,
     children: [
       { index: true, element: <Overview /> },
       { path: 'marker/:id', element: <MarkerDetail /> },
       { path: 'table', element: <TableView /> },
       { path: 'reports', element: <Reports /> },
+      { path: 'reports/new', element: <ReportForm /> },
       { path: 'summaries', element: <Summaries /> },
     ],
   },
-  { path: '*', element: <Welcome /> },
+  { path: '*', element: <Home /> },
 ])
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <SessionProvider>
+      <RouterProvider router={router} />
+    </SessionProvider>
   </StrictMode>,
 )

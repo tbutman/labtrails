@@ -1,4 +1,4 @@
-/* LabTrails' own colours on the shared Trails tokens (SPEC.md section 13). WCAG 2.1 contrast:
+/* LabTrails' own colours on the shared Trails tokens (src/core/ui/tokens.css) (SPEC.md section 13). WCAG 2.1 contrast:
    teal #0F7A6A is 5.1:1 on warm white and 5.2:1 behind white text; #4FC6AE is 8.5:1 on deep ink.
    Plum #8E2C6B is 7.5:1 on warm white (6.5:1 on its tint); #F2A7D3 is 9.6:1 on deep ink.
    Plum and teal are close in lightness, so a flag is never shown by colour alone. */
@@ -15,4 +15,17 @@
   --flag-tint-light: #f8e6f0;
   --flag-dark: #f2a7d3;
   --flag-tint-dark: #3b1c33;
+}
+
+/* A pale accent for range bars and the current nav item; the core doesn't define one. */
+:root {
+  --accent-tint: var(--accent-tint-light);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --accent-tint: var(--accent-tint-dark);
+  }
+}
+:root[data-theme='dark'] {
+  --accent-tint: var(--accent-tint-dark);
 }

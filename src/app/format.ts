@@ -28,3 +28,8 @@ export function formatDate(iso: string): string {
 export function formatPercent(fraction: number): string {
   return `${Math.round(Math.abs(fraction) * 100)}%`
 }
+
+/** "1 report", "3 reports"; or with explicit forms, "1 marker has", "2 markers have". */
+export function plural(n: number, one: string, many = `${one}s`): string {
+  return `${n} ${n === 1 ? one : many}`
+}

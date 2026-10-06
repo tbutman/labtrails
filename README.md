@@ -21,6 +21,12 @@ in `SPEC.md` once it's written.
 LabTrails is a sibling of [BabyTrails](https://github.com/tbutman/babytrails), a baby growth tracker
 built on the same private, local-first design.
 
+## Shared code
+
+`src/core/` (the encrypted vault, storage, backup and settings) is copied from BabyTrails with
+`scripts/sync-core.sh`. The source commit is recorded in `src/core/SOURCE`; currently
+[babytrails@a213c82](https://github.com/tbutman/babytrails/commit/a213c82).
+
 ## Licence
 
 Free and open source under the [MIT licence](LICENSE).

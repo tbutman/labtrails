@@ -1,0 +1,105 @@
+/* Shared design tokens for the Trails apps ("Honey and ink" family base, agreed 6 October 2026).
+   Contrast ratios are WCAG 2.1 against the background they're used on.
+
+   Each app sets only its accent, in its own stylesheet, for both modes:
+     --accent-fill-light / --accent-fill-dark   fills, chart points, the dark-mode primary button
+     --accent-text-light / --accent-text-dark   accent text and lines (≥ 4.5:1 on the background)
+   and, if it shows flags (LabTrails), its flag colour:
+     --flag-light / --flag-dark                 flag text, rings and icons
+     --flag-tint-light / --flag-tint-dark       the flag's background tint
+   The rest of the app reads --accent-fill, --accent-text, --flag and --flag-tint, which follow the
+   current mode. */
+
+:root {
+  color-scheme: light dark;
+  --font-display: 'Quicksand', ui-rounded, system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --radius: 10px;
+  --radius-lg: 16px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --tap: 44px; /* minimum touch target */
+
+  /* light */
+  --bg: #fffbf2;
+  --surface: #ffffff;
+  --surface-2: #f6f1e6;
+  --text: #1d2340; /* 14.9:1 on --bg */
+  --text-muted: #646a85; /* 5.2:1 */
+  --border: #e4dfd2;
+  --border-strong: #c9c3b4;
+  --primary: #1d2340;
+  --on-primary: #ffffff; /* 15.4:1 */
+  --danger: #a32d2d;
+  --focus: #1d2340;
+
+  /* charts: bands in the text colour at low strength, never traffic-light colours */
+  --chart-band-outer: rgb(29 35 64 / 0.07);
+  --chart-band-inner: rgb(29 35 64 / 0.12);
+  --chart-median: rgb(29 35 64 / 0.55);
+  --chart-grid: rgb(29 35 64 / 0.08);
+  --chart-outline: #1d2340;
+
+  --accent-fill: var(--accent-fill-light);
+  --accent-text: var(--accent-text-light);
+  --flag: var(--flag-light, var(--text));
+  --flag-tint: var(--flag-tint-light, var(--surface-2));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #12162b;
+    --surface: #1c2140;
+    --surface-2: #232951;
+    --text: #f1efe6;
+    --text-muted: #a9acc2; /* 7.0:1 on --surface */
+    --border: #2e3460;
+    --border-strong: #454c80;
+    --primary: var(--accent-fill-dark);
+    --on-primary: #1d2340;
+    --danger: #f09595;
+    --focus: var(--accent-fill-dark);
+    --chart-band-outer: rgb(241 239 230 / 0.06);
+    --chart-band-inner: rgb(241 239 230 / 0.11);
+    --chart-median: rgb(241 239 230 / 0.5);
+    --chart-grid: rgb(241 239 230 / 0.08);
+    --chart-outline: #12162b;
+    --accent-fill: var(--accent-fill-dark);
+    --accent-text: var(--accent-text-dark);
+    --flag: var(--flag-dark, var(--text));
+    --flag-tint: var(--flag-tint-dark, var(--surface-2));
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #12162b;
+  --surface: #1c2140;
+  --surface-2: #232951;
+  --text: #f1efe6;
+  --text-muted: #a9acc2;
+  --border: #2e3460;
+  --border-strong: #454c80;
+  --primary: var(--accent-fill-dark);
+  --on-primary: #1d2340;
+  --danger: #f09595;
+  --focus: var(--accent-fill-dark);
+  --chart-band-outer: rgb(241 239 230 / 0.06);
+  --chart-band-inner: rgb(241 239 230 / 0.11);
+  --chart-median: rgb(241 239 230 / 0.5);
+  --chart-grid: rgb(241 239 230 / 0.08);
+  --chart-outline: #12162b;
+  --accent-fill: var(--accent-fill-dark);
+  --accent-text: var(--accent-text-dark);
+  --flag: var(--flag-dark, var(--text));
+  --flag-tint: var(--flag-tint-dark, var(--surface-2));
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}

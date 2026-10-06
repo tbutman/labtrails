@@ -6,7 +6,8 @@ import { CHANGE_THRESHOLD, TREND_THRESHOLD } from '../../labs/flags/flags'
 import { convertibleUnits } from '../../labs/units/convert'
 import { DISCLAIMER, MarkerFlags } from '../components/Flags'
 import { MarkerChart, ResultsList } from '../components/MarkerChart'
-import { useProfileData } from '../profileContext'
+import { useBase, useProfileData } from '../profileContext'
+import { useSession } from '../sessionContext'
 import { formatDate, formatPercent } from '../format'
 
 const RECENTLY: Record<string, string> = { illness: 'illness', 'hard-exercise': 'hard exercise', alcohol: 'alcohol', 'poor-sleep': 'poor sleep' }
@@ -14,7 +15,9 @@ const RECENTLY: Record<string, string> = { illness: 'illness', 'hard-exercise': 
 export function MarkerDetail() {
   const { id = '' } = useParams()
   const { reports, results } = useProfileData()
-  const [unit, setUnit] = useState<string | undefined>()
+  const base = useBase()
+  const { app, saveApp } = useSession()
+  const [unit, setUnit] = useState<string | undefined>(app.preferredUnit[id])
   const reportsById = new Map(reports.map((r) => [r.id, r]))
   const marker = getMarker(id)
   const a = marker ? analyseMarker(id, results, reportsById, unit) : null
@@ -23,7 +26,7 @@ export function MarkerDetail() {
     return (
       <>
         <h1>Marker not found</h1>
-        <Link to="/demo">Back to the overview</Link>
+        <Link to={base}>Back to the overview</Link>
       </>
     )
   }
@@ -36,7 +39,7 @@ export function MarkerDetail() {
   return (
     <>
       <p className="small">
-        <Link to="/demo">← Overview</Link>
+        <Link to={base}>← Overview</Link>
       </p>
       <h1>{marker.name}</h1>
       <p className="context-list">
@@ -47,7 +50,10 @@ export function MarkerDetail() {
         {units.length > 1 && (
           <div className="unit-switch">
             <label htmlFor="unit">Show in</label>
-            <select id="unit" value={a.series.unit} onChange={(e) => setUnit(e.target.value)}>
+            <select id="unit" value={a.series.unit} onChange={(e) => {
+                setUnit(e.target.value)
+                void saveApp({ ...app, preferredUnit: { ...app.preferredUnit, [id]: e.target.value } })
+              }}>
               {units.map((u) => (
                 <option key={u}>{u}</option>
               ))}
