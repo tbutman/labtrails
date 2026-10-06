@@ -329,3 +329,9 @@
 .chart-card {
   margin-bottom: var(--space-4);
 }
+.unread-all {
+  margin-top: var(--space-3);
+}
+.kept-files {
+  margin-top: var(--space-4);
+}

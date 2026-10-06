@@ -1,8 +1,10 @@
-import { FilePlus2, FileSearch, ScanText, Trash2 } from 'lucide-react'
+import { FileClock, FilePlus2, FileSearch, Pencil, ScanText, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import type { DocumentRecord, RecordStore } from '../../core'
+import { deleteDocument } from '../../core/documents/documents'
 import { DocumentViewer } from '../../core/documents/DocumentViewer'
+import type { StoredDoc } from '../../trails-import/duplicates'
 import type { Result } from '../../labs/types'
 import { Chip, EmptyState, PageHeader } from '../../core/ui/components'
 import { useBase, useProfileData } from '../profileContext'
@@ -14,9 +16,25 @@ const FASTING: Record<string, string> = { yes: 'Fasting', no: 'Not fasting', unk
 
 export function Reports() {
   const { reports, results } = useProfileData()
-  const { mode, store, changed, core, saveCore } = useSession()
+  const { mode, store, changed, core, saveCore, version } = useSession()
+  const { profile } = useProfileData()
   const base = useBase()
   const sorted = [...reports].sort((a, b) => b.date.localeCompare(a.date))
+  const [docs, setDocs] = useState<StoredDoc[]>([])
+  useEffect(() => {
+    if (!store) return
+    void store.list<StoredDoc>('documents').then((d) => setDocs(d.filter((x) => x.profileId === profile.id)))
+  }, [store, profile.id, version])
+  // Files waiting to be read: marked so by the import, or older ones no report points at.
+  const linked = new Set(reports.map((r) => r.documentId).filter(Boolean))
+  const unread = docs.filter((d) => d.meta?.importStatus === 'unread' || (!d.meta?.importStatus && !linked.has(d.id)))
+  const kept = docs.filter((d) => d.meta?.importStatus === 'stored')
+
+  async function removeDoc(doc: StoredDoc) {
+    if (!store || !window.confirm(`Delete "${doc.title}"? This can't be undone, except from a backup.`)) return
+    await deleteDocument(store, doc)
+    changed()
+  }
 
   async function remove(reportId: string, label: string) {
     if (!store || !window.confirm(`Delete the report from ${label} and its results? This can't be undone, except from a backup.`)) return
@@ -29,7 +47,7 @@ export function Reports() {
   const actions = (
     <>
       <Link className="button primary" to={`${base}/reports/read`}>
-        <ScanText size={16} aria-hidden /> Read a report
+        <ScanText size={16} aria-hidden /> Import reports
       </Link>
       {mode === 'unlocked' && (
         <Link className="button" to={`${base}/reports/new`}>
@@ -42,6 +60,58 @@ export function Reports() {
   return (
     <>
       <PageHeader title="Reports" subtitle="Each test, with its results exactly as printed." actions={actions} />
+      {unread.length > 0 && (
+        <>
+          <h2 className="section-title">
+            <FileClock size={14} aria-hidden /> Not read yet · {unread.length}
+          </h2>
+          <div className="card padless">
+            <ul className="list">
+              {unread.map((d) => (
+                <li key={d.id} className="list-row">
+                  <span className="list-row-main">
+                    <span className="list-row-title">{d.title}</span>
+                    <span className="list-row-sub">Added {formatDate(d.createdAt.slice(0, 10))}</span>
+                  </span>
+                  <Link className="button small" to={`${base}/reports/read?documents=${d.id}`}>
+                    Read
+                  </Link>
+                  <button className="icon-button" onClick={() => void removeDoc(d)} aria-label={`Delete ${d.title}`}>
+                    <Trash2 size={16} aria-hidden />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+          {unread.length > 1 && (
+            <p className="row unread-all">
+              <Link className="button small primary" to={`${base}/reports/read?documents=${unread.map((d) => d.id).join(',')}`}>
+                Read all {unread.length}
+              </Link>
+            </p>
+          )}
+        </>
+      )}
+      {kept.length > 0 && (
+        <details className="disclosure kept-files">
+          <summary>Kept without reading · {kept.length}</summary>
+          <div className="disclosure-body">
+            <ul className="list">
+              {kept.map((d) => (
+                <li key={d.id} className="list-row">
+                  <span className="list-row-main">
+                    <span className="list-row-title">{d.title}</span>
+                  </span>
+                  <Link className="button small" to={`${base}/reports/read?documents=${d.id}`}>
+                    Read now
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </details>
+      )}
+      {(unread.length > 0 || kept.length > 0) && sorted.length > 0 && <h2 className="section-title">Saved reports</h2>}
       {sorted.length === 0 && (
         <EmptyState icon={FileSearch} title="No reports yet">
           Read a lab report with AI, or enter the results by hand.
@@ -102,6 +172,9 @@ export function Reports() {
               </div>
               <div className="row report-actions">
                 {r.documentId && store && <Original store={store} documentId={r.documentId} />}
+                <Link className="button small" to={`${base}/reports/${r.id}/edit`}>
+                  <Pencil size={14} aria-hidden /> Edit details
+                </Link>
                 {mode === 'unlocked' && (
                   <button className="button small ghost danger" onClick={() => void remove(r.id, formatDate(r.date))}>
                     <Trash2 size={14} aria-hidden /> Delete report

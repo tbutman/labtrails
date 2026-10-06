@@ -1,0 +1,68 @@
+# Trails import
+
+The shared import flow for the Trails apps: several files or zips at once, duplicates caught at three
+levels, one agreement for a batch, documents read one after another, and a review queue. Written in
+LabTrails first; it moves into the shared core (owned by BabyTrails) next to `documents/`, `review/`
+and `ai/`, and each app plugs in through an `ImportAdapter`. It contains no app-specific code.
+
+## The flow
+
+1. **Add files:** PDFs, photos or zip files, several at once (drop or pick). Zips are opened in the
+   browser with `fflate`. Each file is checked by its real type and given a SHA-256 fingerprint.
+2. **The queue:** one row per document to create, with its status. Files the vault already holds, or
+   that appear twice in this import, are set aside as **Already imported** (the user can import them
+   anyway). Any file can be removed or marked **Keep without reading**.
+3. **Agree once:** the core's `SendSheet` for the whole batch (counts, total size, cost estimate). The
+   demo skips it, since nothing is sent.
+4. **Store, then read:** every file is stored encrypted as a document first, then read one after
+   another. A failure marks that file and the rest carry on; failed files can be retried.
+5. **Check each one:** when a document comes up for review, the adapter compares what was read with
+   what's saved: rows already saved are left out (and listed), and a document that repeats an existing
+   record is pointed out with a "Skip this one" link. The core's `ReviewPanel` does the rest, so only
+   rows the user ticks are saved.
+6. **Summary:** what was saved, kept, skipped, failed or left out as a duplicate.
+
+Documents carry `meta.sha256` and `meta.importStatus` (`unread`, `read` or `stored`). Apps list
+`unread` documents as "Not read yet" and can start the wizard with them (`initialDocuments`).
+
+## Files
+
+| File | What it does |
+| --- | --- |
+| `intake.ts` | `intake(files, limits?)`: type checks, zips, fingerprints, repeats within a drop. Limits on files per batch (60), file size (25 MB, the AI request limit), zip size (200 MB) and total unpacked size (400 MB); nested zips, folders, macOS metadata and hidden files are skipped. |
+| `duplicates.ts` | `storedFingerprints(store)`: every stored document by fingerprint; older documents without one are fingerprinted once and updated. `ImportMeta`, `StoredDoc`. |
+| `queue.ts` | The queue as a pure reducer: statuses, the allowed moves between them (nothing reaches "saved" without "review"), counts. |
+| `adapter.ts` | The `ImportAdapter` interface an app implements. |
+| `ImportWizard.tsx` | The screens. Takes `adapter`, `store`, `profileId`, `model`, optional `initialDocuments`, `demo`, `onFinish` and a `header(title)` render function, so each app keeps its own page chrome. |
+| `import.css` | A few styles on top of the Trails UI kit. |
+
+## Writing an adapter
+
+```ts
+const adapter: ImportAdapter<MyMeta> = {
+  appName: 'BabyTrails',
+  documentKind: 'growth-report',
+  noun: { one: 'document', many: 'documents' },
+  columns,                        // the ReviewPanel columns
+  canRead: demo || !!apiKey,
+  read: async (doc, bytes) => ({ rows, meta, dropped }),   // throw new Error(message) to mark it failed
+  check: async ({ rows, meta }) => ({ alreadySaved, similar }), // optional; queries the store at review time
+  save: async (doc, confirmedRows, meta) => '3 measurements saved',
+  MetaEditor,                     // optional: edits `meta` above the rows (a lab name, a visit)
+  sendSheet: { notSending: [...], notes: [...] },
+  estimate: ({ pdfs, images }) => ({ inputTokens, outputTokens }),
+  storeOnlyByDefault: (file) => false, // BabyTrails: ultrasound images are kept, never read
+  sample: { url: '/demo/sample.pdf', title: 'Sample (fictional).pdf' }, // for the demo
+}
+```
+
+LabTrails' adapter is `src/app/import/labAdapter.tsx`: rows already saved are those with the same
+marker, value and unit on a report with the same date; a "similar" report is one on the same date where
+at least three values and 60% of the comparable rows match (`src/labs/extraction/duplicates.ts`).
+
+## Tests
+
+`tests/unit/import.test.ts` covers intake (types, zips, nested zips, caps, a damaged zip), fingerprint
+duplicates against the vault and across drops, and the queue's rules. LabTrails' browser test
+`tests/e2e/import.spec.ts` runs the whole flow in the demo: a zip, all three duplicate levels, a file
+kept for later, and editing a report's details.

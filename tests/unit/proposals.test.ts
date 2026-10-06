@@ -8,6 +8,7 @@ import type { Extraction } from '../../src/labs/extraction/schema'
 const extraction = (rows: Partial<Extraction['rows'][number]>[]): Extraction => ({
   sampleDate: { printed: '03/04/2026', guessedFormat: 'DMY' },
   lab: 'Fictional lab',
+  fastingPrinted: null,
   rows: rows.map((r) => ({ nameAsPrinted: 'Glicose', valuePrinted: '92', unitPrinted: 'mg/dL', rangePrinted: '70 - 110', flagPrinted: null, suggestedMarkerId: 'glucose', confidence: 'high', page: 1, ...r })),
 })
 
