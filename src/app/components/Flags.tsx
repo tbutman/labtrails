@@ -4,7 +4,7 @@
 
 import { CircleAlert, MoveDownRight, MoveUpRight, TrendingDown, TrendingUp } from 'lucide-react'
 import type { MarkerAnalysis } from '../../labs/analysis'
-import { Chip } from '../../trails-ui/components'
+import { Chip } from '../../core/ui/components'
 import { formatPercent } from '../format'
 
 export function MarkerFlags({ a, compact = false }: { a: MarkerAnalysis; compact?: boolean }) {

@@ -1,5 +1,5 @@
-import '../trails-ui/tokens.css'
-import '../trails-ui/components.css'
+import '../core/ui/tokens.css'
+import '../core/ui/components.css'
 import './styles/accent.css'
 import './styles/app.css'
 

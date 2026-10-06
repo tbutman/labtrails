@@ -1,103 +1,164 @@
-/* Shared design tokens for the Trails apps ("Honey and ink" family base, agreed 6 October 2026).
-   Contrast ratios are WCAG 2.1 against the background they're used on.
+/* Trails UI v2: design tokens for the Trails apps (BabyTrails and LabTrails).
+   One typeface (Inter, self-hosted, OFL), a refined "Honey and ink" palette, soft layered shadows and
+   a 4 px spacing scale. Each app sets only its accent and, if it shows flags, its flag colour, in its
+   own stylesheet loaded after this file (see README.md).
 
-   Each app sets only its accent, in its own stylesheet, for both modes:
-     --accent-fill-light / --accent-fill-dark   fills, chart points, the dark-mode primary button
-     --accent-text-light / --accent-text-dark   accent text and lines (≥ 4.5:1 on the background)
-   and, if it shows flags (LabTrails), its flag colour:
-     --flag-light / --flag-dark                 flag text, rings and icons
-     --flag-tint-light / --flag-tint-dark       the flag's background tint
-   The rest of the app reads --accent-fill, --accent-text, --flag and --flag-tint, which follow the
-   current mode. */
+   Contrast (WCAG 2.1), light / dark:
+   - text 15.4:1 / 15.0:1, muted 6.6:1 / 7.6:1, faint 5.5:1 / 5.7:1 (on surfaces)
+   - control borders 3.4:1 / 3.3:1 (WCAG 1.4.11 asks 3:1 for the edge that identifies a control)
+   - decorative borders (cards, dividers) are lighter on purpose; they never carry meaning. */
+
+@import '@fontsource-variable/inter/wght.css';
 
 :root {
   color-scheme: light dark;
-  --font-display: 'Quicksand', ui-rounded, system-ui, sans-serif;
-  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  --radius: 10px;
-  --radius-lg: 16px;
+  /* Type */
+  --font: 'Inter Variable', Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --text-xs: 0.75rem; /* 12 */
+  --text-sm: 0.875rem; /* 14 */
+  --text-md: 1rem; /* 16 */
+  --text-lg: 1.125rem; /* 18 */
+  --text-xl: 1.375rem; /* 22 */
+  --text-2xl: 1.75rem; /* 28 */
+  --text-3xl: 2.25rem; /* 36 */
+  --text-display: clamp(2.25rem, 1.4rem + 3.6vw, 3.75rem);
+  --tracking-tight: -0.022em;
+  --tracking-display: -0.035em;
+
+  /* Spacing: 4 px steps */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 24px;
   --space-6: 32px;
-  --tap: 44px; /* minimum touch target */
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --tap: 44px;
+  --content: 1080px;
+  --content-narrow: 720px;
 
-  /* light */
-  --bg: #fffbf2;
+  /* Shape and depth */
+  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --duration: 160ms;
+
+  /* Light */
+  --bg: #faf9f6;
   --surface: #ffffff;
-  --surface-2: #f6f1e6;
-  --text: #1d2340; /* 14.9:1 on --bg */
-  --text-muted: #646a85; /* 5.2:1 */
-  --border: #e4dfd2;
-  --border-strong: #c9c3b4;
+  --surface-2: #f4f2ec;
+  --surface-3: #ece9e1;
+  --text: #1d2340;
+  --text-muted: #565c74;
+  --text-faint: #63687f;
+  --border: #e7e3da;
+  --border-strong: #d8d3c7;
+  --control-border: #8f8a7e;
   --primary: #1d2340;
-  --on-primary: #ffffff; /* 15.4:1 */
+  --primary-hover: #2b3257;
+  --on-primary: #ffffff;
   --danger: #a32d2d;
-  --focus: #1d2340;
+  --danger-soft: #fbeaea;
+  --shadow-xs: 0 1px 2px rgb(29 35 64 / 0.05);
+  --shadow-sm: 0 1px 2px rgb(29 35 64 / 0.04), 0 2px 6px -1px rgb(29 35 64 / 0.06);
+  --shadow-md: 0 1px 2px rgb(29 35 64 / 0.04), 0 12px 32px -12px rgb(29 35 64 / 0.22);
+  --shadow-lg: 0 2px 4px rgb(29 35 64 / 0.04), 0 24px 56px -20px rgb(29 35 64 / 0.3);
+  --scrim: rgb(250 249 246 / 0.78);
 
-  /* charts: bands in the text colour at low strength, never traffic-light colours */
-  --chart-band-outer: rgb(29 35 64 / 0.07);
-  --chart-band-inner: rgb(29 35 64 / 0.12);
-  --chart-median: rgb(29 35 64 / 0.55);
-  --chart-grid: rgb(29 35 64 / 0.08);
+  /* Charts (neutral; apps colour the data with their accent) */
+  --chart-grid: rgb(29 35 64 / 0.07);
+  --chart-axis: var(--text-faint);
+  --chart-band-outer: rgb(29 35 64 / 0.06);
+  --chart-band-inner: rgb(29 35 64 / 0.11);
+  --chart-median: rgb(29 35 64 / 0.5);
   --chart-outline: #1d2340;
 
-  --accent-fill: var(--accent-fill-light);
+  /* Per-app colours, resolved for the current mode (apps define the -light and -dark values) */
+  --accent: var(--accent-light);
   --accent-text: var(--accent-text-light);
+  --accent-soft: var(--accent-soft-light);
+  --on-accent: var(--on-accent-light, #ffffff);
   --flag: var(--flag-light, var(--text));
-  --flag-tint: var(--flag-tint-light, var(--surface-2));
+  --flag-soft: var(--flag-soft-light, var(--surface-2));
+  --focus: var(--accent-text);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #12162b;
-    --surface: #1c2140;
-    --surface-2: #232951;
-    --text: #f1efe6;
-    --text-muted: #a9acc2; /* 7.0:1 on --surface */
-    --border: #2e3460;
-    --border-strong: #454c80;
-    --primary: var(--accent-fill-dark);
-    --on-primary: #1d2340;
+    --bg: #0e1124;
+    --surface: #161a31;
+    --surface-2: #1d2240;
+    --surface-3: #252b4d;
+    --text: #eef0f7;
+    --text-muted: #a7acc4;
+    --text-faint: #8e93ae;
+    --border: #262c4c;
+    --border-strong: #333a61;
+    --control-border: #626a99;
+    --primary: var(--accent-dark);
+    --primary-hover: var(--accent-text-dark);
+    --on-primary: #0e1124;
     --danger: #f09595;
-    --focus: var(--accent-fill-dark);
-    --chart-band-outer: rgb(241 239 230 / 0.06);
-    --chart-band-inner: rgb(241 239 230 / 0.11);
-    --chart-median: rgb(241 239 230 / 0.5);
-    --chart-grid: rgb(241 239 230 / 0.08);
-    --chart-outline: #12162b;
-    --accent-fill: var(--accent-fill-dark);
+    --danger-soft: #3a1c22;
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 8px -2px rgb(0 0 0 / 0.35);
+    --shadow-md: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -16px rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.3), 0 28px 64px -24px rgb(0 0 0 / 0.7);
+    --scrim: rgb(14 17 36 / 0.78);
+    --chart-grid: rgb(238 240 247 / 0.07);
+    --chart-band-outer: rgb(238 240 247 / 0.06);
+    --chart-band-inner: rgb(238 240 247 / 0.11);
+    --chart-median: rgb(238 240 247 / 0.5);
+    --chart-outline: #0e1124;
+    --accent: var(--accent-dark);
     --accent-text: var(--accent-text-dark);
+    --accent-soft: var(--accent-soft-dark);
+    --on-accent: var(--on-accent-dark, #0e1124);
     --flag: var(--flag-dark, var(--text));
-    --flag-tint: var(--flag-tint-dark, var(--surface-2));
+    --flag-soft: var(--flag-soft-dark, var(--surface-2));
   }
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #12162b;
-  --surface: #1c2140;
-  --surface-2: #232951;
-  --text: #f1efe6;
-  --text-muted: #a9acc2;
-  --border: #2e3460;
-  --border-strong: #454c80;
-  --primary: var(--accent-fill-dark);
-  --on-primary: #1d2340;
+  --bg: #0e1124;
+  --surface: #161a31;
+  --surface-2: #1d2240;
+  --surface-3: #252b4d;
+  --text: #eef0f7;
+  --text-muted: #a7acc4;
+  --text-faint: #8e93ae;
+  --border: #262c4c;
+  --border-strong: #333a61;
+  --control-border: #626a99;
+  --primary: var(--accent-dark);
+  --primary-hover: var(--accent-text-dark);
+  --on-primary: #0e1124;
   --danger: #f09595;
-  --focus: var(--accent-fill-dark);
-  --chart-band-outer: rgb(241 239 230 / 0.06);
-  --chart-band-inner: rgb(241 239 230 / 0.11);
-  --chart-median: rgb(241 239 230 / 0.5);
-  --chart-grid: rgb(241 239 230 / 0.08);
-  --chart-outline: #12162b;
-  --accent-fill: var(--accent-fill-dark);
+  --danger-soft: #3a1c22;
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3), 0 2px 8px -2px rgb(0 0 0 / 0.35);
+  --shadow-md: 0 1px 2px rgb(0 0 0 / 0.3), 0 16px 40px -16px rgb(0 0 0 / 0.6);
+  --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.3), 0 28px 64px -24px rgb(0 0 0 / 0.7);
+  --scrim: rgb(14 17 36 / 0.78);
+  --chart-grid: rgb(238 240 247 / 0.07);
+  --chart-band-outer: rgb(238 240 247 / 0.06);
+  --chart-band-inner: rgb(238 240 247 / 0.11);
+  --chart-median: rgb(238 240 247 / 0.5);
+  --chart-outline: #0e1124;
+  --accent: var(--accent-dark);
   --accent-text: var(--accent-text-dark);
+  --accent-soft: var(--accent-soft-dark);
+  --on-accent: var(--on-accent-dark, #0e1124);
   --flag: var(--flag-dark, var(--text));
-  --flag-tint: var(--flag-tint-dark, var(--surface-2));
+  --flag-soft: var(--flag-soft-dark, var(--surface-2));
 }
 
 :root[data-theme='light'] {

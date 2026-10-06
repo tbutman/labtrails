@@ -2,7 +2,7 @@ import { Download, Upload } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { WrongPassphraseError } from '../../core'
 import { BackupError, backupFileName, exportBackup, readBackup, restoreBackup } from '../../core/backup/backup'
-import { FileDrop, TextField } from '../../trails-ui/components'
+import { FileDrop, TextField } from '../../core/ui/components'
 import { useSession } from '../sessionContext'
 import { APP_ID } from '../types'
 

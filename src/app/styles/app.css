@@ -1,4 +1,4 @@
-/* LabTrails-specific styles, on top of the shared Trails UI (src/trails-ui). Anything both apps need
+/* LabTrails-specific styles, on top of the shared Trails UI (src/core/ui). Anything both apps need
    belongs in the kit, not here. */
 
 /* Small helpers */
@@ -9,17 +9,6 @@
 }
 .card-header .card-title {
   margin: 0;
-}
-.form-error {
-  margin: 0 0 var(--space-4);
-}
-.form-footnote {
-  margin-top: var(--space-4);
-  text-align: center;
-}
-.disclaimer {
-  margin-top: var(--space-6);
-  max-width: 70ch;
 }
 .chips-row {
   margin: calc(-1 * var(--space-3)) 0 var(--space-5);
@@ -34,38 +23,6 @@
 .section-title svg {
   vertical-align: -2px;
   margin-right: 4px;
-}
-.loading-title {
-  height: 32px;
-  width: 220px;
-  margin-bottom: var(--space-4);
-}
-.loading-card {
-  height: 150px;
-}
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  color: var(--accent-text);
-  font-weight: 700;
-  flex: none;
-}
-.auth-links {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
-  font-size: var(--text-sm);
-}
-.auth-links .link-button {
-  color: var(--text-muted);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
 }
 
 /* Charts */
@@ -323,46 +280,6 @@
 }
 .summaries-actions {
   margin-bottom: var(--space-5);
-}
-
-/* Landing preview */
-.preview {
-  position: relative;
-  padding-bottom: var(--space-7);
-}
-.preview-main {
-  padding: var(--space-5);
-}
-.preview-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
-}
-.preview-float {
-  position: absolute;
-  right: -12px;
-  bottom: -8px;
-  width: min(260px, 62%);
-}
-.preview-float .metric {
-  box-shadow: var(--shadow-lg);
-}
-@media (max-width: 600px) {
-  .preview-float {
-    position: static;
-    width: 100%;
-    margin-top: var(--space-3);
-  }
-  .preview {
-    padding-bottom: 0;
-  }
-}
-.showcases {
-  display: grid;
-  gap: var(--space-8);
-  margin-top: var(--space-8);
 }
 
 /* Document pages (How flags work) */

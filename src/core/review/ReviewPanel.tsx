@@ -29,6 +29,8 @@ type Props = {
 }
 
 const CONFIDENCE_LABEL = { high: 'Clear in the document', medium: 'Check this', low: 'Unsure: check carefully' }
+// Told apart by words and outline, not colour.
+const CHIP_TONE = { high: '', medium: ' outline', low: ' strong' }
 
 export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, confirmLabel }: Props) {
   const [rows, setRows] = useState<ReviewRow[]>(() => initRows(proposed, columns))
@@ -77,7 +79,7 @@ export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, co
             <fieldset key={row.id} className={`review-row card status-${row.status} confidence-${row.confidence}`}>
               <legend className="legend">
                 {row.added ? 'Added by you' : `Found ${i + 1}`}
-                {!row.added && <span className={`badge confidence-${row.confidence}`}>{CONFIDENCE_LABEL[row.confidence]}</span>}
+                {!row.added && <span className={`chip${CHIP_TONE[row.confidence]}`}>{CONFIDENCE_LABEL[row.confidence]}</span>}
               </legend>
               {row.sourceText && (
                 <p className="hint">

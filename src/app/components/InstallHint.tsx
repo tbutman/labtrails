@@ -4,7 +4,7 @@
 
 import { Download, Smartphone } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Callout } from '../../trails-ui/components'
+import { Callout } from '../../core/ui/components'
 
 type InstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> }
 

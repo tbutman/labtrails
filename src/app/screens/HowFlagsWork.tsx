@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { CHANGE_THRESHOLD, TREND_MIN_RESULTS, TREND_THRESHOLD } from '../../labs/flags/flags'
-import { LandingNav, SiteFooter } from '../../trails-ui/landing'
+import { LandingNav, SiteFooter } from '../../core/ui/landing'
 import { APP, BRAND } from '../brand'
 import { formatPercent } from '../format'
 

@@ -29,12 +29,13 @@ function cspMeta(): Plugin {
 }
 
 // Installable and offline (SPEC.md feature 10). Installing also protects stored data on iPhone. The
-// service worker registers from its own file (no inline script, which the CSP forbids), precaches the
-// app's files, caches pdf.js's larger support files the first time a PDF needs them, and never caches
-// anything else, so AI requests always go to the network.
+// core's UpdatePrompt registers the service worker and offers a Reload banner when a new version has
+// downloaded, as BabyTrails does: switching mid-task would lock the vault and drop anything being typed.
+// It precaches the app's files, caches pdf.js's larger support files the first time a PDF needs them,
+// and never caches anything else, so AI requests always go to the network.
 const pwa = VitePWA({
-  registerType: 'autoUpdate',
-  injectRegister: 'script',
+  registerType: 'prompt',
+  injectRegister: false,
   includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
   manifest: {
     name: 'LabTrails',
@@ -57,11 +58,6 @@ const pwa = VitePWA({
     // and link preview, and Inter's non-Latin subsets (the UI is English).
     globIgnores: ['vendor/**', 'landing/**', 'og.png', 'assets/inter-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*'],
     navigateFallback: '/index.html',
-    // A new version takes over as soon as it's installed, instead of waiting until every tab is
-    // closed: returning visitors see a deploy on their next page load. (registerType alone doesn't
-    // set these when the worker registers from its own file.)
-    skipWaiting: true,
-    clientsClaim: true,
     runtimeCaching: [
       {
         urlPattern: ({ sameOrigin, url }) => sameOrigin && url.pathname.startsWith('/vendor/pdfjs/'),

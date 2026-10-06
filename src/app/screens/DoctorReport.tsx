@@ -1,6 +1,6 @@
 import { Download, Printer, Share2 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { Checkbox, ChipGroup, PageHeader, TextAreaField } from '../../trails-ui/components'
+import { Checkbox, ChipGroup, PageHeader, TextAreaField } from '../../core/ui/components'
 import { analyse } from '../../labs/analysis'
 import { useProfileData } from '../profileContext'
 import { ReportSheet, SHEET_WIDTH } from '../report/ReportSheet'

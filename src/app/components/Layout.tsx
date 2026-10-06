@@ -2,15 +2,18 @@ import { FileText, LayoutDashboard, Lock, LogOut, Settings, Sparkles, Stethoscop
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, Navigate, Outlet, ScrollRestoration, useNavigate, useParams } from 'react-router'
 import { loadProfile, type ProfileData } from '../../data/profile'
-import { AppBar, Callout, type NavItem } from '../../trails-ui/components'
+import { AppBar, Callout, type NavItem } from '../../core/ui/components'
+import { UpdatePrompt } from '../../core/ui/UpdatePrompt'
 import { APP, BRAND } from '../brand'
 import { ProfileContext } from '../profileContext'
 import { useSession } from '../sessionContext'
 
 /** The router's root: new screens open at the top, and going back returns to where you were. */
 export function Root() {
+  const { mode } = useSession()
   return (
     <>
+      <UpdatePrompt appName="LabTrails" locksVault={mode === 'unlocked'} />
       <Outlet />
       <ScrollRestoration />
     </>
