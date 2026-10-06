@@ -1,8 +1,18 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Link, Navigate, NavLink, Outlet, useNavigate, useParams } from 'react-router'
+import { Link, Navigate, NavLink, Outlet, ScrollRestoration, useNavigate, useParams } from 'react-router'
 import { loadProfile, type ProfileData } from '../../data/profile'
 import { ProfileContext } from '../profileContext'
 import { useSession } from '../sessionContext'
+
+/** The router's root: new screens open at the top, and going back returns to where you were. */
+export function Root() {
+  return (
+    <>
+      <Outlet />
+      <ScrollRestoration />
+    </>
+  )
+}
 
 export function Wordmark() {
   return (

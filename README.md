@@ -1,31 +1,126 @@
 # LabTrails
 
-**Your blood test results, private and in one place.** LabTrails is a web app for keeping your lab
-reports together, charting each marker over time against the lab's own reference range, and getting
-plain-language summaries of what's changed to discuss with your doctor.
+**Your blood test results, private and in one place.** Keep your lab reports together, see each
+marker over time against the lab's own reference range, and spot what's outside the range or has
+changed, to discuss with your doctor.
 
-**Status: early development.** Nothing here is ready to use yet. The plan and its reasoning will be
-in `SPEC.md` once it's written.
+**Free and open source** (MIT licence). No account, no subscription, no ads, no analytics. Your results
+are encrypted and stay in your own browser. Website: [labtrails.app](https://labtrails.app) (being set
+up).
 
-## The idea
+<p>
+  <img src="docs/screenshots/overview.png" width="240" alt="The overview: each marker's latest value, the lab's range and its flags">
+  <img src="docs/screenshots/marker.png" width="240" alt="Glucose over three years, each result drawn against its own lab's range, the latest outside it">
+  <img src="docs/screenshots/marker-dark.png" width="240" alt="Ferritin falling over six results, in the dark theme">
+</p>
 
-- **Your results stay on your device.** Everything you enter or upload is stored, encrypted, in your
-  own browser. There are no accounts and no server database, and the website only serves the app's
-  files.
-- **AI is optional and uses your own key.** If you choose an AI feature, your browser sends that
-  request straight to the AI provider with your own API key. Nothing goes through our server.
-- **Not medical advice.** LabTrails records results, draws charts and points out what's outside the
-  lab's range or has changed. It doesn't diagnose anything or tell you what to do; that's your
-  doctor's job.
+## What it does
 
-LabTrails is a sibling of [BabyTrails](https://github.com/tbutman/babytrails), a baby growth tracker
-built on the same private, local-first design.
+- **All your results in one place,** from any lab and any country. Portuguese and English names
+  ("Glicose", "Colesterol HDL", "TGO/AST") are recognised, and about 70 common markers are built in.
+  Anything else is kept exactly as printed.
+- **Each marker over time.** One chart per marker, in the unit you choose (mg/dL or mmol/L, for
+  example). Labs print different reference ranges, so each result is drawn against **its own** lab's
+  range, not one "normal" band. A table shows every marker by date.
+- **Flags decided by simple, published rules, not by AI:**
+  - *Outside the lab's range*: compared with the range printed on that report.
+  - *Changed since last time*: a change of at least a quarter of the range's width.
+  - *Rising* or *falling*: three or more results moving the same way.
 
-## Shared code
+  These are heuristics, not medical thresholds. The app explains them under **How flags work**.
+- **Notes on each test:** fasting or not, the time of day, medications and supplements ("same as last
+  time" is one tap), recent illness, hard exercise, alcohol or poor sleep. They never change a flag,
+  but they show on the chart and help explain a result.
+- **Read a report with AI (optional).** Add a PDF or photo of a report. If you agree, the AI copies out
+  the results; LabTrails matches them to its catalogue; **you check every row** next to the original
+  page before anything is saved.
+- **Summaries with AI (optional):** what changed in a new report, or an overview of everything, with
+  questions you could ask your doctor. The AI only explains what LabTrails' rules flagged.
+- **A one-page report for your doctor,** printed, saved as PDF or shared as an image. It's a file you
+  share yourself, never a link to a server.
+- **Several people** in one vault (for example you and your partner). Make sure they're happy for
+  their results to be kept here.
+- **Works offline** and installs like an app on your phone.
 
-`src/core/` (the encrypted vault, storage, backup, settings, documents, the review screen and the AI
-client) is copied from BabyTrails with `scripts/sync-core.sh`. The source commit is recorded in
-`src/core/SOURCE`; currently [babytrails@0bc6d9d](https://github.com/tbutman/babytrails/commit/0bc6d9d).
+<p>
+  <img src="docs/screenshots/review.png" width="720" alt="Checking results read from a fictional sample report, with the report on the left and each row to confirm on the right">
+</p>
+
+## Not medical advice
+
+LabTrails records, charts and explains. It never diagnoses, never says you're healthy or ill, and never
+suggests treatments, supplements, doses or medication changes. A flag means "worth discussing with your
+doctor", nothing more.
+
+## Why it's private
+
+- **Your results never reach our server.** The website only sends the app itself. Everything you type
+  or upload is stored **encrypted in your browser**, with a key made from your passphrase.
+- **There's no account and no password reset.** "Logging in" means unlocking your vault on this device.
+  If you forget the passphrase, nobody, including us, can get your results back. **Keep a backup.**
+- **AI is optional and uses your own key.** When you choose an AI feature, your browser sends the
+  request straight to Anthropic (the company that makes Claude), using your own Anthropic API key.
+  Before anything is sent, LabTrails shows you exactly what goes and asks you to confirm. For summaries,
+  your name and date of birth are left out. An uploaded report usually shows your name itself, and
+  LabTrails can't remove it from a PDF or photo.
+- **What Anthropic does with it:** as of 6 October 2026, Anthropic's
+  [Commercial Terms](https://www.anthropic.com/legal/commercial-terms) say it may not train models on
+  what you send through the API, and its
+  [Privacy Center](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data)
+  says API inputs and outputs are deleted within 30 days (longer only if flagged as violating its usage
+  policy). The request goes under your own Anthropic account.
+- **One device per vault, for now.** There's no sync. To move your results to another device, or to
+  keep them safe, download a backup (still encrypted) and restore it there.
+
+For the details and the honest limits (a compromised device, a forgotten passphrase, what Anthropic
+sees, a malicious version of the app), read the [threat model](THREAT_MODEL.md).
+
+## Getting started
+
+1. Open [labtrails.app](https://labtrails.app) and try the **demo**: a made-up person with three years of
+   results. No passphrase or key needed.
+2. To keep your own results, **set up a vault** with a passphrase. Four or more random words work well.
+3. **Add a person**, then a report: type the results in as printed, or read a report with AI.
+4. **Download a backup** now and then (Settings), and keep it somewhere other than this device.
+5. On iPhone, **add LabTrails to your Home Screen** (Share, then "Add to Home Screen"). Safari can delete
+   a website's data after 7 days without a visit; Home Screen apps keep theirs
+   ([WebKit](https://webkit.org/blog/10218/full-third-party-cookie-blocking-and-more/)).
+
+## What it costs
+
+LabTrails is free. The AI features use your own Anthropic account, billed by Anthropic. Rough estimates
+with the default model (Claude Sonnet 5.5, $2 per million input tokens and $10 per million output
+tokens, Anthropic's prices on 6 October 2026):
+
+- Reading a three-page report: about **3 to 4 US cents**.
+- A summary: about **1 to 2 US cents**.
+
+Use a dedicated API key with a spending limit, set in Anthropic's console. Without a key, everything
+except reading reports and writing summaries still works.
+
+## For developers
+
+Vite, React and TypeScript; IndexedDB for the encrypted records; hand-rolled SVG charts; Vitest and
+Playwright. Node 22.
+
+```bash
+npm ci
+npm run dev       # http://localhost:5173
+npm test          # unit tests
+npm run test:e2e  # browser tests against the production build
+```
+
+- [SPEC.md](SPEC.md): what the first version does and why.
+- `src/labs/`: the catalogue, unit conversions (every factor cited in `catalogue/sources.ts` and
+  tested), parsing, matching and the flag rules. All pure and tested.
+- `src/core/` (the encrypted vault, storage, backup, settings, documents, the review screen and the AI
+  client) is shared with LabTrails' sister app, [BabyTrails](https://github.com/tbutman/babytrails),
+  and copied from it with `scripts/sync-core.sh`. The source commit is in `src/core/SOURCE`; currently
+  [babytrails@0bc6d9d](https://github.com/tbutman/babytrails/commit/0bc6d9d).
+- Every push and pull request runs lint, typecheck, unit tests, the build and the browser tests. The
+  browser tests fail if the app requests anything from any site other than itself (and, in the tests
+  that use a mocked AI, Anthropic's API).
+- Found a security problem? See [SECURITY.md](SECURITY.md).
 
 ## Licence
 

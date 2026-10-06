@@ -108,3 +108,17 @@ test('the app is installable: manifest, icons and a service worker', async ({ pa
   const registered = await page.evaluate(async () => !!(await navigator.serviceWorker.ready.then((r) => r.active)))
   expect(registered).toBe(true)
 })
+
+test('the app reloads offline once visited', async ({ page, context }) => {
+  await page.goto('/')
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready
+  })
+  await page.reload()
+  await context.setOffline(true)
+  await page.reload()
+  await expect(page.getByRole('button', { name: 'Open the demo' })).toBeVisible()
+  await page.getByRole('button', { name: 'Open the demo' }).click()
+  await expect(page.getByRole('heading', { name: 'Sam (demo)' })).toBeVisible()
+  await context.setOffline(false)
+})

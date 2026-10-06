@@ -7,7 +7,7 @@ import './styles/app.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router'
-import { ProfileLayout } from './components/Layout'
+import { ProfileLayout, Root } from './components/Layout'
 import { SessionProvider } from './session'
 import { Home } from './screens/Home'
 import { DoctorReport } from './screens/DoctorReport'
@@ -23,6 +23,9 @@ import { Summaries } from './screens/Summaries'
 import { TableView } from './screens/TableView'
 
 const router = createBrowserRouter([
+  {
+    element: <Root />,
+    children: [
   { path: '/', element: <Home /> },
   { path: '/how-flags-work', element: <HowFlagsWork /> },
   { path: '/settings', element: <Settings /> },
@@ -42,6 +45,8 @@ const router = createBrowserRouter([
     ],
   },
   { path: '*', element: <Home /> },
+    ],
+  },
 ])
 
 createRoot(document.getElementById('root')!).render(

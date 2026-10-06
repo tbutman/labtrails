@@ -1,0 +1,21 @@
+# Changelog
+
+## Unreleased
+
+The first version, not yet released.
+
+- A catalogue of about 70 markers in ten panels, with English and Portuguese names and unit
+  conversions. Every conversion factor is cited and tested.
+- Each marker over time, every result against its own lab's range, in the unit you choose; a table of
+  every marker by date.
+- Three flags decided by code: outside the lab's range, changed since last time, and rising or falling.
+- Reports entered by hand, as printed, with notes on the test (fasting, time, medications, recent
+  illness or exercise).
+- An encrypted vault in the browser, with a passphrase, auto-lock and encrypted backups. Several people
+  per vault.
+- Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
+  original page before it's saved.
+- AI summaries of a report or of everything, explaining only what the code flagged.
+- A one-page report for your doctor, printed, saved as PDF or shared as an image.
+- A demo with a made-up person, labs and sample report.
+- Installable, and works offline.

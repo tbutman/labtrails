@@ -366,12 +366,12 @@ ranges, the context of the latest test, and the user's own notes, plus the discl
 name or initials, and which markers to include. It's a file the user saves or shares (Web Share API
 where supported), never a link to a server.
 
-## 13. Visual identity (proposed)
+## 13. Visual identity (agreed 6 October 2026)
 
 The shared "Trails" design system, with BabyTrails' "Honey and ink" as the family base (BabyTrails
 `SPEC.md` section 11): warm white `#FFFBF2` and deep ink `#12162B` backgrounds, ink text, Quicksand
 for the wordmark and headings, system UI font for body text, and the three-dot trail icon. Tokens come
-from the core; LabTrails sets only these. Proposed until Thomas agrees the family identity.
+from the core; LabTrails sets only these. Agreed for both apps on 6 October 2026.
 
 | Token | Light mode | Dark mode | Use |
 | --- | --- | --- | --- |

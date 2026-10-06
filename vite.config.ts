@@ -30,7 +30,8 @@ function cspMeta(): Plugin {
 
 // Installable and offline (SPEC.md feature 10). Installing also protects stored data on iPhone. The
 // service worker registers from its own file (no inline script, which the CSP forbids), precaches the
-// app's files and never caches anything else, so AI requests always go to the network.
+// app's files, caches pdf.js's larger support files the first time a PDF needs them, and never caches
+// anything else, so AI requests always go to the network.
 const pwa = VitePWA({
   registerType: 'autoUpdate',
   injectRegister: 'script',
@@ -53,7 +54,13 @@ const pwa = VitePWA({
   workbox: {
     globPatterns: ['**/*.{js,css,html,svg,png,woff2,wasm}'],
     navigateFallback: '/index.html',
-    runtimeCaching: [],
+    runtimeCaching: [
+      {
+        urlPattern: ({ sameOrigin, url }) => sameOrigin && url.pathname.startsWith('/vendor/pdfjs/'),
+        handler: 'CacheFirst',
+        options: { cacheName: 'pdfjs-assets', expiration: { maxEntries: 300 } },
+      },
+    ],
   },
 })
 
