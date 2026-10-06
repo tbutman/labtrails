@@ -15,6 +15,9 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- Correcting a single result after it's saved: fix a misread value, add a missed result, delete one,
+  or map an unknown name to a marker (remembered for next time, and optionally applied to earlier
+  results printed the same way).
 - AI summaries of a report or of everything, explaining only what the code flagged.
 - A one-page report for your doctor, printed, saved as PDF or shared as an image.
 - A demo with a made-up person, labs and sample report.
