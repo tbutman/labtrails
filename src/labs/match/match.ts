@@ -19,7 +19,7 @@ export function normaliseName(printed: string): string {
 }
 
 // Words that labs add around a marker name without changing what it is.
-const NOISE = /\b(serum|soro|serica|serico|plasma|plasmatica|sangue|blood|jejum|fasting|em jejum|doseamento|dosagem|level|levels)\b/g
+const NOISE = /\b(calc|calculated|calculado|calculada|serum|soro|serica|serico|plasma|plasmatica|sangue|blood|jejum|fasting|em jejum|doseamento|dosagem|level|levels)\b/g
 
 function variants(printed: string): string[] {
   const n = normaliseName(printed)

@@ -45,6 +45,9 @@ describe('matchMarker: English names', () => {
     ['Free T4', 'free-t4'],
     ['Ferritin', 'ferritin'],
     ['hs-CRP', 'hs-crp'],
+    ['LDL Cholesterol Calc', 'ldl'],
+    ['Bilirubin, Direct', 'bilirubin-direct'],
+    ['Bilirubin, Total', 'bilirubin-total'],
   ])('%s → %s', (name, expected) => {
     expect(id(name)).toBe(expected)
   })

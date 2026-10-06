@@ -31,7 +31,7 @@ export default defineConfig({
   plugins: [react(), cspMeta()],
   build: { assetsInlineLimit: 0 },
   test: {
-    include: ['tests/unit/**/*.test.ts', 'src/**/*.test.ts'],
+    include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx', 'src/**/*.test.ts'],
     environment: 'node',
   },
 })

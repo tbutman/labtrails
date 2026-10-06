@@ -1,0 +1,18 @@
+/* LabTrails' own colours on the shared Trails tokens (SPEC.md section 13). WCAG 2.1 contrast:
+   teal #0F7A6A is 5.1:1 on warm white and 5.2:1 behind white text; #4FC6AE is 8.5:1 on deep ink.
+   Plum #8E2C6B is 7.5:1 on warm white (6.5:1 on its tint); #F2A7D3 is 9.6:1 on deep ink.
+   Plum and teal are close in lightness, so a flag is never shown by colour alone. */
+
+:root {
+  --accent-fill-light: #0f7a6a;
+  --accent-text-light: #0f7a6a;
+  --accent-tint-light: #ddf1ec;
+  --accent-fill-dark: #4fc6ae;
+  --accent-text-dark: #7fd8c5;
+  --accent-tint-dark: #1f4640;
+
+  --flag-light: #8e2c6b;
+  --flag-tint-light: #f8e6f0;
+  --flag-dark: #f2a7d3;
+  --flag-tint-dark: #3b1c33;
+}
