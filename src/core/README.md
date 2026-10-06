@@ -118,7 +118,13 @@ await saveAppSettings(store, app)
 
 Settings are stored encrypted, in the `settings` collection, so the API key is never in plain form.
 
-## `ui/`: design tokens
+## `ui/`: design tokens and component styles
+
+Import, in this order: `ui/tokens.css`, `ui/components.css`, then your accent and your own styles.
+`components.css` styles the core's components and the building blocks they use (`.button` with
+`primary`, `ghost`, `small` and `danger`; `.field`, `.hint`, `.error`, `.checkbox`, `.segmented`;
+`.card`, `.callout`, `.stack`, `.row`, `.page`; review, document viewer and AI output classes), so
+a copy of the core looks right on its own.
 
 `ui/tokens.css` holds the shared "Honey and ink" tokens: backgrounds, surfaces, text, borders, the
 primary button, radii, spacing, type (Quicksand for headings, system UI for body) and chart styles,

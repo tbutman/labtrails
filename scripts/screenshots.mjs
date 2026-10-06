@@ -15,6 +15,7 @@ async function demo(options) {
   await page.goto(base)
   await page.getByRole('button', { name: 'Open the demo' }).click()
   await page.getByRole('heading', { name: 'Sam (demo)' }).waitFor()
+  await page.mouse.move(0, 0) // no hover styles in the screenshots
   return page
 }
 

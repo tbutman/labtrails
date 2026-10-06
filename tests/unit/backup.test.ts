@@ -41,7 +41,8 @@ describe('backup', () => {
     expect(await a.store.get('labs-only', 'x')).toBeDefined()
     const got = await a.store.getBlob(blobId)
     expect(got && Buffer.from(got).equals(Buffer.from(blob))).toBe(true)
-  })
+    // A 1.5 MB file is encrypted, exported, verified and restored; allow for slow, busy machines.
+  }, 20_000)
 
   it('needs the passphrase and changes nothing when it is wrong', async () => {
     const appId = `backup${n++}`

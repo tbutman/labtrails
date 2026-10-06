@@ -1,0 +1,18 @@
+[Unit]
+Description=Install the newest release of LabTrails
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=labtrails-deploy
+Group=labtrails-deploy
+Environment=SITE_REPO=tbutman/labtrails
+Environment=SITE_ROOT=/srv/labtrails
+ExecStart=/usr/local/bin/trails-deploy.sh
+# Hardening: the script only needs network access and write access to the app's directory.
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/srv/labtrails
+PrivateTmp=true
+ProtectHome=true

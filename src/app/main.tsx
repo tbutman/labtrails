@@ -1,6 +1,7 @@
 import '@fontsource/quicksand/600.css'
 import '@fontsource/quicksand/700.css'
 import '../core/ui/tokens.css'
+import '../core/ui/components.css'
 import './styles/accent.css'
 import './styles/app.css'
 

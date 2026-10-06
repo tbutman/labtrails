@@ -1,3 +1,3 @@
-Copied from https://github.com/tbutman/babytrails at commit 0bc6d9da77d2efd912c2cee3517fb9c8e007543a
+Copied from https://github.com/tbutman/babytrails at commit e0eb3700253ada7271adb7c135bcc0fc8f884533
 by scripts/sync-core.sh. Don't edit files in src/core/ here; change them in BabyTrails.
 Also copied: tests/unit/vault.test.ts tests/unit/backup.test.ts tests/unit/settings.test.ts tests/unit/documents.test.ts tests/unit/review.test.ts tests/unit/ai.test.ts scripts/copy-pdfjs.mjs
