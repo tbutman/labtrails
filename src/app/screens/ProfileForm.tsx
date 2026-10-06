@@ -48,7 +48,7 @@ export function ProfileForm() {
           <input id="dob" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
         </Field>
         <p className="hint">If these are someone else's results, make sure they're happy for you to keep them here, and to send them to the AI if you use it.</p>
-        <button className="button">Add</button>
+        <button className="button primary">Add</button>
       </form>
     </Shell>
   )

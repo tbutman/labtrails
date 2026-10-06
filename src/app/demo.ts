@@ -3,6 +3,7 @@
 // between labs. Every name, value and lab here is made up.
 
 import { matchMarker } from '../labs/match/match'
+import type { Extraction } from '../labs/extraction/schema'
 import type { Profile, Report, Result, Summary, TestContext } from '../labs/types'
 import { parseRange, parseValue } from '../labs/units/parse'
 import { normaliseUnit } from '../labs/units/normalise'
@@ -152,3 +153,35 @@ export const DEMO_SUMMARIES: Summary[] = [
     ].join('\n'),
   },
 ]
+
+// The demo's "AI answer" for reading a report, prepared in advance from the fictional sample report
+// image (public/demo/sample-report.png). No AI is called in the demo; this goes through the same
+// matching and review code as a real answer. One name ("Glic. hemoglobina A1c") isn't in the
+// catalogue's aliases, so the AI's suggestion is used and marked for checking.
+export const DEMO_EXTRACTION: Extraction = {
+  sampleDate: { printed: '15/09/2026', guessedFormat: 'DMY' },
+  lab: 'Laboratório Exemplo, Lisboa (fictional)',
+  rows: [
+    ['Glicose', '108', 'mg/dL', '70 - 110', null, 'glucose', 'high'],
+    ['Glic. hemoglobina A1c', '5,7', '%', '4,0 - 6,0', null, 'hba1c', 'high'],
+    ['Colesterol total', '214', 'mg/dL', '< 190', 'H', 'cholesterol-total', 'high'],
+    ['Colesterol HDL', '55', 'mg/dL', '> 40', null, 'hdl', 'high'],
+    ['Colesterol LDL', '133', 'mg/dL', '< 116', 'H', 'ldl', 'high'],
+    ['Triglicéridos', '112', 'mg/dL', '< 150', null, 'triglycerides', 'high'],
+    ['TGP/ALT', '24', 'U/L', '< 41', null, 'alt', 'high'],
+    ['Creatinina', '0,98', 'mg/dL', '0,70 - 1,20', null, 'creatinine', 'high'],
+    ['Ferritina', '41', 'ng/mL', '30 - 400', null, 'ferritin', 'medium'],
+    ['25-OH Vitamina D', '36', 'ng/mL', '30 - 100', null, 'vitamin-d', 'high'],
+    ['Proteína C reactiva', '<0,5', 'mg/L', '< 5,0', null, 'crp', 'high'],
+    ['Cistatina C', '0,80', 'mg/L', '0,61 - 0,95', null, 'unknown', 'high'],
+  ].map(([nameAsPrinted, valuePrinted, unitPrinted, rangePrinted, flagPrinted, suggestedMarkerId, confidence]) => ({
+    nameAsPrinted: nameAsPrinted!,
+    valuePrinted: valuePrinted!,
+    unitPrinted,
+    rangePrinted,
+    flagPrinted,
+    suggestedMarkerId: suggestedMarkerId!,
+    confidence: confidence as Extraction['rows'][number]['confidence'],
+    page: 1,
+  })),
+}

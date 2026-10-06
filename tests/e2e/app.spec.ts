@@ -22,7 +22,7 @@ test('the demo works without a passphrase or key', async ({ page }) => {
   await expect(page.getByRole('img', { name: /Glucose in mmol\/L/ })).toBeVisible()
 
   await page.getByRole('link', { name: 'Summaries' }).click()
-  await expect(page.getByText('AI-written summary').first()).toBeVisible()
+  await expect(page.getByText(/pre-written example/).first()).toBeVisible()
 
   await page.getByRole('button', { name: 'Leave the demo' }).click()
   await expect(page.getByRole('heading', { name: 'Set up your vault' })).toBeVisible()

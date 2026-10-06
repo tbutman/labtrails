@@ -122,7 +122,7 @@ a {
   margin-bottom: var(--space-4);
 }
 
-/* Buttons */
+/* Buttons: plain .button is the outline style and .primary is filled, as the shared core expects. */
 .button {
   display: inline-flex;
   align-items: center;
@@ -130,18 +130,34 @@ a {
   min-height: var(--tap);
   padding: 0 var(--space-4);
   border-radius: var(--radius);
-  border: 1px solid transparent;
-  background: var(--primary);
-  color: var(--on-primary);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
   font: inherit;
   font-weight: 600;
   text-decoration: none;
   cursor: pointer;
+  transition: border-color 0.15s;
+}
+.button:hover {
+  border-color: var(--text-muted);
+}
+.button.primary {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
 }
 .button.secondary {
   background: transparent;
-  color: var(--text);
-  border-color: var(--border-strong);
+}
+.button.ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.button.small {
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  font-size: 0.875rem;
 }
 .button[disabled] {
   opacity: 0.55;
@@ -511,4 +527,126 @@ details > summary {
 }
 details[open] > summary {
   margin-bottom: var(--space-3);
+}
+
+/* Layout helpers and components from the shared core (src/core): review, documents, AI */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+.legend {
+  font-weight: 600;
+}
+.checkbox {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2);
+  align-items: start;
+}
+.checkbox input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--accent-text);
+}
+.callout {
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  margin-bottom: var(--space-4);
+}
+.callout.warning {
+  border-left: 4px solid var(--text);
+  border-radius: 0;
+}
+.doc-frame {
+  margin: var(--space-4) 0;
+}
+.doc-image,
+.doc-page {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  margin-bottom: var(--space-3);
+}
+.doc-pager {
+  justify-content: space-between;
+}
+.review {
+  display: grid;
+  gap: var(--space-4);
+}
+.review-row {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  background: var(--surface);
+}
+.review-row.status-accepted {
+  border-color: var(--accent-text);
+}
+.review-row.status-rejected {
+  opacity: 0.6;
+}
+.review-row legend {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: 0 var(--space-1);
+}
+.review-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-2);
+  align-items: end;
+}
+.review-fields .field {
+  margin-bottom: 0;
+}
+.checkbox.accept {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  font-weight: 600;
+  min-height: var(--tap);
+}
+@media (min-width: 900px) {
+  .page:has(.review) {
+    max-width: 1100px;
+  }
+  .review {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+  .review-source {
+    position: sticky;
+    top: var(--space-3);
+  }
+}
+.send-sheet ul,
+.ai-output ul,
+.ai-output ol {
+  margin: 0 0 var(--space-3);
+  padding-left: var(--space-5);
+}
+.ai-output {
+  margin-top: var(--space-4);
+}
+.ai-label {
+  font-weight: 700;
+  font-family: var(--font-display);
 }

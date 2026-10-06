@@ -24,3 +24,5 @@ export { EncryptedStore, UnknownCollectionError, CORE_COLLECTIONS } from './stor
 export type { KdfParams } from './vault/crypto'
 export { MemoryStore } from './store/memory'
 export type { RecordStore, StoredRecord } from './store/types'
+export { addDocument, deleteDocument, documentBytes, listDocuments, readDocumentFile, sniffType, DocumentError, SUPPORTED_TYPES, MAX_DOCUMENT_BYTES } from './documents/documents'
+export type { DocumentRecord, SupportedType } from './documents/documents'

@@ -97,7 +97,7 @@ function CreateVault() {
           {error}
         </p>
       )}
-      <button className="button" disabled={busy}>
+      <button className="button primary" disabled={busy}>
         {busy ? 'Setting up…' : 'Create the vault'}
       </button>
       <p className="disclaimer">
@@ -132,7 +132,7 @@ function Unlock() {
       <Field label="Passphrase" htmlFor="unlock-passphrase" error={error}>
         <input id="unlock-passphrase" type="password" autoComplete="current-password" value={passphrase} onChange={(e) => setPassphrase(e.target.value)} autoFocus />
       </Field>
-      <button className="button" disabled={busy || !passphrase}>
+      <button className="button primary" disabled={busy || !passphrase}>
         {busy ? 'Unlocking…' : 'Unlock'}
       </button>
     </form>
@@ -176,7 +176,7 @@ function Profiles() {
         </ul>
       )}
       <p>
-        <Link className="button" to="/profiles/new">
+        <Link className="button primary" to="/profiles/new">
           Add a person
         </Link>
       </p>

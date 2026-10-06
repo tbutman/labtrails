@@ -202,7 +202,7 @@ export function ReportForm() {
             {error}
           </p>
         )}
-        <button className="button">Save the report</button>
+        <button className="button primary">Save the report</button>
       </form>
     </>
   )

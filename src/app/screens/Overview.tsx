@@ -22,7 +22,7 @@ export function Overview() {
       </p>
       {mode === 'unlocked' && (
         <p>
-          <Link className="button" to={`${base}/reports/new`}>
+          <Link className="button primary" to={`${base}/reports/new`}>
             Add a report
           </Link>
         </p>

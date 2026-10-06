@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router'
 import { MIN_PASSPHRASE_LENGTH, WrongPassphraseError } from '../../core'
+import { ApiKeySettings } from '../../core/ai/ApiKeySettings'
 import type { Theme } from '../../core/settings/settings'
 import { Field } from '../components/Field'
 import { Shell } from '../components/Layout'
@@ -17,6 +18,15 @@ export function Settings() {
       <section className="card panel">
         <h2 className="flush">Backup</h2>
         <ExportBackup />
+      </section>
+
+      <section className="card panel" id="ai">
+        <h2 className="flush">AI (optional)</h2>
+        <p className="small">
+          Reading reports and writing summaries use your own Anthropic API key. Use a dedicated key with a spending limit set in Anthropic's console.
+          The key is stored only in this encrypted vault and sent only to Anthropic.
+        </p>
+        <ApiKeySettings apiKey={core.ai.apiKey} model={core.ai.model} onSave={({ apiKey, model }) => void saveCore({ ...core, ai: { ...core.ai, apiKey, model } })} />
       </section>
 
       <section className="card panel">

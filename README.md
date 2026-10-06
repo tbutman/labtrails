@@ -23,9 +23,9 @@ built on the same private, local-first design.
 
 ## Shared code
 
-`src/core/` (the encrypted vault, storage, backup and settings) is copied from BabyTrails with
-`scripts/sync-core.sh`. The source commit is recorded in `src/core/SOURCE`; currently
-[babytrails@a213c82](https://github.com/tbutman/babytrails/commit/a213c82).
+`src/core/` (the encrypted vault, storage, backup, settings, documents, the review screen and the AI
+client) is copied from BabyTrails with `scripts/sync-core.sh`. The source commit is recorded in
+`src/core/SOURCE`; currently [babytrails@0bc6d9d](https://github.com/tbutman/babytrails/commit/0bc6d9d).
 
 ## Licence
 

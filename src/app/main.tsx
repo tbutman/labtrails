@@ -14,6 +14,7 @@ import { HowFlagsWork } from './screens/HowFlagsWork'
 import { MarkerDetail } from './screens/MarkerDetail'
 import { Overview } from './screens/Overview'
 import { ProfileForm } from './screens/ProfileForm'
+import { ReadReport } from './screens/ReadReport'
 import { ReportForm } from './screens/ReportForm'
 import { Reports } from './screens/Reports'
 import { Settings } from './screens/Settings'
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
       { path: 'table', element: <TableView /> },
       { path: 'reports', element: <Reports /> },
       { path: 'reports/new', element: <ReportForm /> },
+      { path: 'reports/read', element: <ReadReport /> },
       { path: 'summaries', element: <Summaries /> },
     ],
   },

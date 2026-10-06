@@ -1,4 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
+import type { DocumentRecord, RecordStore } from '../../core'
+import { DocumentViewer } from '../../core/documents/DocumentViewer'
 import type { Result } from '../../labs/types'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
@@ -24,13 +27,16 @@ export function Reports() {
   return (
     <>
       <h1>Reports</h1>
-      {mode === 'unlocked' && (
-        <p>
+      <p className="row">
+        <Link className="button primary" to={`${base}/reports/read`}>
+          Read a report with AI
+        </Link>
+        {mode === 'unlocked' && (
           <Link className="button" to={`${base}/reports/new`}>
-            Add a report
+            Enter one by hand
           </Link>
-        </p>
-      )}
+        )}
+      </p>
       {sorted.length === 0 && <p className="muted">No reports yet.</p>}
       {sorted.map((r) => {
         const rows = results.filter((x) => x.reportId === r.id)
@@ -52,6 +58,7 @@ export function Reports() {
               </ul>
             )}
             {r.context?.notes && <p className="small">Notes: {r.context.notes}</p>}
+            {r.documentId && store && <Original store={store} documentId={r.documentId} />}
             <div className="table-wrap">
               <table>
                 <thead>
@@ -89,5 +96,22 @@ export function Reports() {
         )
       })}
     </>
+  )
+}
+
+function Original({ store, documentId }: { store: RecordStore; documentId: string }) {
+  const [doc, setDoc] = useState<DocumentRecord | null>(null)
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    void store.get<DocumentRecord>('documents', documentId).then((d) => setDoc(d ?? null))
+  }, [store, documentId])
+  if (!doc) return null
+  return (
+    <div className="panel">
+      <button className="button small" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        {open ? 'Hide the original report' : 'Show the original report'}
+      </button>
+      {open && <DocumentViewer store={store} doc={doc} alt="The original lab report" />}
+    </div>
   )
 }

@@ -36,7 +36,7 @@ export function ExportBackup() {
       <p className="hint">
         {core.lastBackupAt ? `Last backup: ${new Date(core.lastBackupAt).toLocaleDateString('en-GB', { dateStyle: 'medium' })}.` : 'No backup yet.'}
       </p>
-      <button className="button" onClick={() => void download()} disabled={busy}>
+      <button className="button primary" onClick={() => void download()} disabled={busy}>
         {busy ? 'Preparing…' : 'Download a backup'}
       </button>
     </div>

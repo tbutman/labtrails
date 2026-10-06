@@ -11,21 +11,23 @@ set -euo pipefail
 commit="${1:?usage: scripts/sync-core.sh <commit> [babytrails clone]}"
 source_repo="${2:-../babytrails}"
 here="$(cd "$(dirname "$0")/.." && pwd)"
-tests=(tests/unit/vault.test.ts tests/unit/backup.test.ts tests/unit/settings.test.ts)
+tests=(tests/unit/vault.test.ts tests/unit/backup.test.ts tests/unit/settings.test.ts tests/unit/documents.test.ts tests/unit/review.test.ts tests/unit/ai.test.ts)
+# Helper scripts the core needs (copy-pdfjs self-hosts pdf.js's decoders and fonts).
+scripts=(scripts/copy-pdfjs.mjs)
 
 full="$(git -C "$source_repo" rev-parse --verify "$commit^{commit}")"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
-git -C "$source_repo" archive "$full" src/core "${tests[@]}" | tar -x -C "$tmp"
+git -C "$source_repo" archive "$full" src/core "${tests[@]}" "${scripts[@]}" | tar -x -C "$tmp"
 
 rm -rf "$here/src/core"
 cp -R "$tmp/src/core" "$here/src/core"
-for t in "${tests[@]}"; do cp "$tmp/$t" "$here/$t"; done
+for f in "${tests[@]}" "${scripts[@]}"; do cp "$tmp/$f" "$here/$f"; done
 
 cat > "$here/src/core/SOURCE" <<SRC
 Copied from https://github.com/tbutman/babytrails at commit $full
 by scripts/sync-core.sh. Don't edit files in src/core/ here; change them in BabyTrails.
-Also copied: ${tests[*]}
+Also copied: ${tests[*]} ${scripts[*]}
 SRC
 echo "Copied src/core/ from babytrails@${full:0:7}"

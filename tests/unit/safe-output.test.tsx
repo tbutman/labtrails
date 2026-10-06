@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { SafeMarkdown } from '../../src/app/components/SafeMarkdown'
+import { Markdown } from '../../src/core/ai/Markdown'
 import { DEMO_SUMMARIES } from '../../src/app/demo'
 
 describe('AI output is never rendered as HTML', () => {
@@ -11,14 +11,14 @@ describe('AI output is never rendered as HTML', () => {
     '- <iframe src="https://example.com"></iframe>',
     '<style>body{display:none}</style>',
   ])('shows %s as text', (text) => {
-    const html = renderToStaticMarkup(<SafeMarkdown text={text} />)
+    const html = renderToStaticMarkup(<Markdown text={text} />)
     expect(html).not.toMatch(/<(img|script|a|iframe|style)\b/i)
     expect(html).toContain('&lt;')
   })
 
   it('renders the small Markdown subset it supports', () => {
-    const html = renderToStaticMarkup(<SafeMarkdown text={'Intro **bold**\n\n- one\n- two\n\n1. first\n2. second'} />)
-    expect(html).toBe('<p>Intro <strong>bold</strong></p><ul><li>one</li><li>two</li></ul><ol><li>first</li><li>second</li></ol>')
+    const html = renderToStaticMarkup(<Markdown text={'Intro **bold**\n\n- one\n- two\n\n1. first\n2. second'} />)
+    expect(html).toBe('<div class="ai-text"><p>Intro <strong>bold</strong></p><ul><li>one</li><li>two</li></ul><ol><li>first</li><li>second</li></ol></div>')
   })
 })
 
