@@ -15,6 +15,8 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- Cumulative lab reports: a report that also shows earlier results, in columns by date or as a
+  history list, becomes one report per sample date, each row checked with its own date.
 - Correcting a single result after it's saved: fix a misread value, add a missed result, delete one,
   or map an unknown name to a marker (remembered for next time, and optionally applied to earlier
   results printed the same way).

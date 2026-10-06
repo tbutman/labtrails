@@ -16,6 +16,11 @@ export type ExtractedRow = {
   suggestedMarkerId: string // a catalogue ID or 'unknown'
   confidence: Confidence
   page: number
+  /**
+   * This result's own sample date, as printed, on a cumulative report that shows several dates
+   * (earlier results in columns, or a history list); null when the report has one sample date.
+   */
+  samplePrinted: string | null
 }
 
 export type Extraction = {
@@ -52,7 +57,7 @@ export const EXTRACTION_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['nameAsPrinted', 'valuePrinted', 'unitPrinted', 'rangePrinted', 'flagPrinted', 'suggestedMarkerId', 'confidence', 'page'],
+        required: ['nameAsPrinted', 'valuePrinted', 'unitPrinted', 'rangePrinted', 'flagPrinted', 'suggestedMarkerId', 'confidence', 'page', 'samplePrinted'],
         properties: {
           nameAsPrinted: { type: 'string' },
           valuePrinted: { type: 'string' },
@@ -62,6 +67,7 @@ export const EXTRACTION_SCHEMA = {
           suggestedMarkerId: { type: 'string', enum: [...MARKERS.map((m) => m.id), 'unknown'] },
           confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
           page: { type: 'integer' },
+          samplePrinted: nullableString,
         },
       },
     },
@@ -119,6 +125,8 @@ export function validateExtraction(raw: unknown): ValidationResult | null {
         suggestedMarkerId: IDS.has(r.suggestedMarkerId) ? r.suggestedMarkerId : 'unknown',
         confidence: r.confidence as Confidence,
         page: r.page as number,
+        // Optional for older answers; anything that isn't text means "the report's own date".
+        samplePrinted: isText(r.samplePrinted) && r.samplePrinted.trim() ? r.samplePrinted.trim() : null,
       })
     } else {
       dropped++
