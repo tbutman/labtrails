@@ -82,8 +82,8 @@ not-medical-advice rules are never cut.**
 
 **Later, not in the first version:** questions about the history; more AI providers; encrypted sync;
 a Portuguese UI; other test types (urine, more hormones); pregnancy and cycle context; a full
-medication history with start and stop dates; per-marker change thresholds based on biological
-variation (section 9).
+medication history with start and stop dates (now proposed as the personal timeline, section 18);
+per-marker change thresholds based on biological variation (section 9).
 
 **One device per vault**, as in BabyTrails: without sync, a backup moved to another device is the
 only way to share. The README and the app say so.
@@ -461,3 +461,132 @@ CI runs lint, typecheck, tests and build on every push and pull request.
 reports in his own browser and seen the trends; the demo works without a key; the tests pass in CI;
 the README explains the privacy model in plain language; and `docs/case-study.md` is ready for his
 site.
+
+## 18. Next: following a history (proposed 7 October 2026, for Thomas's approval)
+
+**Why.** LabTrails was compared, turn by turn, with the ChatGPT conversations it's meant to replace,
+and run on four real reports (private notes, outside the repository). LabTrails already keeps the
+record better: every report in one place, each result against its own lab's range, values the user
+checked, flags by rule. What made the conversation useful as it went on was **context**: when a
+medication started and at what dose, whether the blood was drawn before or after a dose, lifestyle
+changes (alcohol stopped, weight lost, smoking), and pointing out what wasn't repeated. With that
+context the same numbers were read differently (a testosterone result was a trough; a high
+haematocrit predated the medication). LabTrails holds context only as free text per test.
+
+This section adds that context and what the code can compute from it, within the rule in section 1:
+the code computes, the AI explains, the user confirms; no diagnosis, no treatment or dose advice.
+
+### 18.1 The personal timeline
+
+A new collection, `timeline`, per person. Each entry:
+
+```
+TimelineEntry {
+  id, profileId,
+  kind: 'medication' | 'supplement' | 'lifestyle' | 'event',
+  name: string,                 // as the user writes it: "Sustanon 250", "Vitamin D3", "Stopped alcohol"
+  start: date, end?: date,      // a day, or just a month ("2026-06")
+  dose?: string,                // free text: "250 mg", "2,000 IU"
+  every?: { n: number, unit: 'day' | 'week' | 'month' },   // for "how long since the last dose"
+  timing?: boolean,             // test timing relative to a dose matters (injections, thyroid hormone)
+  notes?: string
+}
+```
+
+Lifestyle entries come from a short list (smoking, alcohol, weight change, training, diet) with a
+start, optional end and a free-text detail ("about 20 a day", "lost 13 kg"), so the code can match
+them to known influences (18.4). Per-test medications stay as they are, with "same as last time";
+when the timeline has entries, a report's medications default to those active on its date.
+
+**Dose timing per test.** For a test taken while a `timing` entry was active, the report's context
+gets `doseTiming: { entryId, when: 'before-dose' | 'after-dose', daysSinceDose?: number }`, asked
+once per test ("Was this blood drawn before or after that day's dose?"), with days since the last
+dose worked out from `every` when the user gives the last dose date. The marker chart labels such
+points ("before the dose").
+
+**Shown:** a Timeline screen per person (add, edit, end an entry); on every marker chart, a thin
+band for each entry's active period and a dot where it started or changed, with its name on hover
+and in the chart's text description; in the table, a row of events by date; on the doctor report,
+an optional "Timeline" block (entries active in the period shown, with start dates and doses).
+
+### 18.2 A fourth flag: outside the range on several tests in a row
+
+**Persistent.** The latest result and at least the two before it are all outside their own labs'
+ranges, on the same side. Wording: *"Outside the lab's range on the last 4 tests."* Like the other
+rules: a pure, tested function, labelled a heuristic, one constant (3) to change.
+
+### 18.3 Not repeated since
+
+Markers measured in any of the person's reports in the last 24 months but missing from the newest
+report, grouped by panel: *"Not in your latest report: HbA1c (last 18 Sep 2025), HDL, LDL."* On the
+overview, in the after-report summary's facts, and on the doctor report. Code only.
+
+### 18.4 Known influences
+
+The catalogue gains, per marker, a short list of documented influences from a fixed vocabulary:
+time of day, fasting, hydration, recent hard exercise, recent illness, smoking, alcohol, biotin, and
+medication classes (testosterone and anabolic steroids, GLP-1 agonists, statins, thyroid hormone,
+corticosteroids, NSAIDs, iron, vitamin D). Each marker–influence pair cites a public source (for
+example MedlinePlus, NHS, Lab Tests Online or a lab handbook) and says only the direction ("can
+raise", "can lower", "varies through the day"). Shown on the marker page as "Things known to affect
+this test", and **matched against the timeline and the test's context**: *"Your timeline includes
+testosterone, which is known to raise haematocrit."* Never "your haematocrit is high because…": the
+app states a documented influence and the user's own entry, not a cause.
+
+### 18.5 Personal lines
+
+The user (or their doctor) can set a lower and/or upper line for a marker, with a label ("Doctor's
+target: under 54"). Drawn on the chart in a different style from the lab's range, and flagged as
+*"Above your line"*, clearly the user's, never suggested by the app.
+
+### 18.6 Before your next test
+
+A screen per person: what was measured last time and when, what wasn't repeated (18.3), notes from
+the history (the times of day of earlier draws for markers that vary through the day; timed
+medications: "note whether the draw is before or after your dose"; fasting if earlier tests were
+fasting), and a list the user ticks of tests to ask for. The ticked list is shown as a request in
+English or Portuguese ("Gostaria de fazer análises a: testosterona total, testosterona livre e
+hematócrito"), built from the catalogue's names, not by the AI.
+
+### 18.7 What the AI gets and may say
+
+Summaries and Ask gain, in their facts and only with consent (the send sheet lists them): timeline
+entries active in the period (name, kind, start, end, dose, schedule), dose timing per test, matched
+known influences, persistent flags and markers not repeated. The prompts may then say *"your timeline
+shows Sustanon 250 started on 1 June, between these two tests"*, *"this result was drawn before the
+dose"* and *"testosterone is known to raise haematocrit"* (only when the code matched it). Still
+never: a diagnosis, a cause for the person, whether someone should start, stop or change a
+medication or dose, eligibility for a treatment, or tests to order. Ask's banned phrases and numbers
+check are unchanged; timeline dates and doses are facts like any other.
+
+### 18.8 Privacy
+
+Medications and lifestyle entries are among the most sensitive data in the app: encrypted like
+everything else, never sent without consent, never in a demo or screenshot, and included in the
+doctor report only when the user ticks it. `THREAT_MODEL.md` gains the timeline.
+
+### 18.9 Demo
+
+Sam's timeline (fictional): started vitamin D3 2,000 IU daily in November 2024 (vitamin D rises
+after it), started marathon training in January 2025 (endurance training is a documented influence
+on ferritin, which keeps falling), and the existing notes (a long run, a cold). The demo shows the
+persistent flag on LDL and the influences matched.
+
+### 18.10 Not in this step
+
+Dose advice of any kind; reminders and notifications; cycle and pregnancy context; reading
+medication names from prescriptions; per-marker change thresholds (section 9, still later).
+
+### 18.11 Order
+
+1. Persistent flag and "not repeated since" (pure functions, small).
+2. Timeline: data, screen, chart bands and dots, table row, doctor report block.
+3. Dose timing per test.
+4. Known influences in the catalogue, with citations and tests, and matching.
+5. Facts and prompts for summaries and Ask; demo answers updated and checked.
+6. Personal lines.
+7. Before your next test.
+
+Each is its own pull request, merged with Thomas's OK. Questions for Thomas: is three tests in a row
+right for "persistent"? Are MedlinePlus/NHS/Lab Tests Online acceptable sources for influences? Is
+English plus Portuguese enough for the "ask for these tests" request?
