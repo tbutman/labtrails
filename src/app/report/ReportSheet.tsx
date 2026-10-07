@@ -1,3 +1,4 @@
+import { describeTiming } from '../../labs/timeline'
 // The one-page doctor-visit report (SPEC.md section 12), drawn as a single SVG so the same drawing
 // prints, saves as PDF and exports as PNG. It's a file the user shares, never a link to a server.
 // Plain system fonts and fixed colours, because an SVG drawn into a canvas can't load the app's fonts.
@@ -65,6 +66,7 @@ export function ReportSheet({ who, markers, latest, notes, missing = [], timelin
         context.fasting === 'yes' ? 'fasting' : context.fasting === 'no' ? 'not fasting' : null,
         ...(context.recently ?? []).map((r) => RECENTLY[r]),
         context.medications ? `medications: ${context.medications}` : null,
+        ...(context.doseTiming ?? []).map((t) => `drawn ${describeTiming(t, latest!.date)}`),
         context.notes ? `notes: ${context.notes}` : null,
       ]
         .filter(Boolean)

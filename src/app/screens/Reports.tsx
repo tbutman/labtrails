@@ -7,6 +7,7 @@ import { DocumentPages } from '../../core/documents/DocumentPages'
 import { DocumentViewer } from '../../core/documents/DocumentViewer'
 import type { StoredDoc } from '../../core/import/duplicates'
 import { printedNumber, reportDecimal } from '../../labs/edit'
+import { describeTiming } from '../../labs/timeline'
 import type { Result } from '../../labs/types'
 import { Chip, EmptyState, PageHeader } from '../../core/ui/components'
 import { useBase, useProfileData } from '../profileContext'
@@ -151,6 +152,11 @@ export function Reports() {
                     </Chip>
                   ))}
                   {r.context.medications && <Chip tone="outline">Medications: {r.context.medications}</Chip>}
+                  {r.context.doseTiming?.map((t) => (
+                    <Chip key={t.entryId} tone="outline">
+                      Drawn {describeTiming(t, r.date)}
+                    </Chip>
+                  ))}
                 </div>
               )}
               {r.context?.notes && <p className="small muted">Notes: {r.context.notes}</p>}

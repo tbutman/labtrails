@@ -1,3 +1,4 @@
+import { describeTiming } from '../../labs/timeline'
 import { Info, NotebookPen } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
@@ -37,7 +38,7 @@ export function MarkerDetail() {
   const units = a.latest ? convertibleUnits(marker, a.series.unit) : []
   const withContext = a.series.points
     .map((p) => ({ p, report: reportsById.get(p.reportId)! }))
-    .filter(({ report }) => report.context && (report.context.fasting === 'no' || report.context.recently?.length || report.context.notes))
+    .filter(({ report }) => report.context && (report.context.fasting === 'no' || report.context.recently?.length || report.context.notes || report.context.doseTiming?.length))
 
   return (
     <>
@@ -125,7 +126,14 @@ export function MarkerDetail() {
                   <span className="list-row-main">
                     <span className="list-row-title">{formatDate(p.date)}</span>
                     <span className="list-row-sub">
-                      {[report.context?.fasting === 'no' && 'not fasting', ...(report.context?.recently ?? []).map((r) => RECENTLY[r]), report.context?.notes].filter(Boolean).join(' · ')}
+                      {[
+                        report.context?.fasting === 'no' && 'not fasting',
+                        ...(report.context?.doseTiming ?? []).map((t) => `drawn ${describeTiming(t, report.date)}`),
+                        ...(report.context?.recently ?? []).map((r) => RECENTLY[r]),
+                        report.context?.notes,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
                     </span>
                   </span>
                 </li>
