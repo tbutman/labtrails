@@ -1,4 +1,4 @@
-import { CircleAlert, FilePlus2, FileSearch, HelpCircle, ListX, ScanText } from 'lucide-react'
+import { CircleAlert, ClipboardCheck, FilePlus2, FileSearch, HelpCircle, ListX, ScanText } from 'lucide-react'
 import { Link } from 'react-router'
 import { analyse, notRepeated, unmapped, type MarkerAnalysis } from '../../labs/analysis'
 import { Callout, EmptyState, MetricCard, PageHeader, Sparkline } from '../../core/ui/components'
@@ -42,6 +42,9 @@ export function Overview() {
     <>
       <Link className="button" to={`${base}/reports/read`}>
         <ScanText size={16} aria-hidden /> Import reports
+      </Link>
+      <Link className="button ghost" to={`${base}/next-test`}>
+        <ClipboardCheck size={16} aria-hidden /> Before your next test
       </Link>
       {mode === 'unlocked' && (
         <Link className="button primary" to={`${base}/reports/new`}>

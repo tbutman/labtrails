@@ -421,3 +421,16 @@
   display: grid;
   gap: var(--space-3);
 }
+
+/* Before your next test */
+.next-test-notes li + li {
+  margin-top: var(--space-2);
+}
+.request-sentence {
+  font-size: var(--text-lg, 1.125rem);
+  line-height: 1.5;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  margin: 0;
+}

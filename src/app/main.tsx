@@ -38,6 +38,7 @@ const router = createBrowserRouter([
           { path: 'reports/:reportId/edit', lazy: screen(() => import('./screens/ReportEdit'), 'ReportEdit') },
           { path: 'reports/:reportId/results/new', lazy: screen(() => import('./screens/ResultEdit'), 'ResultEdit') },
           { path: 'reports/:reportId/results/:resultId', lazy: screen(() => import('./screens/ResultEdit'), 'ResultEdit') },
+          { path: 'next-test', lazy: screen(() => import('./screens/NextTest'), 'NextTest') },
           { path: 'timeline', lazy: screen(() => import('./screens/Timeline'), 'Timeline') },
           { path: 'timeline/new', lazy: screen(() => import('./screens/Timeline'), 'TimelineEdit') },
           { path: 'timeline/:entryId', lazy: screen(() => import('./screens/Timeline'), 'TimelineEdit') },
