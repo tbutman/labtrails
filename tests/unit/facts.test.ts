@@ -25,7 +25,7 @@ describe('summary facts', () => {
     expect(facts.flagsAppeared).toEqual(['Glucose'])
     expect(facts.flagsCleared.sort()).toEqual(['CRP', 'Triglycerides'])
     const glucose = facts.markers.find((m) => m.marker === 'Glucose')!
-    expect(glucose.latest).toMatchObject({ value: 112, outsideRange: 'above', range: { low: 70, high: 110 } })
+    expect(glucose.latest).toMatchObject({ value: 6.2, outsideRange: 'above', range: { low: 3.6, high: 6 } })
     expect(glucose.trend).toEqual({ direction: 'rising', results: 6 })
     expect(glucose.changedNotably).toMatchObject({ direction: 'up', crossedRange: true })
   })

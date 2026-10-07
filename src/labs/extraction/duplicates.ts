@@ -17,9 +17,14 @@ function rowKey(row: ProposedResultRow, decimal: DecimalHint) {
   return { value: v.kind === 'number' ? v.value : undefined, comparator: v.kind === 'number' ? v.comparator : undefined, unit: row.values.unit ? normaliseUnit(row.values.unit) : '' }
 }
 
+const lower = (s: string | undefined) => (s ?? '').trim().toLowerCase()
+
 function sameResult(row: ProposedResultRow, r: Result, decimal: DecimalHint): boolean {
   const k = rowKey(row, decimal)
-  if (k.value === undefined || r.value === undefined) return false
+  // Text results ("Negative" on a urinalysis) match by name, sample type and the exact text.
+  if (k.value === undefined || r.value === undefined) {
+    return k.value === undefined && r.value === undefined && !!r.textValue && lower(r.textValue) === lower(row.values.value) && lower(r.nameAsPrinted) === lower(row.values.name) && (r.specimen ?? 'blood') === (row.values.specimen ?? 'blood')
+  }
   const sameMarker = row.values.marker ? r.markerId === row.values.marker : r.nameAsPrinted.trim().toLowerCase() === row.values.name.trim().toLowerCase()
   const sameUnit = (r.unitAsPrinted ? normaliseUnit(r.unitAsPrinted) : '') === k.unit
   return sameMarker && sameUnit && near(r.value, k.value) && (r.comparator ?? undefined) === k.comparator

@@ -1,0 +1,761 @@
+{
+  "riverside-cumulative": {
+    "files": [
+      "riverside-cumulative.pdf"
+    ],
+    "lab": "Riverside Diagnostics (fictional)",
+    "sample": {
+      "printed": "14/04/2026 08:52",
+      "iso": "2026-04-14",
+      "time": "08:52"
+    },
+    "order": "dmy",
+    "person": {
+      "name": "Alex Example",
+      "dateOfBirth": "1982-04-12",
+      "sex": "male"
+    },
+    "rows": [
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "Haemoglobin",
+        "value": "17.6",
+        "unit": "g/dL",
+        "range": "13.0 - 17.0",
+        "specimen": "blood",
+        "marker": "haemoglobin"
+      },
+      {
+        "page": 1,
+        "date": "2026-01-12",
+        "name": "Haemoglobin",
+        "value": "17.1",
+        "unit": "g/dL",
+        "range": "13.0 - 17.0",
+        "specimen": "blood",
+        "marker": "haemoglobin",
+        "previous": true
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "Red cell count",
+        "value": "6.12",
+        "unit": "x 10⁶/µL",
+        "range": "4.50 - 5.50",
+        "specimen": "blood",
+        "marker": "rbc"
+      },
+      {
+        "page": 1,
+        "date": "2026-01-12",
+        "name": "Red cell count",
+        "value": "5.98",
+        "unit": "x 10⁶/µL",
+        "range": "4.50 - 5.50",
+        "specimen": "blood",
+        "marker": "rbc",
+        "previous": true
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "Haematocrit",
+        "value": "52.1",
+        "unit": "%",
+        "range": "40.0 - 50.0",
+        "specimen": "blood",
+        "marker": "haematocrit"
+      },
+      {
+        "page": 1,
+        "date": "2026-01-12",
+        "name": "Haematocrit",
+        "value": "51.3",
+        "unit": "%",
+        "range": "40.0 - 50.0",
+        "specimen": "blood",
+        "marker": "haematocrit",
+        "previous": true
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "M.C.V.",
+        "value": "85.1",
+        "unit": "fL",
+        "range": "80.0 - 97.0",
+        "specimen": "blood",
+        "marker": "mcv"
+      },
+      {
+        "page": 1,
+        "date": "2026-01-12",
+        "name": "M.C.V.",
+        "value": "85.8",
+        "unit": "fL",
+        "range": "80.0 - 97.0",
+        "specimen": "blood",
+        "marker": "mcv",
+        "previous": true
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "M.C.H.",
+        "value": "28.8",
+        "unit": "pg",
+        "range": "27.0 - 32.0",
+        "specimen": "blood",
+        "marker": "mch"
+      },
+      {
+        "page": 1,
+        "date": "2026-01-12",
+        "name": "M.C.H.",
+        "value": "28.6",
+        "unit": "pg",
+        "range": "27.0 - 32.0",
+        "specimen": "blood",
+        "marker": "mch",
+        "previous": true
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "R.D.W.",
+        "value": "13.1",
+        "unit": "%",
+        "range": "11.6 - 14.0",
+        "specimen": "blood",
+        "marker": "rdw"
+      },
+      {
+        "page": 1,
+        "date": "2026-01-12",
+        "name": "R.D.W.",
+        "value": "12.9",
+        "unit": "%",
+        "range": "11.6 - 14.0",
+        "specimen": "blood",
+        "marker": "rdw",
+        "previous": true
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "White cell count",
+        "value": "7.4",
+        "unit": "x 10³/µL",
+        "range": "4.0 - 10.0",
+        "specimen": "blood",
+        "marker": "wbc"
+      },
+      {
+        "page": 1,
+        "date": "2026-01-12",
+        "name": "White cell count",
+        "value": "8.1",
+        "unit": "x 10³/µL",
+        "range": "4.0 - 10.0",
+        "specimen": "blood",
+        "marker": "wbc",
+        "previous": true
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "Neutrophils",
+        "value": "58.2",
+        "unit": "%",
+        "range": "40.0 - 80.0",
+        "specimen": "blood",
+        "marker": "neutrophils-pct"
+      },
+      {
+        "page": 1,
+        "date": "2026-01-12",
+        "name": "Neutrophils",
+        "value": "55.0",
+        "unit": "%",
+        "range": "40.0 - 80.0",
+        "specimen": "blood",
+        "marker": "neutrophils-pct",
+        "previous": true
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "Neutrophils",
+        "value": "4.31",
+        "unit": "x 10³/",
+        "range": "",
+        "specimen": "blood",
+        "marker": "neutrophils"
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "Lymphocytes",
+        "value": "31.6",
+        "unit": "%",
+        "range": "20.0 - 40.0",
+        "specimen": "blood",
+        "marker": "lymphocytes-pct"
+      },
+      {
+        "page": 1,
+        "date": "2026-01-12",
+        "name": "Lymphocytes",
+        "value": "33.9",
+        "unit": "%",
+        "range": "20.0 - 40.0",
+        "specimen": "blood",
+        "marker": "lymphocytes-pct",
+        "previous": true
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "Lymphocytes",
+        "value": "2.34",
+        "unit": "x 10³/",
+        "range": "",
+        "specimen": "blood",
+        "marker": "lymphocytes"
+      },
+      {
+        "page": 1,
+        "date": "2026-04-14",
+        "name": "Platelets",
+        "value": "468",
+        "unit": "x 10³/µL",
+        "range": "150 - 400",
+        "specimen": "blood",
+        "marker": "platelets"
+      },
+      {
+        "page": 1,
+        "date": "2026-01-12",
+        "name": "Platelets",
+        "value": "489",
+        "unit": "x 10³/µL",
+        "range": "150 - 400",
+        "specimen": "blood",
+        "marker": "platelets",
+        "previous": true
+      },
+      {
+        "page": 2,
+        "date": "2026-04-14",
+        "name": "Glucose",
+        "value": "91",
+        "unit": "mg/dL",
+        "range": "70 - 110",
+        "specimen": "blood",
+        "marker": "glucose"
+      },
+      {
+        "page": 2,
+        "date": "2026-01-12",
+        "name": "Glucose",
+        "value": "96",
+        "unit": "mg/dL",
+        "range": "70 - 110",
+        "specimen": "blood",
+        "marker": "glucose",
+        "previous": true
+      },
+      {
+        "page": 2,
+        "date": "2026-04-14",
+        "name": "Total cholesterol",
+        "value": "182",
+        "unit": "mg/dL",
+        "range": "< 190",
+        "specimen": "blood",
+        "marker": "cholesterol-total"
+      },
+      {
+        "page": 2,
+        "date": "2026-01-12",
+        "name": "Total cholesterol",
+        "value": "241",
+        "unit": "mg/dL",
+        "range": "< 190",
+        "specimen": "blood",
+        "marker": "cholesterol-total",
+        "previous": true
+      },
+      {
+        "page": 2,
+        "date": "2026-04-14",
+        "name": "Triglycerides",
+        "value": "128",
+        "unit": "mg/dL",
+        "range": "< 150",
+        "specimen": "blood",
+        "marker": "triglycerides"
+      },
+      {
+        "page": 2,
+        "date": "2026-01-12",
+        "name": "Triglycerides",
+        "value": "204",
+        "unit": "mg/dL",
+        "range": "< 150",
+        "specimen": "blood",
+        "marker": "triglycerides",
+        "previous": true
+      },
+      {
+        "page": 2,
+        "date": "2026-04-14",
+        "name": "Urea",
+        "value": "36",
+        "unit": "mg/dL",
+        "range": "< 50",
+        "specimen": "blood",
+        "marker": "urea"
+      },
+      {
+        "page": 2,
+        "date": "2026-04-14",
+        "name": "Creatinine",
+        "value": "1.19",
+        "unit": "mg/dL",
+        "range": "0.70 - 1.30",
+        "specimen": "blood",
+        "marker": "creatinine"
+      },
+      {
+        "page": 2,
+        "date": "2026-01-12",
+        "name": "Creatinine",
+        "value": "1.36",
+        "unit": "mg/dL",
+        "range": "0.70 - 1.30",
+        "specimen": "blood",
+        "marker": "creatinine",
+        "previous": true
+      },
+      {
+        "page": 2,
+        "date": "2026-04-14",
+        "name": "eGFR [CKD-EPI 2021]",
+        "value": "76",
+        "unit": "mL/min/1.73 m2",
+        "range": ">= 60",
+        "specimen": "blood",
+        "marker": "egfr"
+      },
+      {
+        "page": 2,
+        "date": "2026-01-12",
+        "name": "eGFR [CKD-EPI 2021]",
+        "value": "64",
+        "unit": "mL/min/1.73 m2",
+        "range": ">= 60",
+        "specimen": "blood",
+        "marker": "egfr",
+        "previous": true
+      },
+      {
+        "page": 3,
+        "date": "2026-04-14",
+        "name": "AST",
+        "value": "28",
+        "unit": "U/L",
+        "range": "< 34",
+        "specimen": "blood",
+        "marker": "ast"
+      },
+      {
+        "page": 3,
+        "date": "2026-02-05",
+        "name": "AST",
+        "value": "26",
+        "unit": "U/L",
+        "range": "< 34",
+        "specimen": "blood",
+        "marker": "ast",
+        "previous": true
+      },
+      {
+        "page": 3,
+        "date": "2026-04-14",
+        "name": "ALT",
+        "value": "61",
+        "unit": "U/L",
+        "range": "10 - 49",
+        "specimen": "blood",
+        "marker": "alt"
+      },
+      {
+        "page": 3,
+        "date": "2026-02-05",
+        "name": "ALT",
+        "value": "35",
+        "unit": "U/L",
+        "range": "10 - 49",
+        "specimen": "blood",
+        "marker": "alt",
+        "previous": true
+      },
+      {
+        "page": 3,
+        "date": "2026-04-14",
+        "name": "GGT",
+        "value": "52",
+        "unit": "U/L",
+        "range": "< 73",
+        "specimen": "blood",
+        "marker": "ggt"
+      },
+      {
+        "page": 3,
+        "date": "2026-02-05",
+        "name": "GGT",
+        "value": "58",
+        "unit": "U/L",
+        "range": "< 73",
+        "specimen": "blood",
+        "marker": "ggt",
+        "previous": true
+      },
+      {
+        "page": 3,
+        "date": "2026-04-14",
+        "name": "Alkaline phosphatase",
+        "value": "119",
+        "unit": "U/L",
+        "range": "46 - 116",
+        "specimen": "blood",
+        "marker": "alp"
+      },
+      {
+        "page": 3,
+        "date": "2026-02-05",
+        "name": "Alkaline phosphatase",
+        "value": "104",
+        "unit": "U/L",
+        "range": "46 - 116",
+        "specimen": "blood",
+        "marker": "alp",
+        "previous": true
+      },
+      {
+        "page": 3,
+        "date": "2026-04-14",
+        "name": "Total testosterone",
+        "value": "418.0",
+        "unit": "ng/dL",
+        "range": "241.0 - 827.0",
+        "specimen": "blood",
+        "marker": "testosterone"
+      },
+      {
+        "page": 3,
+        "date": "2026-02-05",
+        "name": "Total testosterone",
+        "value": "596.4",
+        "unit": "ng/dL",
+        "range": "241.0 - 827.0",
+        "specimen": "blood",
+        "marker": "testosterone",
+        "previous": true
+      },
+      {
+        "page": 3,
+        "date": "2026-04-14",
+        "name": "Free testosterone",
+        "value": "6.10",
+        "unit": "pg/mL",
+        "range": "15 - 39 years: 5.4 - 40.0 · 40 - 59 years: 3.6 - 25.7 · 60 years and over: 1.5 - 28.8",
+        "specimen": "blood",
+        "marker": "free-testosterone"
+      },
+      {
+        "page": 3,
+        "date": "2026-02-05",
+        "name": "Free testosterone",
+        "value": "11.20",
+        "unit": "pg/mL",
+        "range": "15 - 39 years: 5.4 - 40.0 · 40 - 59 years: 3.6 - 25.7 · 60 years and over: 1.5 - 28.8",
+        "specimen": "blood",
+        "marker": "free-testosterone",
+        "previous": true
+      },
+      {
+        "page": 3,
+        "date": "2026-04-14",
+        "name": "PSA, total",
+        "value": "0.72",
+        "unit": "ng/mL",
+        "range": "40 - 49 years: 0 - 2.5 · 50 - 59 years: 0 - 3.5 · 60 - 69 years: 0 - 4.5",
+        "specimen": "blood",
+        "marker": "psa"
+      },
+      {
+        "page": 4,
+        "date": "2026-04-14",
+        "name": "25-Hydroxyvitamin D",
+        "value": "22.0",
+        "unit": "ng/mL",
+        "range": "Deficiency: < 10 · Insufficiency: 10 - 30 · Sufficiency: 30 - 100 · Toxicity: > 100",
+        "specimen": "blood",
+        "marker": "vitamin-d"
+      },
+      {
+        "page": 4,
+        "date": "2026-04-14",
+        "name": "Sodium",
+        "value": "140",
+        "unit": "mmol/L",
+        "range": "132 - 146",
+        "specimen": "blood",
+        "marker": "sodium"
+      },
+      {
+        "page": 4,
+        "date": "2026-04-14",
+        "name": "Potassium",
+        "value": "4.6",
+        "unit": "mmol/L",
+        "range": "3.5 - 5.5",
+        "specimen": "blood",
+        "marker": "potassium"
+      },
+      {
+        "page": 4,
+        "date": "2026-04-14",
+        "name": "TSH",
+        "value": "2.84",
+        "unit": "mIU/L",
+        "range": "0.35 - 5.50",
+        "specimen": "blood",
+        "marker": "tsh"
+      },
+      {
+        "page": 5,
+        "date": "2026-04-14",
+        "name": "Specific gravity",
+        "value": "1.027",
+        "unit": "",
+        "range": "1.010 - 1.025",
+        "specimen": "urine",
+        "marker": ""
+      },
+      {
+        "page": 5,
+        "date": "2026-04-14",
+        "name": "Glucose",
+        "value": "Negative",
+        "unit": "",
+        "range": "",
+        "specimen": "urine",
+        "marker": ""
+      },
+      {
+        "page": 5,
+        "date": "2026-04-14",
+        "name": "Protein",
+        "value": "10",
+        "unit": "mg/dL",
+        "range": "<= 20",
+        "specimen": "urine",
+        "marker": ""
+      },
+      {
+        "page": 5,
+        "date": "2026-04-14",
+        "name": "Haemoglobin",
+        "value": "Negative",
+        "unit": "",
+        "range": "",
+        "specimen": "urine",
+        "marker": ""
+      },
+      {
+        "page": 5,
+        "date": "2026-04-14",
+        "name": "Leucocytes",
+        "value": "Negative",
+        "unit": "",
+        "range": "",
+        "specimen": "urine",
+        "marker": ""
+      },
+      {
+        "page": 5,
+        "date": "2026-04-14",
+        "name": "White cells (sediment)",
+        "value": "< 1",
+        "unit": "/HPF",
+        "range": "< 5",
+        "specimen": "urine",
+        "marker": ""
+      },
+      {
+        "page": 5,
+        "date": "2026-04-14",
+        "name": "Red cells (sediment)",
+        "value": "< 1",
+        "unit": "/HPF",
+        "range": "< 5",
+        "specimen": "urine",
+        "marker": ""
+      }
+    ]
+  },
+  "lakeside-photos": {
+    "files": [
+      "lakeside-photo-1.jpg",
+      "lakeside-photo-2.jpg"
+    ],
+    "lab": "Lakeside Medical Laboratory (fictional)",
+    "sample": {
+      "printed": "03/05/2026",
+      "iso": "2026-03-05"
+    },
+    "order": "mdy",
+    "person": {
+      "name": "Alex Example",
+      "dateOfBirth": "1982-04-12",
+      "sex": "male"
+    },
+    "rows": [
+      {
+        "page": 1,
+        "date": "2026-03-05",
+        "name": "Glucose",
+        "value": "94",
+        "unit": "mg/dL",
+        "range": "65 - 99",
+        "specimen": "blood",
+        "marker": "glucose"
+      },
+      {
+        "page": 1,
+        "date": "2026-03-05",
+        "name": "BUN",
+        "value": "17",
+        "unit": "mg/dL",
+        "range": "6 - 24",
+        "specimen": "blood",
+        "marker": "bun"
+      },
+      {
+        "page": 1,
+        "date": "2026-03-05",
+        "name": "Creatinine",
+        "value": "1.08",
+        "unit": "mg/dL",
+        "range": "0.76 - 1.27",
+        "specimen": "blood",
+        "marker": "creatinine"
+      },
+      {
+        "page": 1,
+        "date": "2026-03-05",
+        "name": "Sodium",
+        "value": "139",
+        "unit": "mmol/L",
+        "range": "134 - 144",
+        "specimen": "blood",
+        "marker": "sodium"
+      },
+      {
+        "page": 1,
+        "date": "2026-03-05",
+        "name": "Potassium",
+        "value": "4.4",
+        "unit": "mmol/L",
+        "range": "3.5 - 5.2",
+        "specimen": "blood",
+        "marker": "potassium"
+      },
+      {
+        "page": 1,
+        "date": "2026-03-05",
+        "name": "Calcium",
+        "value": "9.6",
+        "unit": "mg/dL",
+        "range": "8.7 - 10.2",
+        "specimen": "blood",
+        "marker": "calcium"
+      },
+      {
+        "page": 1,
+        "date": "2026-03-05",
+        "name": "ALT (SGPT)",
+        "value": "31",
+        "unit": "IU/L",
+        "range": "0 - 44",
+        "specimen": "blood",
+        "marker": "alt"
+      },
+      {
+        "page": 1,
+        "date": "2026-03-05",
+        "name": "AST (SGOT)",
+        "value": "24",
+        "unit": "IU/L",
+        "range": "0 - 40",
+        "specimen": "blood",
+        "marker": "ast"
+      },
+      {
+        "page": 1,
+        "date": "2026-03-05",
+        "name": "Cholesterol, Total",
+        "value": "229",
+        "unit": "mg/dL",
+        "range": "100 - 199",
+        "specimen": "blood",
+        "marker": "cholesterol-total"
+      },
+      {
+        "page": 2,
+        "date": "2026-03-05",
+        "name": "HDL Cholesterol",
+        "value": "31",
+        "unit": "mg/dL",
+        "range": "> 39",
+        "specimen": "blood",
+        "marker": "hdl"
+      },
+      {
+        "page": 2,
+        "date": "2026-03-05",
+        "name": "LDL Chol Calc (NIH)",
+        "value": "151",
+        "unit": "mg/dL",
+        "range": "0 - 99",
+        "specimen": "blood",
+        "marker": "ldl"
+      },
+      {
+        "page": 2,
+        "date": "2026-03-05",
+        "name": "Triglycerides",
+        "value": "236",
+        "unit": "mg/dL",
+        "range": "0 - 149",
+        "specimen": "blood",
+        "marker": "triglycerides"
+      },
+      {
+        "page": 2,
+        "date": "2026-03-05",
+        "name": "Hemoglobin A1c",
+        "value": "5.9",
+        "unit": "%",
+        "range": "4.8 - 5.6",
+        "specimen": "blood",
+        "marker": "hba1c"
+      }
+    ]
+  }
+}

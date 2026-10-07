@@ -122,7 +122,13 @@ npm ci
 npm run dev       # http://localhost:5173
 npm test          # unit tests
 npm run test:e2e  # browser tests against the production build
+npm run test:live # real extraction of the fictional test reports (needs ANTHROPIC_API_KEY; a few cents)
 ```
+
+- `tests/fixtures/reports/`: fictional lab reports (a five-page PDF with a previous-results column
+  and a urinalysis page, and a US report photographed as two pages) that reproduce the hard cases
+  found on real reports, with the rows a correct extraction contains. `npm run test-reports`
+  regenerates them; `npm run test:live` checks the real extraction against them, row by row.
 
 - [SPEC.md](SPEC.md): what the first version does and why.
 - `src/labs/`: the catalogue, unit conversions (every factor cited in `catalogue/sources.ts` and

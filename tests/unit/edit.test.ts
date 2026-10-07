@@ -36,9 +36,10 @@ describe('editing results', () => {
   })
 
   it('judges the decimal mark from the report and finds results printed the same way', () => {
-    expect(reportDecimal(DEMO_RESULTS.filter((r) => r.reportId === 'r6'))).toBe(',')
-    expect(reportDecimal(DEMO_RESULTS.filter((r) => r.reportId === 'r1'))).toBe('.')
-    expect(sameNameResults(DEMO_RESULTS, 'cistatina c')).toHaveLength(4)
+    const comma = (text: string) => ({ ...DEMO_RESULTS[0], range: { text } })
+    expect(reportDecimal([comma('3,9 - 5,5'), comma('0,61 - 0,95'), comma('< 190')])).toBe(',')
+    expect(reportDecimal(DEMO_RESULTS.filter((r) => r.reportId === 'r6'))).toBe('.')
+    expect(sameNameResults(DEMO_RESULTS, 'cystatin c')).toHaveLength(4)
   })
 
   it('writes stored numbers with the report\'s decimal mark, so they read back the same', () => {

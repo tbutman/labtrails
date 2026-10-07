@@ -30,7 +30,8 @@ describe('which markers a question is about', () => {
 
   it("carries each lab's range, and never the name or date of birth", () => {
     const facts = askFacts(DEMO_PROFILE, DEMO_REPORTS, DEMO_RESULTS, 'my glucose', {}, TODAY)
-    expect(facts.markers[0].results.at(-1)).toMatchObject({ value: 112, range: { low: 70, high: 110 }, outsideRange: 'above' })
+    expect(facts.markers[0].results.at(-1)).toMatchObject({ value: 6.2, range: { low: 3.6, high: 6 }, outsideRange: 'above' })
+    expect(facts.markers[0].results[0]).toMatchObject({ printed: { value: 88, unit: 'mg/dL' } })
     const text = askFactsText(facts)
     expect(text).not.toContain(DEMO_PROFILE.name)
     if (DEMO_PROFILE.dateOfBirth) expect(text).not.toContain(DEMO_PROFILE.dateOfBirth)
