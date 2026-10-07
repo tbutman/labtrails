@@ -5,6 +5,8 @@
 import { MARKERS } from '../catalogue/catalogue'
 
 export type DateFormat = 'DMY' | 'MDY' | 'YMD' | 'unknown'
+/** What the sample was: blood (serum, plasma or whole blood), urine, or something else. */
+export type Specimen = 'blood' | 'urine' | 'other'
 export type Confidence = 'high' | 'medium' | 'low'
 
 export type ExtractedRow = {
@@ -21,6 +23,7 @@ export type ExtractedRow = {
    * (earlier results in columns, or a history list); null when the report has one sample date.
    */
   samplePrinted: string | null
+  specimen: Specimen
 }
 
 export type Extraction = {
@@ -57,7 +60,7 @@ export const EXTRACTION_SCHEMA = {
       items: {
         type: 'object',
         additionalProperties: false,
-        required: ['nameAsPrinted', 'valuePrinted', 'unitPrinted', 'rangePrinted', 'flagPrinted', 'suggestedMarkerId', 'confidence', 'page', 'samplePrinted'],
+        required: ['nameAsPrinted', 'valuePrinted', 'unitPrinted', 'rangePrinted', 'flagPrinted', 'suggestedMarkerId', 'confidence', 'page', 'samplePrinted', 'specimen'],
         properties: {
           nameAsPrinted: { type: 'string' },
           valuePrinted: { type: 'string' },
@@ -68,6 +71,7 @@ export const EXTRACTION_SCHEMA = {
           confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
           page: { type: 'integer' },
           samplePrinted: nullableString,
+          specimen: { type: 'string', enum: ['blood', 'urine', 'other'] },
         },
       },
     },
@@ -127,6 +131,8 @@ export function validateExtraction(raw: unknown): ValidationResult | null {
         page: r.page as number,
         // Optional for older answers; anything that isn't text means "the report's own date".
         samplePrinted: isText(r.samplePrinted) && r.samplePrinted.trim() ? r.samplePrinted.trim() : null,
+        // Optional for older answers, which were all read as blood.
+        specimen: r.specimen === 'urine' || r.specimen === 'other' ? r.specimen : 'blood',
       })
     } else {
       dropped++

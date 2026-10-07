@@ -44,6 +44,7 @@ export function ImportReports() {
       labAdapter({
         store,
         profileId: profile.id,
+        profile,
         apiKey: core.ai.apiKey,
         model: core.ai.model,
         demo: mode === 'demo',
@@ -53,7 +54,7 @@ export function ImportReports() {
           changed()
         },
       }),
-    [store, profile.id, core, mode, aliases, saveCore, changed],
+    [store, profile, core, mode, aliases, saveCore, changed],
   )
 
   if (initial === null) return <div className="skeleton loading-card" />

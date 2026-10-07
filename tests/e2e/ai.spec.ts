@@ -55,6 +55,7 @@ const row = (nameAsPrinted: string, valuePrinted: string, unitPrinted: string, r
   confidence: 'high',
   page: 1,
   samplePrinted: null as string | null,
+  specimen: 'blood',
 })
 
 /** A vault, a person and a (made-up) key. */

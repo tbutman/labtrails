@@ -16,4 +16,17 @@ export const EXTRACTION_COLUMNS: Column[] = [
     type: 'choice',
     options: [{ value: '', label: 'Not in the catalogue (keep as printed)' }, ...MARKERS.map((m) => ({ value: m.id, label: m.name }))],
   },
+  {
+    // Urinalysis rows share names with blood tests ("Glicose", "Leucócitos"); they're kept as printed.
+    key: 'specimen',
+    label: 'Sample',
+    type: 'choice',
+    required: true,
+    options: [
+      { value: 'blood', label: 'Blood' },
+      { value: 'urine', label: 'Urine' },
+      { value: 'other', label: 'Other' },
+    ],
+    validate: (v, row) => (v !== 'blood' && row.marker ? 'Only blood results go on a marker’s chart; choose “Not in the catalogue” for this row.' : undefined),
+  },
 ]

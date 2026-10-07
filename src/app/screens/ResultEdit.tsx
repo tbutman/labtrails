@@ -7,6 +7,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { getMarker } from '../../labs/catalogue/catalogue'
 import { aliasToRemember, inputFromResult, reportDecimal, resultFromInput, sameNameResults, understandInput, validateInput, type ResultInput } from '../../labs/edit'
+import { personAt } from '../../labs/person'
 import type { Alias, Report, Result } from '../../labs/types'
 import type { DecimalHint } from '../../labs/units/parse'
 import { Checkbox, PageHeader } from '../../core/ui/components'
@@ -48,7 +49,8 @@ function EditResult({ report, result, aliases, base }: { report: Report; result?
   const [error, setError] = useState('')
   const back = `${base}/reports#report-${report.id}`
 
-  const u = understandInput(input, decimal, aliases)
+  const person = personAt(profile, report.date)
+  const u = understandInput(input, decimal, aliases, person)
   // Other results printed with this name that would change marker along with this one.
   const others = u.markerId && u.markerId !== result?.markerId ? sameNameResults(results, input.name).filter((r) => r.id !== result?.id && r.markerId !== u.markerId) : []
 
@@ -59,7 +61,7 @@ function EditResult({ report, result, aliases, base }: { report: Report; result?
     if (invalid) return setError(invalid)
     if (u.match.status === 'ambiguous' && !input.markerId) return setError(`Choose which marker "${input.name.trim()}" is.`)
     const now = timestamp()
-    const saved = resultFromInput(input, result ?? { id: crypto.randomUUID(), reportId: report.id, profileId: profile.id, createdAt: now }, decimal, now, aliases)
+    const saved = resultFromInput(input, result ?? { id: crypto.randomUUID(), reportId: report.id, profileId: profile.id, createdAt: now }, decimal, now, aliases, person)
     await store.put('results', saved)
     const alias = aliasToRemember(input, aliases, result?.markerId, () => crypto.randomUUID())
     if (alias) await store.put('aliases', alias)
@@ -93,7 +95,7 @@ function EditResult({ report, result, aliases, base }: { report: Report; result?
           <DecimalSwitch value={decimal} onChange={setDecimal} />
         </div>
         <MarkerNames />
-        <ResultFields input={input} label="The result" decimal={decimal} aliases={aliases} onChange={(patch) => setInput((i) => ({ ...i, ...patch }))} canChangeMarker />
+        <ResultFields input={input} label="The result" decimal={decimal} aliases={aliases} person={person} onChange={(patch) => setInput((i) => ({ ...i, ...patch }))} canChangeMarker />
         {others.length > 0 && chosen && (
           <Checkbox checked={mapAll} onChange={setMapAll}>
             Also show the {plural(others.length, 'other result')} printed as "{input.name.trim()}" as {chosen}

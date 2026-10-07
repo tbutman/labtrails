@@ -44,7 +44,7 @@ export const SOURCES = {
   folate: pubchem('folic acid', 135398658, '441.4', '1,000 / 441.4 = 2.266'),
   freeT4: pubchem('thyroxine', 5819, '776.87', '10,000 / 776.87 = 12.87'),
   freeT3: pubchem('triiodothyronine', 5920, '650.97', '1,000 / 650.97 = 1.536'),
-  testosterone: pubchem('testosterone', 6013, '288.4', '10 / 288.4 = 0.03467 per ng/dL, so 0.3467 per ng/mL'),
+  testosterone: pubchem('testosterone', 6013, '288.4', '10 / 288.4 = 0.03467 per ng/dL, so 0.3467 per ng/mL; for free testosterone in pmol/L, 1,000 / 288.4 = 3.467 per pg/mL and 34.67 per ng/dL'),
   oestradiol: pubchem('estradiol', 5757, '272.4', '1,000 / 272.4 = 3.671'),
   cortisol: pubchem('cortisol (hydrocortisone)', 5754, '362.5', '10,000 / 362.5 = 27.59'),
   dheas: pubchem('DHEA sulfate', 12594, '368.5', '10 / 368.5 = 0.02714'),

@@ -13,8 +13,9 @@ export function LabMetaEditor({ meta, onChange }: { meta: LabMeta; onChange: (m:
           report, with the date shown on every row; check them below. The lab applies to all of them, and fasting only to the newest.
         </Callout>
       )}
-      <div className="input-row">
+      <div className="input-row three">
         <TextField label="Lab" value={meta.lab} onChange={(e) => onChange({ ...meta, lab: e.target.value })} hint="As printed on the report; you can change it." />
+        <TextField label={cumulative ? 'Time (newest date, optional)' : 'Time (optional)'} type="time" value={meta.time ?? ''} onChange={(e) => onChange({ ...meta, time: e.target.value || undefined })} />
         <Segmented
           legend={cumulative ? 'Fasting? (newest date)' : 'Fasting?'}
           name="import-fasting"

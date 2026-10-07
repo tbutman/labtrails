@@ -29,6 +29,8 @@ const fromMolarMass: [string, string, string, number][] = [
   ['free-t3', 'pg/mL', 'pmol/L', 1000 / 650.98],
   ['testosterone', 'ng/dL', 'nmol/L', 10 / 288.43],
   ['testosterone', 'ng/mL', 'nmol/L', 100 / 288.43],
+  ['free-testosterone', 'pg/mL', 'pmol/L', 1000 / 288.43],
+  ['free-testosterone', 'ng/dL', 'pmol/L', 10000 / 288.43],
   ['oestradiol', 'pg/mL', 'pmol/L', 1000 / 272.39],
   ['cortisol', 'µg/dL', 'nmol/L', 10000 / 362.47],
   ['dhea-s', 'µg/dL', 'µmol/L', 10 / 368.49],

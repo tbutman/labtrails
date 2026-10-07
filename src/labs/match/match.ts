@@ -9,6 +9,8 @@ import { isKnownUnit } from '../units/convert'
 /** Lower case, no accents, punctuation as spaces, single spaces; drops a trailing "(…)" note. */
 export function normaliseName(printed: string): string {
   return printed
+    // Dotted abbreviations are one word: "V.G.M." is "VGM", "C.H.G.M." is "CHGM".
+    .replace(/(?<![\p{L}\d])((?:\p{L}\.){2,}\p{L}?)\.?(?![\p{L}\d])/gu, (m) => m.replace(/\./g, ''))
     .normalize('NFD')
     .replace(/\p{Diacritic}/gu, '')
     .toLowerCase()
@@ -23,10 +25,11 @@ const NOISE = /\b(calc|calculated|calculado|calculada|serum|soro|serica|serico|p
 
 function variants(printed: string): string[] {
   const n = normaliseName(printed)
-  const quiet = n.replace(NOISE, ' ').replace(/\s+/g, ' ').trim()
-  // "TGO/AST" and "AST (TGO)" print two names for one marker; try each part too.
-  const parts = printed.split(/[/()]/).map(normaliseName).filter(Boolean)
-  return [...new Set([n, quiet, ...parts].filter(Boolean))]
+  const quiet = (s: string) => s.replace(NOISE, ' ').replace(/\s+/g, ' ').trim()
+  // "TGO/AST", "AST (TGO)", "TGO - Aspartato Aminotransferase" and "TFGe [CKD-EPI 2009]" print two
+  // names for one marker, or a name and a note; try each part too, with and without noise words.
+  const parts = printed.split(/[/()[\]]|\s[-–]\s/).map(normaliseName).filter(Boolean)
+  return [...new Set([n, quiet(n), ...parts.flatMap((p) => [p, quiet(p)])].filter(Boolean))]
 }
 
 const INDEX: Map<string, Marker[]> = (() => {

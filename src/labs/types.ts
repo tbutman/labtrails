@@ -29,6 +29,8 @@ export type Report = {
 }
 
 export type Result = {
+  /** Set for a result that isn't from blood (a urinalysis row), so it's never charted as a blood test. */
+  specimen?: 'urine' | 'other'
   id: string
   reportId: string
   profileId: string

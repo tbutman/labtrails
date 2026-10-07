@@ -5,7 +5,7 @@
 import { matchMarker, normaliseName, type UserAlias } from './match/match'
 import type { Alias, Result } from './types'
 import { normaliseUnit } from './units/normalise'
-import { parseRange, parseValue, type DecimalHint } from './units/parse'
+import { parseRange, parseValue, type DecimalHint, type Person } from './units/parse'
 
 export type ResultInput = { name: string; value: string; unit: string; range: string; flag: string; markerId: string }
 
@@ -46,24 +46,33 @@ export function reportDecimal(results: Result[]): DecimalHint {
 }
 
 /** What the code understands from the input: the marker (typed, or matched by name) and the parsed value. */
-export function understandInput(input: ResultInput, decimal: DecimalHint, aliases: UserAlias[] = []) {
+export function understandInput(input: ResultInput, decimal: DecimalHint, aliases: UserAlias[] = [], person?: Person) {
   const unit = input.unit.trim() ? normaliseUnit(input.unit) : undefined
   const match = input.name.trim() ? matchMarker(input.name, unit, aliases) : ({ status: 'unknown' } as const)
   const markerId = input.markerId || (match.status === 'matched' ? match.markerId : undefined)
-  return { match, markerId, value: parseValue(input.value, decimal), range: input.range.trim() ? parseRange(input.range, decimal) : null }
+  return { match, markerId, value: parseValue(input.value, decimal), range: input.range.trim() ? parseRange(input.range, decimal, person) : null }
 }
 
-/** Builds the saved result from the input, keeping the original's identity and creation time. */
+/**
+ * Builds the saved result from the input, keeping only the original's identity, creation time and
+ * sample type: everything else comes from the input, so unmapping a name or changing a number to text
+ * leaves nothing of the old value behind.
+ */
 export function resultFromInput(
   input: ResultInput,
-  base: { id: string; reportId: string; profileId: string; createdAt: string },
+  base: { id: string; reportId: string; profileId: string; createdAt: string; specimen?: Result['specimen'] },
   decimal: DecimalHint,
   now: string,
   aliases: UserAlias[] = [],
+  person?: Person,
 ): Result {
-  const u = understandInput(input, decimal, aliases)
+  const u = understandInput(input, decimal, aliases, person)
   return {
-    ...base,
+    id: base.id,
+    reportId: base.reportId,
+    profileId: base.profileId,
+    createdAt: base.createdAt,
+    ...(base.specimen ? { specimen: base.specimen } : {}),
     ...(u.markerId ? { markerId: u.markerId } : {}),
     nameAsPrinted: input.name.trim(),
     ...(u.value.kind === 'number' ? { value: u.value.value, ...(u.value.comparator ? { comparator: u.value.comparator } : {}) } : { textValue: u.value.text }),

@@ -7,7 +7,7 @@ import { pagesOf } from '../../core/documents/documents'
 import type { ConfirmedRow } from '../../core/review/model'
 import { EXTRACTION_SYSTEM } from '../../labs/ai/prompts'
 import { alreadySavedRows, parseFasting, similarReport } from '../../labs/extraction/duplicates'
-import { extractionPrompt, printedDates, recordsFromConfirmed, toProposedRows, type ConfirmedResultRow, type ProposedResultRow } from '../../labs/extraction/proposals'
+import { extractionPrompt, printedDates, printedTime, recordsFromConfirmed, toProposedRows, type ConfirmedResultRow, type ProposedResultRow } from '../../labs/extraction/proposals'
 import { EXTRACTION_SCHEMA, validateExtraction, type Extraction } from '../../labs/extraction/schema'
 import type { Alias, Report, Result } from '../../labs/types'
 import type { ImportAdapter } from '../../core/import/adapter'
@@ -22,6 +22,8 @@ export type LabMeta = {
   fasting?: 'yes' | 'no' | 'unknown'
   /** How many sample dates the report shows; more than one is a cumulative report. */
   dates?: number
+  /** The time of collection, when printed ("11:21"), for the report's own date. */
+  time?: string
 }
 
 export const SAMPLE_TITLE = 'Sample report (fictional).png'
@@ -55,6 +57,8 @@ async function block(doc: StoredDoc, bytes: Uint8Array<ArrayBuffer>): Promise<Co
 export function labAdapter(deps: {
   store: RecordStore
   profileId: string
+  /** For ranges printed by age or sex. */
+  profile?: { dateOfBirth?: string; sex?: 'female' | 'male' }
   apiKey?: string
   model: string
   demo: boolean
@@ -81,7 +85,7 @@ export function labAdapter(deps: {
   }
   const proposals = (extraction: Extraction, dropped: number) => ({
     rows: toProposedRows(extraction, deps.aliases),
-    meta: { lab: extraction.lab ?? '', fasting: parseFasting(extraction.fastingPrinted), dates: printedDates(extraction).length },
+    meta: { lab: extraction.lab ?? '', fasting: parseFasting(extraction.fastingPrinted), dates: printedDates(extraction).length, ...(printedTime(extraction) ? { time: printedTime(extraction) } : {}) },
     dropped,
   })
 
@@ -96,7 +100,9 @@ export function labAdapter(deps: {
       notSending: ['Your other results, notes and medications', "Other people's records"],
       notes: ["Reports usually show your name and date of birth, and sometimes a health number. LabTrails can't remove text from a PDF or photo."],
     },
-    estimate: ({ pdfs, images }) => ({ inputTokens: pdfs * 9000 + images * 4000, outputTokens: (pdfs + images) * 2000 }),
+    // Measured on real reports (October 2026): about 2,600 input tokens a PDF page and 110 output
+    // tokens a row; a typical report is 2 to 8 pages and 30 to 70 rows.
+    estimate: ({ pdfs, images }) => ({ inputTokens: pdfs * 14000 + images * 4000, outputTokens: pdfs * 6500 + images * 3000 }),
 
     async read(doc, bytes) {
       if (deps.demo) {
@@ -142,10 +148,16 @@ export function labAdapter(deps: {
         lab: meta.lab.trim() || null,
         now: new Date().toISOString(),
         newId: () => crypto.randomUUID(),
+        profile: deps.profile,
       })
       // On a cumulative report, what's printed about fasting describes this sample: the newest date.
       const newest = [...reports].sort((a, b) => b.date.localeCompare(a.date))[0]
-      for (const r of reports) await store.put('reports', meta.fasting && r === newest ? { ...r, context: { ...r.context, fasting: meta.fasting } } : r)
+      // The printed time and fasting describe this report's own sample, the newest date.
+      for (const r of reports)
+        await store.put(
+          'reports',
+          r === newest ? { ...r, ...(meta.time ? { time: meta.time } : {}), ...(meta.fasting ? { context: { ...r.context, fasting: meta.fasting } } : {}) } : r,
+        )
       for (const r of results) await store.put('results', r)
       // Every page of a group carries the report's date and lab, like a single document.
       const latest = (await store.get<StoredDoc>('documents', doc.id)) ?? doc

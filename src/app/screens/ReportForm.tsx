@@ -6,6 +6,7 @@ import { Copy, Plus, Save } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { aliasToRemember, resultFromInput, understandInput, validateInput, type ResultInput } from '../../labs/edit'
+import { personAt } from '../../labs/person'
 import type { Alias, Recently, Report, TestContext } from '../../labs/types'
 import type { DecimalHint } from '../../labs/units/parse'
 import { ChipGroup, PageHeader, Segmented, TextAreaField, TextField } from '../../core/ui/components'
@@ -87,7 +88,7 @@ export function ReportForm() {
     }
     await store.put('reports', report)
     for (const { key, ...r } of filled) {
-      await store.put('results', resultFromInput(r, { id: key, reportId: report.id, profileId: profile.id, createdAt: now }, decimal, now, aliases ?? []))
+      await store.put('results', resultFromInput(r, { id: key, reportId: report.id, profileId: profile.id, createdAt: now }, decimal, now, aliases ?? [], personAt(profile, date)))
       // A name the user mapped by hand is remembered for next time.
       const alias = aliasToRemember(r, aliases ?? [], undefined, () => crypto.randomUUID())
       if (alias) await store.put('aliases', alias)
@@ -143,7 +144,7 @@ export function ReportForm() {
           <MarkerNames />
           <div className="result-rows">
             {rows.map((r, i) => (
-              <ResultFields key={r.key} input={r} label={`Result ${i + 1}`} decimal={decimal} aliases={aliases ?? []} onChange={(patch) => update(r.key, patch)} onRemove={() => setRows((rs) => rs.filter((x) => x.key !== r.key))} />
+              <ResultFields key={r.key} input={r} label={`Result ${i + 1}`} decimal={decimal} aliases={aliases ?? []} person={personAt(profile, date)} onChange={(patch) => update(r.key, patch)} onRemove={() => setRows((rs) => rs.filter((x) => x.key !== r.key))} />
             ))}
           </div>
           <button type="button" className="button small" onClick={() => setRows((rs) => [...rs, emptyRow()])}>
