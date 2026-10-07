@@ -1,26 +1,28 @@
 import { INFLUENCE_NAMES, effectWords, influencesFor, lowerFirst, matchInfluences, matchedSentence } from '../../labs/influences'
 import { describeTiming, type TimelineEntry } from '../../labs/timeline'
 import type { Report } from '../../labs/types'
-import { Info, NotebookPen } from 'lucide-react'
-import { useState } from 'react'
+import { Info, Minus, NotebookPen } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router'
-import { analyseMarker } from '../../labs/analysis'
+import { analyseMarker, type MarkerAnalysis } from '../../labs/analysis'
+import { lineIn, lineText, validateLine, type PersonalLine } from '../../labs/lines'
 import { getMarker } from '../../labs/catalogue/catalogue'
 import { CHANGE_THRESHOLD, TREND_THRESHOLD } from '../../labs/flags/flags'
 import { convertibleUnits } from '../../labs/units/convert'
-import { Callout, PageHeader } from '../../core/ui/components'
+import { Callout, PageHeader, TextField } from '../../core/ui/components'
 import { DISCLAIMER, MarkerFlags } from '../components/Flags'
 import { chartEvents } from '../chartEvents'
+import { personalFlag, shownLine } from '../personalLine'
 import { MarkerChart, ResultsList } from '../components/MarkerChart'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
-import { formatDate, formatPercent, formatPoint, formatRange, formatWhen } from '../format'
+import { formatDate, formatPercent, formatPoint, formatRange, formatValue, formatWhen } from '../format'
 
 const RECENTLY: Record<string, string> = { illness: 'recent illness', 'hard-exercise': 'recent hard exercise', alcohol: 'recent alcohol', 'poor-sleep': 'poor sleep' }
 
 export function MarkerDetail() {
   const { id = '' } = useParams()
-  const { reports, results, timeline } = useProfileData()
+  const { reports, results, timeline, lines } = useProfileData()
   const base = useBase()
   const { app, saveApp } = useSession()
   const [unit, setUnit] = useState<string | undefined>(app.preferredUnit[id])
@@ -50,7 +52,7 @@ export function MarkerDetail() {
         back={{ to: base, label: 'Overview' }}
       />
       <div className="row chips-row">
-        <MarkerFlags a={a} />
+        <MarkerFlags a={a} line={personalFlag(a, lines)} />
       </div>
 
       <div className="card chart-card">
@@ -74,7 +76,7 @@ export function MarkerDetail() {
             </label>
           )}
         </div>
-        <MarkerChart points={a.series.points} unit={a.series.unit} label={marker.name} contextDates={withContext.map(({ p }) => p.date)} events={chartEvents(timeline)} />
+        <MarkerChart points={a.series.points} unit={a.series.unit} label={marker.name} contextDates={withContext.map(({ p }) => p.date)} events={chartEvents(timeline)} line={shownLine(a, lines)} />
         <ul className="chart-legend">
           <li>
             <span className="legend-swatch range" aria-hidden="true" /> Each lab's own range
@@ -145,6 +147,8 @@ export function MarkerDetail() {
         </>
       )}
 
+      <YourLine a={a} lines={lines} />
+
       <KnownInfluences markerId={marker.id} markerName={marker.name} tests={a.series.points.map((p) => reportsById.get(p.reportId)!).filter(Boolean)} timeline={timeline} />
 
       <h2 className="section-title">All results</h2>
@@ -195,6 +199,107 @@ function KnownInfluences({ markerId, markerName, tests, timeline }: { markerId: 
           ))}
         </ul>
         <p className="hint">Documented influences in general, from public health sources. They don't say why any one result is what it is; your doctor can.</p>
+      </div>
+    </>
+  )
+}
+
+const nowIso = () => new Date().toISOString()
+
+/** A line the user or their doctor sets for this marker (SPEC.md section 18.5), in the unit shown. */
+function YourLine({ a, lines }: { a: MarkerAnalysis; lines: PersonalLine[] }) {
+  const { store, mode, core, saveCore, changed } = useSession()
+  const { profile } = useProfileData()
+  const existing = lines.find((l) => l.markerId === a.marker.id)
+  const shown = existing ? lineIn(existing, a.series.unit) : null
+  const [editing, setEditing] = useState(false)
+  const [label, setLabel] = useState(existing?.label ?? "My doctor's target")
+  const [low, setLow] = useState(shown?.low !== undefined ? formatValue(shown.low) : '')
+  const [high, setHigh] = useState(shown?.high !== undefined ? formatValue(shown.high) : '')
+  const [error, setError] = useState('')
+  const unit = a.series.unit
+
+  async function save(e: FormEvent) {
+    e.preventDefault()
+    if (!store) return
+    const invalid = validateLine({ label, low, high })
+    if (invalid) return setError(invalid)
+    const now = nowIso()
+    const num = (s: string) => (s.trim() ? Number(s.replace(',', '.')) : undefined)
+    const l = num(low)
+    const h = num(high)
+    const next: PersonalLine = {
+      id: existing?.id ?? crypto.randomUUID(),
+      profileId: profile.id,
+      markerId: a.marker.id,
+      label: label.trim() || 'My line',
+      ...(l !== undefined ? { low: l } : {}),
+      ...(h !== undefined ? { high: h } : {}),
+      unit,
+      createdAt: existing?.createdAt ?? now,
+      updatedAt: now,
+    }
+    await store.put('lines', next)
+    if (mode === 'unlocked') await saveCore({ ...core, changesSinceBackup: core.changesSinceBackup + 1 })
+    changed()
+    setEditing(false)
+    setError('')
+  }
+
+  async function remove() {
+    if (!store || !existing) return
+    await store.delete('lines', existing.id)
+    if (mode === 'unlocked') await saveCore({ ...core, changesSinceBackup: core.changesSinceBackup + 1 })
+    changed()
+    setLow('')
+    setHigh('')
+  }
+
+  return (
+    <>
+      <h2 className="section-title">
+        <Minus size={14} aria-hidden /> Your line
+      </h2>
+      <div className="card">
+        {editing ? (
+          <form className="line-form" onSubmit={save} noValidate>
+            <TextField label="What it is" value={label} onChange={(e) => setLabel(e.target.value)} hint="For example “My doctor's target” or “Limit while on medication”." />
+            <div className="input-row">
+              <TextField label={`Lower value (${unit}, optional)`} inputMode="decimal" value={low} onChange={(e) => setLow(e.target.value)} />
+              <TextField label={`Upper value (${unit}, optional)`} inputMode="decimal" value={high} onChange={(e) => setHigh(e.target.value)} />
+            </div>
+            {error && (
+              <p className="error" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="row">
+              <button className="button primary small">Save the line</button>
+              <button type="button" className="button ghost small" onClick={() => setEditing(false)}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : existing && shown ? (
+          <div className="row">
+            <span>
+              <strong>{shown.label}</strong>: {lineText(shown, formatValue)} {unit}. <span className="faint">Set by you; the lab's range is shown separately.</span>
+            </span>
+            <button type="button" className="button small" onClick={() => setEditing(true)}>
+              Change
+            </button>
+            <button type="button" className="button small ghost danger" onClick={() => void remove()}>
+              Remove
+            </button>
+          </div>
+        ) : (
+          <div className="row">
+            <span className="muted">A value you or your doctor want to keep an eye on, drawn on the chart and flagged as yours.</span>
+            <button type="button" className="button small" onClick={() => setEditing(true)}>
+              Add a line
+            </button>
+          </div>
+        )}
       </div>
     </>
   )

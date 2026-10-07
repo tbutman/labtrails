@@ -15,6 +15,9 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- Personal lines (SPEC.md section 18, step 6): a lower and/or upper value you or your doctor set for a
+  marker ("My doctor's target: under 54"), drawn dashed on the chart in whatever unit it's shown,
+  flagged as "Above your line", on the doctor report and in the AI's facts as the person's own line.
 - Summaries and Ask use the context (SPEC.md section 18, step 5): with your consent, and listed on
   the send sheet, they get your timeline during the results, when each test was drawn relative to a
   dose, matched known influences, persistent flags and markers not repeated, and may state them as

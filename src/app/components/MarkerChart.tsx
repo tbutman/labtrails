@@ -7,6 +7,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { rangeFlag } from '../../labs/flags/flags'
 import type { SeriesPoint } from '../../labs/series'
+import { lineText, type LineBounds } from '../../labs/lines'
 import { formatDate, formatPoint, formatRange, formatValue } from '../format'
 
 const H = 240
@@ -44,7 +45,7 @@ function useWidth(fallback = 640) {
 /** A timeline entry on the chart: first and last day it covers (no last day while it's ongoing). */
 export type ChartEvent = { id: string; label: string; period: string; from: string; to?: string }
 
-type ChartProps = { points: SeriesPoint[]; unit: string; label: string; contextDates?: string[]; events?: ChartEvent[] }
+type ChartProps = { points: SeriesPoint[]; unit: string; label: string; contextDates?: string[]; events?: ChartEvent[]; line?: LineBounds | null }
 
 const LANE = 9
 const MAX_LANES = 4
@@ -83,11 +84,11 @@ export function MarkerChart(props: ChartProps) {
   )
 }
 
-function ChartSvg({ points, unit, label, contextDates = [], lanes, W }: ChartProps & { W: number; lanes: (ChartEvent & { lane: number })[] }) {
+function ChartSvg({ points, unit, label, contextDates = [], lanes, line, W }: ChartProps & { W: number; lanes: (ChartEvent & { lane: number })[] }) {
   const laneCount = lanes.length ? Math.max(...lanes.map((e) => e.lane)) + 1 : 0
   const top = PAD.top + laneCount * LANE
 
-  const values = points.flatMap((p) => [p.value, p.range?.low, p.range?.high]).filter((v): v is number => v !== undefined)
+  const values = [...points.flatMap((p) => [p.value, p.range?.low, p.range?.high]), line?.low, line?.high].filter((v): v is number => v !== undefined)
   let lo = Math.min(...values)
   let hi = Math.max(...values)
   const pad = (hi - lo) * 0.12 || Math.abs(hi) * 0.1 || 1
@@ -118,7 +119,7 @@ function ChartSvg({ points, unit, label, contextDates = [], lanes, W }: ChartPro
     }
     yearLabels.push({ yr, xx })
   }
-  const line = points.map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ')
+  const path = points.map((p, i) => `${i ? 'L' : 'M'}${x(p.date).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ')
   const barW = 12
   const flaggedCount = points.filter((p) => rangeFlag(p)?.basis === 'range').length
 
@@ -127,7 +128,7 @@ function ChartSvg({ points, unit, label, contextDates = [], lanes, W }: ChartPro
       className="chart"
       viewBox={`0 0 ${W} ${H}`}
       role="img"
-      aria-label={`${label} in ${unit}: ${points.length} results from ${formatDate(points[0].date)} to ${formatDate(points.at(-1)!.date)}, latest ${formatPoint(points.at(-1)!)}. ${flaggedCount} outside their lab's range.${lanes.length ? ` Timeline: ${lanes.map((e) => `${e.label}, ${e.period}`).join('; ')}.` : ''} The full list follows the chart.`}
+      aria-label={`${label} in ${unit}: ${points.length} results from ${formatDate(points[0].date)} to ${formatDate(points.at(-1)!.date)}, latest ${formatPoint(points.at(-1)!)}. ${flaggedCount} outside their lab's range.${lanes.length ? ` Timeline: ${lanes.map((e) => `${e.label}, ${e.period}`).join('; ')}.` : ''}${line ? ` Your line (${line.label}): ${lineText(line, formatValue)}.` : ''} The full list follows the chart.`}
     >
       {lanes.map((e) => {
         const x0 = e.from <= points[0].date ? PAD.left : x(e.from)
@@ -162,7 +163,18 @@ function ChartSvg({ points, unit, label, contextDates = [], lanes, W }: ChartPro
         return <rect key={`r-${p.resultId}`} className="range" x={x(p.date) - barW / 2} y={top} width={barW} height={Math.max(bottom - top, 2)} rx={barW / 2} />
       })}
 
-      {points.length > 1 && <path className="line" d={line} />}
+      {[line?.low, line?.high].map((v, i) =>
+        v === undefined ? null : (
+          <g key={`pl-${i}`} className="personal-line">
+            <line x1={PAD.left} x2={W - PAD.right} y1={y(v)} y2={y(v)} />
+            <text x={W - PAD.right} y={y(v) - 4} textAnchor="end">
+              {`${line!.label}: ${i ? 'under' : 'at least'} ${formatValue(v)}`}
+            </text>
+          </g>
+        ),
+      )}
+
+      {points.length > 1 && <path className="line" d={path} />}
 
       {points.map((p) => {
         const flagged = rangeFlag(p)?.basis === 'range'

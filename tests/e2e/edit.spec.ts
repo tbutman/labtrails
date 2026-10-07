@@ -138,3 +138,22 @@ test('dose timing: a test records when the blood was drawn relative to a timed d
   await page.getByRole('button', { name: 'Save details' }).click()
   await expect(page.locator('details[open]')).toContainText('Drawn 29 days after the last dose of Injection Y 250 mg (every month)')
 })
+
+test('a personal line: drawn on the chart in any unit, flagged as yours, and on the doctor report', async ({ page }) => {
+  await vaultWithReport(page)
+  await page.getByRole('link', { name: /^Glucose/ }).first().click()
+  await page.getByRole('button', { name: 'Add a line' }).click()
+  await page.getByLabel(/Upper value \(mg\/dL/).fill('700')
+  await page.getByRole('button', { name: 'Save the line' }).click()
+  await expect(page.getByText("My doctor's target: under 700 mg/dL.")).toBeVisible()
+  // 811 is above the user's line as well as the lab's range; each flag says whose it is.
+  await expect(page.getByText("Above your line (My doctor's target)")).toBeVisible()
+  await expect(page.getByRole('img', { name: /Your line \(My doctor's target\): under 700/ })).toBeVisible()
+  await page.getByLabel('Show in').selectOption('mmol/L')
+  await expect(page.getByRole('img', { name: /Your line \(My doctor's target\): under 38\.9/ })).toBeVisible()
+
+  await page.getByRole('link', { name: 'Overview' }).first().click()
+  await expect(page.getByText('Above your line').first()).toBeVisible()
+  await page.getByRole('link', { name: 'Doctor' }).first().click()
+  await expect(page.locator('.report-sheet svg')).toContainText("Above your line (My doctor's target: under 38.9)")
+})

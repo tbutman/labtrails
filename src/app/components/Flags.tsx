@@ -3,14 +3,19 @@
 // "abnormal" or a verdict. Each flag has an icon and
 // words, so it never depends on colour.
 
-import { CircleAlert, MoveDownRight, MoveUpRight, TrendingDown, TrendingUp } from 'lucide-react'
+import { CircleAlert, Minus, MoveDownRight, MoveUpRight, TrendingDown, TrendingUp } from 'lucide-react'
 import type { MarkerAnalysis } from '../../labs/analysis'
 import { Chip } from '../../core/ui/components'
 import { formatPercent } from '../format'
 
-export function MarkerFlags({ a, compact = false }: { a: MarkerAnalysis; compact?: boolean }) {
+export function MarkerFlags({ a, compact = false, line }: { a: MarkerAnalysis; compact?: boolean; line?: { side: 'above' | 'below'; label: string } | null }) {
   return (
     <>
+      {line && (
+        <Chip tone="outline" icon={Minus}>
+          {line.side === 'above' ? 'Above' : 'Below'} your line{compact ? '' : ` (${line.label})`}
+        </Chip>
+      )}
       {a.latestFlag && (
         <Chip tone="flag" icon={CircleAlert}>
           {a.latestFlag.basis === 'lab'

@@ -24,7 +24,7 @@ function timelineFor(timeline: TimelineEntry[], markers: MarkerAnalysis[], lates
 }
 
 export function DoctorReport() {
-  const { profile, reports, results, timeline } = useProfileData()
+  const { profile, reports, results, timeline, lines } = useProfileData()
   const { app } = useSession()
   const all = analyse(results, reports, app.preferredUnit).flatMap((p) => p.markers)
   const flagged = all.filter((a) => a.latestFlag || a.change?.notable || a.trend).map((a) => a.marker.id)
@@ -120,7 +120,7 @@ export function DoctorReport() {
         </div>
       </div>
       <div className="report-sheet" ref={sheet}>
-        <ReportSheet who={who} markers={markers} latest={latest} notes={notes} missing={notRepeated(results, reports)} timeline={withTimeline ? timelineFor(timeline, markers, latest?.date) : []} />
+        <ReportSheet who={who} markers={markers} latest={latest} notes={notes} missing={notRepeated(results, reports)} timeline={withTimeline ? timelineFor(timeline, markers, latest?.date) : []} lines={lines} />
       </div>
     </>
   )

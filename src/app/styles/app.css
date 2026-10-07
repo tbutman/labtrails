@@ -405,3 +405,19 @@
 .influences a {
   font-size: var(--text-sm);
 }
+
+/* Personal lines: the user's own, dashed, in ink rather than the lab's range colour */
+.personal-line line {
+  stroke: var(--text);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 4;
+}
+.personal-line text {
+  fill: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+}
+.line-form {
+  display: grid;
+  gap: var(--space-3);
+}

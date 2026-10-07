@@ -24,7 +24,7 @@ const PREPARED_NOTE = 'Demo: prepared in advance for this made-up person, in the
 const nowIso = () => new Date().toISOString()
 
 export function Ask() {
-  const { profile, reports, results, timeline } = useProfileData()
+  const { profile, reports, results, timeline, lines } = useProfileData()
   const { store, core, mode, app, changed, version } = useSession()
   const base = useBase()
   const navigate = useNavigate()
@@ -56,7 +56,7 @@ export function Ask() {
 
   // The facts for a question: the markers it (or the conversation so far) is about.
   const asked = (text: string) => [...(thread?.turns ?? []).filter((t) => t.role === 'parent').map((t) => t.text), text]
-  const factsFor = (text: string) => askFacts(profile, reports, results, asked(text), app.preferredUnit, undefined, timeline)
+  const factsFor = (text: string) => askFacts(profile, reports, results, asked(text), app.preferredUnit, undefined, timeline, lines)
   // A question that would send different facts from the last answer asks for agreement again.
   const lastDigest = thread?.turns.filter((t) => t.role === 'ai').at(-1)?.factsDigest
   const hide = (t: string) => redactNames(t, [profile.name], 'the person')
