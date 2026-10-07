@@ -159,3 +159,23 @@ test('a personal line: drawn on the chart in any unit, flagged as yours, and on 
   await page.getByRole('link', { name: 'Doctor' }).first().click()
   await expect(page.locator('.report-sheet svg')).toContainText("(My doctor's target: under 38.9 mmol/L)")
 })
+
+test('a person can be renamed, then deleted with everything kept about them', async ({ page }) => {
+  await vaultWithReport(page)
+  // In-app navigation: a reload would lock the vault.
+  const people = () => page.locator('header a[href="/app"]').first().click()
+  await people()
+  await page.getByRole('link', { name: 'Edit or delete Alex Example' }).click()
+  await page.getByLabel('Name or nickname').fill('Jane Doe')
+  await page.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByRole('heading', { name: 'Jane Doe' })).toBeVisible()
+
+  await people()
+  await page.getByRole('link', { name: 'Edit or delete Jane Doe' }).click()
+  page.once('dialog', (d) => {
+    expect(d.message()).toBe("Delete Jane Doe and all their reports, results, documents, timeline and conversations? This can't be undone, except from a backup.")
+    void d.accept()
+  })
+  await page.getByRole('button', { name: 'Delete this person' }).click()
+  await expect(page.getByRole('heading', { name: 'Add the first person' })).toBeVisible()
+})

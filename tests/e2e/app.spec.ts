@@ -79,7 +79,7 @@ test('a vault: create, add a person and a report, lock, unlock', async ({ page }
   await page.reload()
   await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
   await page.getByRole('button', { name: 'Unlock' }).click()
-  await page.getByRole('link', { name: /Alex Example/ }).click()
+  await page.getByRole('link', { name: 'Alex Example', exact: true }).click()
   await expect(page.getByText('118').first()).toBeVisible()
 
   // Nothing readable is stored in IndexedDB.

@@ -3,6 +3,7 @@
 // included: they're "the person", with an age in years and sex if set, because some ranges depend on
 // them.
 
+import { redactNames } from '../../core/ai/redact'
 import { analyse, notRepeated, type MarkerAnalysis } from '../analysis'
 import { critical, rangeFlag, type Point } from '../flags/flags'
 import { INFLUENCE_NAMES, effectWords, matchInfluences } from '../influences'
@@ -83,14 +84,12 @@ function withFlag(p: Point) {
 
 export { ageInYears } from '../person'
 
-/** Replaces the person's name (and its parts) in free text with "the person". */
+/**
+ * Replaces the person's name (and its parts) in free text with "the person", using the core's
+ * redactNames, which matches accented names as whole words ("José", "Ângela") (LAB-07).
+ */
 export function redactName(text: string, name: string): string {
-  const parts = [name, ...name.split(/\s+/)].map((p) => p.trim()).filter((p) => p.length >= 2)
-  let out = text
-  for (const part of [...new Set(parts)].sort((a, b) => b.length - a.length)) {
-    out = out.replace(new RegExp(`\\b${part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), 'the person')
-  }
-  return out
+  return redactNames(text, [name], 'the person')
 }
 
 function contextFacts(c: TestContext | undefined, name: string, date?: string): ContextFacts | undefined {

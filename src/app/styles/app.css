@@ -446,3 +446,16 @@
   white-space: normal;
   text-align: left;
 }
+
+/* People: the row opens the person; the pencil beside it edits or deletes them (LAB-08). */
+.person-row {
+  display: flex;
+  align-items: center;
+}
+.person-row > .list-row {
+  flex: 1;
+  min-width: 0;
+}
+.person-row > .icon-button {
+  margin-right: var(--space-3);
+}

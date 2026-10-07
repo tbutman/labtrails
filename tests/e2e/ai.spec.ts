@@ -74,7 +74,7 @@ async function vaultWithKey(page: Page) {
   await page.getByRole('button', { name: 'Save key' }).click()
   await expect(page.getByText(/ending in/)).toBeVisible()
   await page.getByRole('link', { name: 'LabTrails home' }).click()
-  await page.getByRole('link', { name: new RegExp(NAME) }).click()
+  await page.getByRole('link', { name: NAME, exact: true }).click()
 }
 
 /** Uploads the fictional sample report and asks to read it. */

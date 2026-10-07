@@ -1,6 +1,6 @@
 // The app's start (/app): set up a vault, unlock it, or pick a person. The landing page is at /.
 
-import { ArchiveRestore, ChevronRight, KeyRound, Plus, ShieldCheck, Users } from 'lucide-react'
+import { ArchiveRestore, ChevronRight, KeyRound, Pencil, Plus, ShieldCheck, Users } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { MIN_PASSPHRASE_LENGTH, WeakPassphraseError, WrongPassphraseError } from '../../core'
@@ -136,7 +136,7 @@ function Unlock() {
 }
 
 function Profiles() {
-  const { store, version, core } = useSession()
+  const { store, version, core, mode } = useSession()
   const [profiles, setProfiles] = useState<Profile[] | null>(null)
   const [now] = useState(() => Date.now())
   useEffect(() => {
@@ -183,7 +183,7 @@ function Profiles() {
         <div className="card padless">
           <ul className="list">
             {profiles.map((p) => (
-              <li key={p.id}>
+              <li key={p.id} className="person-row">
                 <Link className="list-row" to={`${APP}/p/${p.id}`}>
                   <span className="avatar" aria-hidden="true">
                     {p.name.slice(0, 1).toUpperCase()}
@@ -193,6 +193,11 @@ function Profiles() {
                   </span>
                   <ChevronRight size={18} className="faint" aria-hidden />
                 </Link>
+                {mode === 'unlocked' && (
+                  <Link className="icon-button" to={`${APP}/profiles/${p.id}`} aria-label={`Edit or delete ${p.name}`}>
+                    <Pencil size={16} aria-hidden />
+                  </Link>
+                )}
               </li>
             ))}
           </ul>

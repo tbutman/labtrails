@@ -45,6 +45,7 @@ const router = createBrowserRouter([
           { path: '/app', lazy: screen(() => import('./screens/Home'), 'Home') },
           { path: '/app/settings', lazy: screen(() => import('./screens/Settings'), 'Settings') },
           { path: '/app/profiles/new', lazy: screen(() => import('./screens/ProfileForm'), 'ProfileForm') },
+          { path: '/app/profiles/:profileId', lazy: screen(() => import('./screens/ProfileForm'), 'ProfileForm') },
           {
             path: '/app/p/:profileId',
             element: <ProfileLayout />,

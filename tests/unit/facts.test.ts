@@ -64,6 +64,12 @@ describe('helpers', () => {
     expect(redactName('Jordan Fictional takes nothing; ask jordan.', 'Jordan Fictional')).toBe('the person takes nothing; ask the person.')
     expect(redactName('Jordanian food', 'Jordan')).toBe('Jordanian food')
   })
+
+  it('replaces accented names too (LAB-07)', () => {
+    expect(redactName('José started iron', 'José Exemplo')).toBe('the person started iron')
+    expect(redactName('Ângela Exemplo takes nothing; ask ângela.', 'Ângela Exemplo')).toBe('the person takes nothing; ask the person.')
+    expect(redactName('Josélia came too', 'José')).toBe('Josélia came too')
+  })
 })
 
 describe('prompts carry the not-medical-advice rules', () => {
