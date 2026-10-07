@@ -2,11 +2,12 @@
 // matches the name to the catalogue, parses the value and range, and shows what it understood before
 // anything is saved.
 
-import { Copy, Plus, Save } from 'lucide-react'
+import { CalendarRange, Copy, Plus, Save } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { aliasToRemember, resultFromInput, understandInput, validateInput, type ResultInput } from '../../labs/edit'
 import { personAt } from '../../labs/person'
+import { activeOn, entryLabel } from '../../labs/timeline'
 import type { Alias, Recently, Report, TestContext } from '../../labs/types'
 import type { DecimalHint } from '../../labs/units/parse'
 import { ChipGroup, PageHeader, Segmented, TextAreaField, TextField } from '../../core/ui/components'
@@ -15,6 +16,8 @@ import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 
 type Row = ResultInput & { key: string }
+
+const todayIso = () => new Date().toISOString().slice(0, 10)
 
 const emptyRow = (): Row => ({ key: crypto.randomUUID(), name: '', value: '', unit: '', range: '', flag: '', markerId: '' })
 
@@ -27,7 +30,7 @@ const RECENTLY: { value: Recently; label: string }[] = [
 
 export function ReportForm() {
   const { store, mode, core, saveCore, changed } = useSession()
-  const { profile, reports } = useProfileData()
+  const { profile, reports, timeline } = useProfileData()
   const base = useBase()
   const navigate = useNavigate()
   const [aliases, setAliases] = useState<Alias[] | null>(null)
@@ -57,6 +60,8 @@ export function ReportForm() {
     )
 
   const previous = [...reports].sort((a, b) => b.date.localeCompare(a.date))[0]
+  // Medications and supplements on the timeline on the test date (or today, before a date is chosen).
+  const onTimeline = activeOn(timeline, date || todayIso()).filter((e) => e.kind === 'medication' || e.kind === 'supplement')
   const update = (key: string, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)))
 
   async function submit(e: FormEvent) {
@@ -127,10 +132,19 @@ export function ReportForm() {
             onChange={(e) => setMedications(e.target.value)}
             hint="Anything you were taking at the time. Sent to the AI only if you ask for a summary and confirm."
           />
-          {previous?.context?.medications && (
-            <button type="button" className="button small same-as-last" onClick={() => setMedications(previous.context!.medications!)}>
-              <Copy size={14} aria-hidden /> Same as last time
-            </button>
+          {(previous?.context?.medications || onTimeline.length > 0) && (
+            <div className="row">
+              {previous?.context?.medications && (
+                <button type="button" className="button small same-as-last" onClick={() => setMedications(previous.context!.medications!)}>
+                  <Copy size={14} aria-hidden /> Same as last time
+                </button>
+              )}
+              {onTimeline.length > 0 && (
+                <button type="button" className="button small same-as-last" onClick={() => setMedications(onTimeline.map(entryLabel).join('; '))}>
+                  <CalendarRange size={14} aria-hidden /> From your timeline
+                </button>
+              )}
+            </div>
           )}
           <ChipGroup legend="Recently (optional)" options={RECENTLY} value={recently} onChange={setRecently} />
           <TextAreaField label="Notes (optional)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />

@@ -1,6 +1,8 @@
 // One marker over time. Each result is drawn against its own lab's range (a pale bar behind the point),
 // because ranges differ between labs; there's no single "normal" band. Results outside their range get
 // a ring with "!" as well as the words in the list below, so the chart never relies on colour.
+// Timeline entries (SPEC.md section 18.1) run as thin bands above the plot, named in the chart's text
+// description and in a list under it.
 
 import { useLayoutEffect, useRef, useState } from 'react'
 import { rangeFlag } from '../../labs/flags/flags'
@@ -39,19 +41,51 @@ function useWidth(fallback = 640) {
   return [ref, width] as const
 }
 
-type ChartProps = { points: SeriesPoint[]; unit: string; label: string; contextDates?: string[] }
+/** A timeline entry on the chart: first and last day it covers (no last day while it's ongoing). */
+export type ChartEvent = { id: string; label: string; period: string; from: string; to?: string }
+
+type ChartProps = { points: SeriesPoint[]; unit: string; label: string; contextDates?: string[]; events?: ChartEvent[] }
+
+const LANE = 9
+const MAX_LANES = 4
+
+/** Entries that overlap the chart's dates, each in the first lane where it doesn't overlap another. */
+function laneEvents(events: ChartEvent[], first: string, last: string) {
+  const shown = events.filter((e) => e.from <= last && (!e.to || e.to >= first)).sort((a, b) => a.from.localeCompare(b.from))
+  const ends: string[] = []
+  return shown.flatMap((e) => {
+    let lane = ends.findIndex((end) => end < e.from)
+    if (lane === -1) lane = ends.length
+    if (lane >= MAX_LANES) return []
+    ends[lane] = e.to ?? '9999-12-31'
+    return [{ ...e, lane }]
+  })
+}
 
 export function MarkerChart(props: ChartProps) {
   const [ref, width] = useWidth()
   if (props.points.length === 0) return <p className="muted">No results to chart in {props.unit}.</p>
+  const lanes = props.points.length > 1 ? laneEvents(props.events ?? [], props.points[0].date, props.points.at(-1)!.date) : []
   return (
     <div ref={ref}>
-      <ChartSvg {...props} W={width} />
+      <ChartSvg {...props} lanes={lanes} W={width} />
+      {lanes.length > 0 && (
+        <ul className="chart-events" aria-label="Timeline on this chart">
+          {lanes.map((e) => (
+            <li key={e.id}>
+              <span className="chart-event-swatch" aria-hidden />
+              {e.label} <span className="faint">({e.period})</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
 
-function ChartSvg({ points, unit, label, contextDates = [], W }: ChartProps & { W: number }) {
+function ChartSvg({ points, unit, label, contextDates = [], lanes, W }: ChartProps & { W: number; lanes: (ChartEvent & { lane: number })[] }) {
+  const laneCount = lanes.length ? Math.max(...lanes.map((e) => e.lane)) + 1 : 0
+  const top = PAD.top + laneCount * LANE
 
   const values = points.flatMap((p) => [p.value, p.range?.low, p.range?.high]).filter((v): v is number => v !== undefined)
   let lo = Math.min(...values)
@@ -67,9 +101,9 @@ function ChartSvg({ points, unit, label, contextDates = [], W }: ChartProps & { 
   const d1 = day(points.at(-1)!.date)
   const span = d1 - d0 || 1
   const innerW = W - PAD.left - PAD.right
-  const innerH = H - PAD.top - PAD.bottom
+  const innerH = H - top - PAD.bottom
   const x = (iso: string) => (points.length === 1 ? PAD.left + innerW / 2 : PAD.left + ((day(iso) - d0) / span) * innerW)
-  const y = (v: number) => PAD.top + (1 - (v - lo) / (hi - lo)) * innerH
+  const y = (v: number) => top + (1 - (v - lo) / (hi - lo)) * innerH
 
   // One label per year at 1 January. The first year's label sits at the first result instead, and gives
   // way to the next year's if they'd overlap.
@@ -93,8 +127,20 @@ function ChartSvg({ points, unit, label, contextDates = [], W }: ChartProps & { 
       className="chart"
       viewBox={`0 0 ${W} ${H}`}
       role="img"
-      aria-label={`${label} in ${unit}: ${points.length} results from ${formatDate(points[0].date)} to ${formatDate(points.at(-1)!.date)}, latest ${formatPoint(points.at(-1)!)}. ${flaggedCount} outside their lab's range. The full list follows the chart.`}
+      aria-label={`${label} in ${unit}: ${points.length} results from ${formatDate(points[0].date)} to ${formatDate(points.at(-1)!.date)}, latest ${formatPoint(points.at(-1)!)}. ${flaggedCount} outside their lab's range.${lanes.length ? ` Timeline: ${lanes.map((e) => `${e.label}, ${e.period}`).join('; ')}.` : ''} The full list follows the chart.`}
     >
+      {lanes.map((e) => {
+        const x0 = e.from <= points[0].date ? PAD.left : x(e.from)
+        const x1 = !e.to || e.to >= points.at(-1)!.date ? W - PAD.right : x(e.to)
+        const yy = PAD.top - 6 + e.lane * LANE
+        return (
+          <g key={e.id} className="timeline-band">
+            <title>{`${e.label} (${e.period})`}</title>
+            <rect x={x0} y={yy} width={Math.max(x1 - x0, 4)} height={5} rx={2.5} />
+            {e.from > points[0].date && <circle cx={x0} cy={yy + 2.5} r={4} />}
+          </g>
+        )
+      })}
       {ticks.map((t) => (
         <g key={t}>
           <line className="grid" x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} />
@@ -134,7 +180,7 @@ function ChartSvg({ points, unit, label, contextDates = [], W }: ChartProps & { 
             ) : (
               <circle className={p.comparator ? 'point open' : 'point'} cx={cx} cy={cy} r={5} />
             )}
-            {contextDates.includes(p.date) && <circle className="context" cx={cx} cy={PAD.top + innerH + 6} r={2.5} />}
+            {contextDates.includes(p.date) && <circle className="context" cx={cx} cy={top + innerH + 6} r={2.5} />}
           </g>
         )
       })}

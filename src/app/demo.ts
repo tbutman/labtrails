@@ -7,6 +7,7 @@ import { matchMarker } from '../labs/match/match'
 import type { Answer } from '../core/ask/model'
 import type { Suggestion } from '../labs/ai/ask'
 import type { Extraction } from '../labs/extraction/schema'
+import type { TimelineEntry } from '../labs/timeline'
 import type { Profile, Report, Result, Summary, TestContext } from '../labs/types'
 import { parseRange, parseValue } from '../labs/units/parse'
 import { normaliseUnit } from '../labs/units/normalise'
@@ -102,6 +103,13 @@ export const DEMO_REPORTS: Report[] = REPORTS.map((r) => ({
 }))
 
 export const DEMO_RESULTS: Result[] = buildResults()
+
+// Sam's timeline (SPEC.md section 18.9): what started between tests. Vitamin D rises after the
+// supplement; ferritin keeps falling through marathon training.
+export const DEMO_TIMELINE: TimelineEntry[] = [
+  { id: 'demo-t1', profileId: DEMO_PROFILE.id, kind: 'supplement', name: 'Vitamin D3', dose: '2,000 IU', every: { n: 1, unit: 'day' }, start: '2024-11', createdAt: '2024-11-02T09:00:00Z', updatedAt: '2024-11-02T09:00:00Z' },
+  { id: 'demo-t2', profileId: DEMO_PROFILE.id, kind: 'lifestyle', name: 'Marathon training', start: '2025-01-06', notes: 'Four runs a week.', createdAt: '2025-01-06T09:00:00Z', updatedAt: '2025-01-06T09:00:00Z' },
+]
 
 // Pre-written examples of the two AI summaries, written to the same rules the real prompts use: they
 // explain what the code flagged and never diagnose or advise treatment.

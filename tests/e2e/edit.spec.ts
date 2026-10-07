@@ -82,3 +82,37 @@ test('correcting, mapping, adding and deleting single results', async ({ page })
   await page.getByLabel('Unit', { exact: true }).first().fill('mmol/L')
   await expect(page.getByText('Understood as Glucose (your mapping)')).toBeVisible()
 })
+
+test('the timeline: an entry shows on the chart, in the table and, when ticked, on the doctor report', async ({ page }) => {
+  await vaultWithReport(page)
+  // A second report, so the chart has a span for the entry to sit in.
+  await page.getByRole('link', { name: 'Add results' }).click()
+  await page.getByLabel('Date the blood was taken').fill('2026-12-01')
+  await page.getByLabel('Name', { exact: true }).first().fill('Glicose')
+  await page.getByLabel('Value', { exact: true }).first().fill('104')
+  await page.getByLabel('Unit', { exact: true }).first().fill('mg/dL')
+  await page.getByLabel('Range', { exact: true }).first().fill('70 - 110')
+  await page.getByRole('button', { name: 'Save the report' }).click()
+
+  await page.getByRole('link', { name: 'Timeline' }).first().click()
+  await page.getByRole('link', { name: 'Add to the timeline' }).click()
+  await page.getByLabel('Name').fill('Medicine X')
+  await page.getByLabel('Started').fill('2026-10-15')
+  await page.getByLabel('Dose (optional)').fill('100 mg')
+  await page.getByLabel('Every (optional)').fill('1')
+  await page.getByRole('button', { name: 'Add', exact: true }).click()
+  await expect(page.getByText('Medicine X 100 mg, every day')).toBeVisible()
+
+  await page.getByRole('link', { name: 'Overview' }).first().click()
+  await page.getByRole('link', { name: /^Glucose/ }).first().click()
+  await expect(page.getByRole('img', { name: /Timeline: Medicine X 100 mg, every day, from 15 Oct 2026/ })).toBeVisible()
+  await expect(page.getByRole('list', { name: 'Timeline on this chart' })).toContainText('Medicine X')
+
+  await page.getByRole('link', { name: 'Table' }).first().click()
+  await expect(page.getByRole('row', { name: /Timeline/ })).toContainText('Started Medicine X 100 mg, every day')
+
+  await page.getByRole('link', { name: 'Doctor' }).first().click()
+  await expect(page.getByRole('img', { name: /Lab results report/ })).not.toContainText('Medicine X')
+  await page.getByLabel(/Include the timeline/).check()
+  await expect(page.locator('.report-sheet svg')).toContainText('Timeline: Medicine X 100 mg, every day (from 15 Oct 2026)')
+})

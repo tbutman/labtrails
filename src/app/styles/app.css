@@ -352,3 +352,42 @@
 .kept-files {
   margin-top: var(--space-4);
 }
+
+/* The personal timeline: bands above each chart, a list under it, a row in the table */
+.timeline-band rect,
+.timeline-band circle {
+  fill: var(--accent);
+  opacity: 0.55;
+}
+.chart-events {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  font-size: var(--text-sm);
+}
+.chart-event-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--accent);
+  opacity: 0.55;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.timeline-row td {
+  font-size: var(--text-xs);
+  vertical-align: top;
+  white-space: normal;
+  min-width: 9rem;
+}
+.timeline-cell + .timeline-cell {
+  margin-top: var(--space-1);
+}
+.when-field .checkbox {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+}

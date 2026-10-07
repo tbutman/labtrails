@@ -56,7 +56,7 @@ function Spark({ a, x, y, w, h }: { a: MarkerAnalysis; x: number; y: number; w: 
   )
 }
 
-export function ReportSheet({ who, markers, latest, notes, missing = [] }: { who: string; markers: MarkerAnalysis[]; latest?: Report; notes: string; missing?: NotRepeated[] }) {
+export function ReportSheet({ who, markers, latest, notes, missing = [], timeline = [] }: { who: string; markers: MarkerAnalysis[]; latest?: Report; notes: string; missing?: NotRepeated[]; timeline?: string[] }) {
   const rowH = 58
   const top = 150
   const context = latest?.context
@@ -73,6 +73,7 @@ export function ReportSheet({ who, markers, latest, notes, missing = [] }: { who
   const contextLines = [
     ...(contextText ? wrap(`Latest test: ${contextText}`, 100) : []),
     ...(missing.length ? wrap(`Not in the latest report: ${missing.map((m) => `${m.name} (last ${formatDate(m.lastDate)})`).join(', ')}`, 100) : []),
+    ...(timeline.length ? wrap(`Timeline: ${timeline.join('; ')}`, 100) : []),
   ]
   const noteLines = notes.trim() ? wrap(notes.trim(), 100) : []
   const afterRows = top + Math.max(markers.length, 1) * rowH + 20

@@ -7,6 +7,7 @@ import { CHANGE_THRESHOLD, TREND_THRESHOLD } from '../../labs/flags/flags'
 import { convertibleUnits } from '../../labs/units/convert'
 import { Callout, PageHeader } from '../../core/ui/components'
 import { DISCLAIMER, MarkerFlags } from '../components/Flags'
+import { chartEvents } from '../chartEvents'
 import { MarkerChart, ResultsList } from '../components/MarkerChart'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
@@ -16,7 +17,7 @@ const RECENTLY: Record<string, string> = { illness: 'recent illness', 'hard-exer
 
 export function MarkerDetail() {
   const { id = '' } = useParams()
-  const { reports, results } = useProfileData()
+  const { reports, results, timeline } = useProfileData()
   const base = useBase()
   const { app, saveApp } = useSession()
   const [unit, setUnit] = useState<string | undefined>(app.preferredUnit[id])
@@ -70,7 +71,7 @@ export function MarkerDetail() {
             </label>
           )}
         </div>
-        <MarkerChart points={a.series.points} unit={a.series.unit} label={marker.name} contextDates={withContext.map(({ p }) => p.date)} />
+        <MarkerChart points={a.series.points} unit={a.series.unit} label={marker.name} contextDates={withContext.map(({ p }) => p.date)} events={chartEvents(timeline)} />
         <ul className="chart-legend">
           <li>
             <span className="legend-swatch range" aria-hidden="true" /> Each lab's own range
