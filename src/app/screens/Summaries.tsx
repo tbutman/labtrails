@@ -20,7 +20,7 @@ import { formatDate } from '../format'
 type Request = { kind: Summary['kind']; reportId?: string; facts: SummaryFacts }
 
 export function Summaries() {
-  const { profile, reports, results, summaries } = useProfileData()
+  const { profile, reports, results, summaries, timeline } = useProfileData()
   const base = useBase()
   const { mode, store, core, app, changed } = useSession()
   const [params] = useSearchParams()
@@ -31,7 +31,7 @@ export function Summaries() {
   const sorted = [...reports].sort((a, b) => b.date.localeCompare(a.date))
   const latest = sorted.find((r) => r.id === params.get('report')) ?? sorted[0]
   const factsFor = (kind: Summary['kind'], reportId?: string) =>
-    kind === 'after-report' && reportId ? afterReportFacts(profile, reports, results, reportId, app.preferredUnit) : overallFacts(profile, reports, results, app.preferredUnit)
+    kind === 'after-report' && reportId ? afterReportFacts(profile, reports, results, reportId, app.preferredUnit, timeline) : overallFacts(profile, reports, results, app.preferredUnit, timeline)
   const current = (s: Summary) => digest(summaryMessage(factsFor(s.kind, s.reportId))) === s.inputsDigest
   const ordered = [...summaries].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const canAsk = mode === 'unlocked' && !!core.ai.apiKey && reports.length > 0
@@ -85,7 +85,9 @@ export function Summaries() {
           sending={[
             `${n} marker${n === 1 ? '' : 's'}: values, units, each lab's range and the flags LabTrails computed`,
             ...(request.facts.person.ageYears !== undefined || request.facts.person.sex ? ['Age in years and sex, if set (some ranges depend on them)'] : []),
-            ...(context ? [`The test's context${context.medications ? ', including medications and supplements' : ''}${context.notes ? ' and your notes' : ''}`] : []),
+            ...(context ? [`The test's context${context.medications ? ', including medications and supplements' : ''}${context.doseTiming ? ', when it was drawn relative to a dose' : ''}${context.notes ? ' and your notes' : ''}`] : []),
+            ...(request.facts.timeline?.length ? [`Your timeline during these results: ${request.facts.timeline.map((t) => t.name).join(', ')}, with dates and doses`] : []),
+            ...(request.facts.markers.some((m) => m.knownInfluences) ? ['Documented influences LabTrails matched to your timeline or notes, with their sources'] : []),
           ]}
           notSending={['Your name (replaced with "the person") and date of birth', 'Uploaded reports', "Other people's records"]}
           model={core.ai.model}

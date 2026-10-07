@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { checkAnswer, GROWTH_UNITS, type Answer } from '../../src/core/ask/model'
-import { DEMO_ANSWERS, DEMO_PROFILE, DEMO_REPORTS, DEMO_RESULTS } from '../../src/app/demo'
+import { DEMO_ANSWERS, DEMO_PROFILE, DEMO_REPORTS, DEMO_RESULTS, DEMO_TIMELINE } from '../../src/app/demo'
 import { ASK_BANNED, askFacts, askFactsText, askSuggestions, LAB_UNITS, namedMarkers } from '../../src/labs/ai/ask'
 import type { Profile, Report, Result } from '../../src/labs/types'
 
@@ -77,5 +77,19 @@ describe('the demo', () => {
       const facts = askFacts(DEMO_PROFILE, DEMO_REPORTS, DEMO_RESULTS, s.text, {}, TODAY)
       expect(checkAnswer(DEMO_ANSWERS[s.id], facts, ASK_BANNED, LAB_UNITS), s.text).toEqual({ ok: true, problems: [] })
     }
+  })
+})
+
+describe('Ask with the timeline', () => {
+  it('sends the timeline during the results, when each test was drawn, and matched influences', () => {
+    const timed = { id: 't1', profileId: DEMO_PROFILE.id, kind: 'medication' as const, name: 'Injection Y', dose: '250 mg', timing: true, start: '2025-01', createdAt: 'x', updatedAt: 'x' }
+    const reports = DEMO_REPORTS.map((r) => (r.id === 'r6' ? { ...r, context: { ...r.context, doseTiming: [{ entryId: 't1', name: 'Injection Y 250 mg', when: 'before-dose' as const }] } } : r))
+    const facts = askFacts(DEMO_PROFILE, reports, DEMO_RESULTS, 'my vitamin D', {}, TODAY, [...DEMO_TIMELINE, timed])
+    // By start: November 2024, 1 January 2025, 6 January 2025.
+    expect(facts.timeline?.map((t) => t.name)).toEqual(['Vitamin D3', 'Injection Y', 'Marathon training'])
+    expect(facts.markers[0].knownInfluences?.[0]).toMatchObject({ influence: 'Vitamin D supplements', matchedBy: 'timeline: Vitamin D3' })
+    expect(facts.markers[0].results.at(-1)?.drawn).toEqual(["drawn before that day's dose of Injection Y 250 mg"])
+    // The demo's prepared answers still pass the numbers check with the extra facts.
+    expect(checkAnswer(DEMO_ANSWERS.trend, askFacts(DEMO_PROFILE, DEMO_REPORTS, DEMO_RESULTS, 'How has my glucose changed over time?', {}, TODAY, DEMO_TIMELINE), ASK_BANNED, LAB_UNITS).ok).toBe(true)
   })
 })
