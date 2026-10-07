@@ -14,7 +14,8 @@ import { rangeFlag } from '../flags/flags'
 import { normaliseName } from '../match/match'
 import type { Profile, Report, Result } from '../types'
 import { normaliseUnit } from '../units/normalise'
-import { ageInYears } from './facts'
+import { ageInYears, influenceFacts, timelineFacts, type InfluenceFact, type TimelineFact } from './facts'
+import { describeTiming, type TimelineEntry } from '../timeline'
 
 export type AskResult = {
   date: string
@@ -27,6 +28,8 @@ export type AskResult = {
   outsideRange?: 'above' | 'below'
   /** As printed, when the report used a different unit. */
   printed?: { value: number; unit: string }
+  /** When the blood was drawn relative to a dose, from the test's notes. */
+  drawn?: string[]
 }
 
 export type AskMarker = {
@@ -37,6 +40,7 @@ export type AskMarker = {
   changedNotably?: { direction: 'up' | 'down' | 'same'; percent: number | null; crossedRange: boolean }
   trend?: { direction: 'rising' | 'falling'; results: number }
   persistent?: { side: 'above' | 'below'; results: number }
+  knownInfluences?: InfluenceFact[]
 }
 
 export type AskFacts = {
@@ -46,11 +50,13 @@ export type AskFacts = {
   markers: AskMarker[]
   /** Other markers on file, by name only, so an answer can suggest asking about them. */
   otherMarkers: string[]
+  /** The person's timeline while these results were taken, when there is one. */
+  timeline?: TimelineFact[]
   rules: string
 }
 
 const RULES =
-  'Flags were computed by LabTrails: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" is a change of at least 25% of the range width since the previous result, or moving into or out of the range; "trend" is 3 or more results moving the same way; "persistent" is outside the lab\'s range on that many tests in a row. They are simple heuristics, not clinical thresholds. Each result\'s value and range are in the marker\'s unit; "printed" is the value as the lab printed it, in its own unit.'
+  'Flags were computed by LabTrails: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" is a change of at least 25% of the range width since the previous result, or moving into or out of the range; "trend" is 3 or more results moving the same way; "persistent" is outside the lab\'s range on that many tests in a row. They are simple heuristics, not clinical thresholds. Each result\'s value and range are in the marker\'s unit; "printed" is the value as the lab printed it, in its own unit. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events with dates and doses; "drawn" says when a test was drawn relative to a dose; "knownInfluences" are documented influences from public health sources that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result.'
 
 const MAX_RESULTS = 12
 const MAX_FLAGGED = 15
@@ -115,6 +121,18 @@ function markerFacts(a: MarkerAnalysis, panel: string, resultsById: Map<string, 
   }
 }
 
+function withContext(m: AskMarker, a: MarkerAnalysis, reportsById: Map<string, Report>, timeline: TimelineEntry[], name: string): AskMarker {
+  const points = a.series.points.slice(-MAX_RESULTS)
+  const results = m.results.map((r, i) => {
+    const report = reportsById.get(points[i].reportId)
+    const drawn = report?.context?.doseTiming?.map((t) => `drawn ${describeTiming(t, report.date)}`)
+    return drawn?.length ? { ...r, drawn } : r
+  })
+  const tests = [...new Set(points.map((p) => reportsById.get(p.reportId)).filter((r): r is Report => !!r))]
+  const influences = influenceFacts(a.marker.id, tests, timeline, name)
+  return { ...m, results, ...(influences.length ? { knownInfluences: influences } : {}) }
+}
+
 const flagged = (a: MarkerAnalysis) => !!a.latestFlag || !!a.change?.notable || !!a.trend
 
 /**
@@ -122,7 +140,15 @@ const flagged = (a: MarkerAnalysis) => !!a.latestFlag || !!a.change?.notable || 
  * far, newest last: the markers the newest question names, or else the ones an earlier question named
  * (a follow-up like "and last year?"), or else the flagged markers.
  */
-export function askFacts(profile: Profile, reports: Report[], results: Result[], questions: string | string[], preferredUnits: Record<string, string> = {}, today = new Date().toISOString().slice(0, 10)): AskFacts {
+export function askFacts(
+  profile: Profile,
+  reports: Report[],
+  results: Result[],
+  questions: string | string[],
+  preferredUnits: Record<string, string> = {},
+  today = new Date().toISOString().slice(0, 10),
+  timeline: TimelineEntry[] = [],
+): AskFacts {
   const panels = analyse(results, reports, preferredUnits)
   const all = panels.flatMap((p) => p.markers.map((a) => ({ a, panel: p.name })))
   const asked = (Array.isArray(questions) ? questions : [questions]).slice().reverse()
@@ -131,13 +157,21 @@ export function askFacts(profile: Profile, reports: Report[], results: Result[],
   const chosen = byName.length ? byName : all.filter(({ a }) => flagged(a)).slice(0, MAX_FLAGGED)
   const resultsById = new Map(results.map((r) => [r.id, r]))
   const reportsById = new Map(reports.map((r) => [r.id, r]))
-  const markers = chosen.map(({ a, panel }) => markerFacts(a, panel, resultsById, reportsById)).filter((m): m is AskMarker => m !== null)
+  const markers = chosen
+    .map(({ a, panel }) => {
+      const m = markerFacts(a, panel, resultsById, reportsById)
+      return m ? withContext(m, a, reportsById, timeline, profile.name) : null
+    })
+    .filter((m): m is AskMarker => m !== null)
+  const dates = markers.flatMap((m) => m.results.map((r) => r.date)).sort()
+  const during = dates.length ? timelineFacts(timeline, dates[0], dates.at(-1)!, profile.name) : []
   const sent = new Set(markers.map((m) => m.marker))
   return {
     person: { ...(profile.dateOfBirth ? { ageYears: ageInYears(profile.dateOfBirth, today) } : {}), ...(profile.sex ? { sex: profile.sex } : {}) },
     selection: byName.length ? 'named in the question' : 'flagged by LabTrails',
     markers,
     otherMarkers: all.map(({ a }) => a.marker.name).filter((n) => !sent.has(n)),
+    ...(during.length ? { timeline: during } : {}),
     rules: RULES,
   }
 }
@@ -175,6 +209,7 @@ Numbers:
 What you may and may not say:
 - Explain what the results and flags show: how a marker changed over time, whether a result is inside its own lab's range, and what LabTrails' flags mean. General knowledge about what a test measures is fine.
 - Never say or imply that a result is healthy, unhealthy, normal, abnormal, good, bad, fine, dangerous or nothing to worry about. No reassurance and no alarm. Never diagnose, suggest causes, or recommend treatment, supplements, diet changes or more tests.
+- The facts may include the person's timeline (medications, supplements, lifestyle changes and events, with dates and doses), when a test was drawn relative to a dose ("drawn"), and "knownInfluences". You may state them as facts: "your timeline shows X started in June, between these two tests", "this test was drawn before that day's dose", and "X is known to raise Y" only for an influence listed in that marker's knownInfluences. Never say a timeline entry or an influence caused or explains a result, never comment on whether a medication or dose is right, and never suggest starting, stopping or changing anything. Doses and dates can be written as they appear in the facts; they don't need listing in "numbers".
 - If the facts don't cover the question (a marker that wasn't sent, or something the results can't tell), say so; you may name markers from "otherMarkers" the person could ask about, and suggest discussing it with their doctor.
 - If the question is about symptoms, illness, medicines, dosing or an emergency, reply with kind "out-of-scope" and an empty text.
 - Format: short paragraphs or "- " bullets; **bold** allowed. No headings, links, tables or HTML.

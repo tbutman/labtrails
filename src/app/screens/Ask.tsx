@@ -24,7 +24,7 @@ const PREPARED_NOTE = 'Demo: prepared in advance for this made-up person, in the
 const nowIso = () => new Date().toISOString()
 
 export function Ask() {
-  const { profile, reports, results } = useProfileData()
+  const { profile, reports, results, timeline } = useProfileData()
   const { store, core, mode, app, changed, version } = useSession()
   const base = useBase()
   const navigate = useNavigate()
@@ -56,7 +56,7 @@ export function Ask() {
 
   // The facts for a question: the markers it (or the conversation so far) is about.
   const asked = (text: string) => [...(thread?.turns ?? []).filter((t) => t.role === 'parent').map((t) => t.text), text]
-  const factsFor = (text: string) => askFacts(profile, reports, results, asked(text), app.preferredUnit)
+  const factsFor = (text: string) => askFacts(profile, reports, results, asked(text), app.preferredUnit, undefined, timeline)
   // A question that would send different facts from the last answer asks for agreement again.
   const lastDigest = thread?.turns.filter((t) => t.role === 'ai').at(-1)?.factsDigest
   const hide = (t: string) => redactNames(t, [profile.name], 'the person')
@@ -162,11 +162,12 @@ export function Ask() {
               pendingFacts.selection === 'named in the question'
                 ? `Your results for ${pendingFacts.markers.map((m) => m.marker).join(', ')}, with dates, labs and each lab's range, and the flags LabTrails computed`
                 : `The ${plural(pendingFacts.markers.length, 'marker')} LabTrails flagged, with dates, labs, each lab's range and the flags`,
+              ...(pendingFacts.timeline?.length ? [`Your timeline during those results: ${pendingFacts.timeline.map((t) => t.name).join(', ')}, with dates and doses, and when tests were drawn relative to a dose`] : []),
               'The names of your other markers, without their results',
               'Your age and sex, if you added them',
               ...(thread ? ['The earlier questions and answers in this conversation'] : []),
             ]}
-            notSending={['Your name and date of birth', 'Your notes and medications', 'Your documents', "Other people's results"]}
+            notSending={['Your name and date of birth', "Your tests' notes and medications text", 'Your documents', "Other people's results"]}
             notes={['If your question includes your name, LabTrails replaces it with “the person” before sending.']}
             model={core.ai.model}
             estimate={estimate}

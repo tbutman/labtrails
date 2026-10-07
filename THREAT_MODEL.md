@@ -31,7 +31,7 @@ to check. Plain answers first, details after.
 
 Results here can be more sensitive than they look: medication and supplement notes, hormone results
 and reports that print a national health number. LabTrails treats all of it the same way: encrypted
-at rest, and sent nowhere without the user's go-ahead. The personal timeline is the most sensitive part: medications and doses with dates, and lifestyle entries such as smoking. It's encrypted like everything else, isn't in the demo or screenshots, goes on the doctor report only when the user ticks it, and isn't sent to the AI.
+at rest, and sent nowhere without the user's go-ahead. The personal timeline is the most sensitive part: medications and doses with dates, and lifestyle entries such as smoking. It's encrypted like everything else, isn't in the demo or screenshots, goes on the doctor report only when the user ticks it, and goes to the AI only in a summary or question the user confirms, listed on the send sheet.
 
 ## How the protection works
 

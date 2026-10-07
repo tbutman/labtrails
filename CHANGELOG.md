@@ -15,6 +15,10 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- Summaries and Ask use the context (SPEC.md section 18, step 5): with your consent, and listed on
+  the send sheet, they get your timeline during the results, when each test was drawn relative to a
+  dose, matched known influences, persistent flags and markers not repeated, and may state them as
+  facts; never as a cause, and never as advice about a medication or dose.
 - Known influences (SPEC.md section 18, step 4): each marker page lists documented things that can
   affect the test (40 marker–influence pairs, each cited to MedlinePlus, the NHS or testing.com with
   the quote checked against the page), and those the timeline or a test's notes include: "Your

@@ -57,7 +57,8 @@ up).
   missed, delete one, or map a name LabTrails didn't know to a marker. A mapping is remembered for
   the next report and can be applied to every earlier result printed the same way.
 - **Summaries with AI (optional):** what changed in a new report, or an overview of everything, with
-  questions you could ask your doctor. The AI only explains what LabTrails' rules flagged.
+  questions you could ask your doctor. The AI only explains what LabTrails' rules flagged, and can
+  mention your timeline ("vitamin D3 started between these two tests") as context, never as a cause.
 - **Ask about your results (optional, AI):** questions like "how has my ferritin changed?", answered
   only from the results LabTrails sends for that question. Every number in an answer is checked
   against those results before you see it; an answer that doesn't check out isn't shown.
