@@ -51,7 +51,7 @@ export const MARKERS: Marker[] = [
   { id: 'rbc', name: 'Red blood cells', panel: 'blood-count', aliases: ['red blood cells', 'red cells', 'rbc', 'erythrocytes', 'eritrocitos', 'globulos vermelhos', 'hemacias'], units: [base('10¹²/L'), same('10⁶/µL')] },
   { id: 'mcv', name: 'MCV', panel: 'blood-count', aliases: ['mcv', 'mean corpuscular volume', 'vgm', 'volume globular medio', 'vcm', 'volume corpuscular medio'], units: [base('fL')] },
   { id: 'mch', name: 'MCH', panel: 'blood-count', aliases: ['mch', 'mean corpuscular haemoglobin', 'mean corpuscular hemoglobin', 'hgm', 'hemoglobina globular media', 'hcm', 'hemoglobina corpuscular media'], units: [base('pg')] },
-  { id: 'mchc', name: 'MCHC', panel: 'blood-count', aliases: ['mchc', 'mean corpuscular haemoglobin concentration', 'mean corpuscular hemoglobin concentration', 'chgm', 'concentracao de hemoglobina globular media', 'chcm', 'concentracao de hemoglobina corpuscular media'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes)] },
+  { id: 'mchc', name: 'MCHC', panel: 'blood-count', aliases: ['mchc', 'mean corpuscular haemoglobin concentration', 'mean corpuscular hemoglobin concentration', 'chgm', 'concentracao de hemoglobina globular media', 'chcm', 'concentracao de hemoglobina corpuscular media', 'cmhg'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes)] },
   { id: 'rdw', name: 'RDW', panel: 'blood-count', aliases: ['rdw', 'rdw cv', 'red cell distribution width', 'amplitude de distribuicao eritrocitaria', 'indice de anisocitose'], units: [base('%')] },
   { id: 'wbc', name: 'White blood cells', panel: 'blood-count', aliases: ['white blood cells', 'white cells', 'wbc', 'leukocytes', 'leucocitos', 'globulos brancos'], units: cells() },
   ...differential('neutrophils', 'Neutrophils', ['neutrophils', 'neutrofilos', 'neut', 'neutrofilos segmentados']),
@@ -70,7 +70,7 @@ export const MARKERS: Marker[] = [
   // Lipids
   { id: 'cholesterol-total', name: 'Total cholesterol', panel: 'lipids', aliases: ['total cholesterol', 'cholesterol total', 'cholesterol', 'colesterol total', 'colesterol'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
   { id: 'hdl', name: 'HDL cholesterol', panel: 'lipids', aliases: ['hdl', 'hdl cholesterol', 'cholesterol hdl', 'hdl c', 'colesterol hdl', 'hdl colesterol', 'colesterol das hdl'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
-  { id: 'ldl', name: 'LDL cholesterol', panel: 'lipids', aliases: ['ldl', 'ldl cholesterol', 'cholesterol ldl', 'ldl c', 'ldl calculated', 'colesterol ldl', 'ldl colesterol', 'colesterol das ldl'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
+  { id: 'ldl', name: 'LDL cholesterol', panel: 'lipids', aliases: ['ldl', 'ldl cholesterol', 'cholesterol ldl', 'ldl c', 'ldl calculated', 'colesterol ldl', 'ldl colesterol', 'colesterol das ldl', 'colesterol ldl directo', 'colesterol ldl direto', 'ldl directo', 'ldl direto', 'direct ldl', 'ldl direct', 'ldl cholesterol direct'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
   { id: 'non-hdl', name: 'Non-HDL cholesterol', panel: 'lipids', aliases: ['non hdl cholesterol', 'non hdl', 'colesterol nao hdl', 'colesterol nao-hdl'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
   { id: 'triglycerides', name: 'Triglycerides', panel: 'lipids', aliases: ['triglycerides', 'triglyceride', 'trigliceridos', 'triglicerideos', 'triglicerides', 'tg'], units: [base('mmol/L'), linear('mg/dL', 0.01129, SOURCES.triglycerides)] },
   { id: 'apob', name: 'ApoB', panel: 'lipids', aliases: ['apob', 'apo b', 'apolipoprotein b', 'apolipoproteina b'], units: [base('g/L'), linear('mg/dL', 0.01, SOURCES.siPrefixes)] },
@@ -85,16 +85,16 @@ export const MARKERS: Marker[] = [
   { id: 'ast', name: 'AST', panel: 'liver', aliases: ['ast', 'ast tgo', 'tgo', 'tgo ast', 'aspartate aminotransferase', 'aspartato aminotransferase', 'sgot', 'asat'], units: [base('U/L')] },
   { id: 'ggt', name: 'GGT', panel: 'liver', aliases: ['ggt', 'gamma gt', 'gama gt', 'gamma glutamyl transferase', 'gama glutamil transferase', 'gamaglutamiltransferase', 'y gt'], units: [base('U/L')] },
   { id: 'alp', name: 'Alkaline phosphatase', panel: 'liver', aliases: ['alkaline phosphatase', 'alp', 'alk phos', 'fosfatase alcalina', 'fa'], units: [base('U/L')] },
-  { id: 'bilirubin-total', name: 'Total bilirubin', panel: 'liver', aliases: ['total bilirubin', 'bilirubin total', 'bilirubin', 'bilirrubina total', 'bilirrubina'], units: [base('µmol/L'), linear('mg/dL', 17.1, SOURCES.bilirubin)] },
-  { id: 'bilirubin-direct', name: 'Direct bilirubin', panel: 'liver', aliases: ['direct bilirubin', 'bilirubin direct', 'conjugated bilirubin', 'bilirrubina directa', 'bilirrubina direta', 'bilirrubina conjugada'], units: [base('µmol/L'), linear('mg/dL', 17.1, SOURCES.bilirubin)] },
+  { id: 'bilirubin-total', name: 'Total bilirubin', panel: 'liver', aliases: ['total bilirubin', 'bilirubin total', 'bilirubin', 'bilirrubina total', 'bilirrubina', 'bilirrubinemia total', 'bilirrubinas total'], units: [base('µmol/L'), linear('mg/dL', 17.1, SOURCES.bilirubin)] },
+  { id: 'bilirubin-direct', name: 'Direct bilirubin', panel: 'liver', aliases: ['direct bilirubin', 'bilirubin direct', 'conjugated bilirubin', 'bilirrubina directa', 'bilirrubina direta', 'bilirrubina conjugada', 'bilirrubinemia directa', 'bilirrubinemia direta', 'bilirrubinas directa', 'bilirrubinas direta'], units: [base('µmol/L'), linear('mg/dL', 17.1, SOURCES.bilirubin)] },
   { id: 'albumin', name: 'Albumin', panel: 'liver', aliases: ['albumin', 'albumina', 'albumin serum'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes)] },
   { id: 'total-protein', name: 'Total protein', panel: 'liver', aliases: ['total protein', 'protein total', 'proteinas totais', 'proteinas totais sericas'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes)] },
 
   // Kidney and electrolytes
-  { id: 'creatinine', name: 'Creatinine', panel: 'kidney', aliases: ['creatinine', 'creatinina', 'creatinine serum', 'creatinina serica'], units: [base('µmol/L'), linear('mg/dL', 88.4, SOURCES.creatinine)] },
+  { id: 'creatinine', name: 'Creatinine', panel: 'kidney', aliases: ['creatinine', 'creatinina', 'creatinine serum', 'creatinina serica', 'creatininemia'], units: [base('µmol/L'), linear('mg/dL', 88.4, SOURCES.creatinine)] },
   { id: 'egfr', name: 'eGFR', panel: 'kidney', aliases: ['egfr', 'estimated gfr', 'gfr estimated', 'tfg', 'tfg estimada', 'taxa de filtracao glomerular', 'taxa de filtracao glomerular estimada', 'tfge'], units: [base('mL/min/1.73m²')] },
   {
-    id: 'urea', name: 'Urea', panel: 'kidney', aliases: ['urea', 'ureia', 'urea serum', 'ureia serica'],
+    id: 'urea', name: 'Urea', panel: 'kidney', aliases: ['urea', 'ureia', 'urea serum', 'ureia serica', 'uremia'],
     units: [base('mmol/L'), linear('mg/dL', 0.1665, SOURCES.urea), linear('g/L', 16.65, SOURCES.urea)],
   },
   {
@@ -104,12 +104,12 @@ export const MARKERS: Marker[] = [
     sameAnalyteAs: { markerId: 'urea', unit: 'mmol/L', note: 'BUN counts only the nitrogen in urea; converted to urea in mmol/L.' },
   },
   { id: 'uric-acid', name: 'Uric acid', panel: 'kidney', aliases: ['uric acid', 'urate', 'acido urico', 'uricemia'], units: [base('µmol/L'), linear('mg/dL', 59.48, SOURCES.uricAcid)] },
-  { id: 'sodium', name: 'Sodium', panel: 'kidney', aliases: ['sodium', 'sodio', 'na', 'na+'], units: [base('mmol/L'), same('mEq/L')] },
-  { id: 'potassium', name: 'Potassium', panel: 'kidney', aliases: ['potassium', 'potassio', 'k', 'k+'], units: [base('mmol/L'), same('mEq/L')] },
-  { id: 'chloride', name: 'Chloride', panel: 'kidney', aliases: ['chloride', 'cloro', 'cloreto', 'cl', 'cl-'], units: [base('mmol/L'), same('mEq/L')] },
-  { id: 'calcium', name: 'Calcium', panel: 'kidney', aliases: ['calcium', 'calcio', 'calcium total', 'calcio total', 'ca'], units: [base('mmol/L'), linear('mg/dL', 0.2495, SOURCES.calcium)] },
+  { id: 'sodium', name: 'Sodium', panel: 'kidney', aliases: ['sodium', 'sodio', 'na', 'na+', 'natremia'], units: [base('mmol/L'), same('mEq/L')] },
+  { id: 'potassium', name: 'Potassium', panel: 'kidney', aliases: ['potassium', 'potassio', 'k', 'k+', 'kaliemia', 'caliemia'], units: [base('mmol/L'), same('mEq/L')] },
+  { id: 'chloride', name: 'Chloride', panel: 'kidney', aliases: ['chloride', 'cloro', 'cloreto', 'cl', 'cl-', 'cloremia'], units: [base('mmol/L'), same('mEq/L')] },
+  { id: 'calcium', name: 'Calcium', panel: 'kidney', aliases: ['calcium', 'calcio', 'calcium total', 'calcio total', 'ca', 'calcemia'], units: [base('mmol/L'), linear('mg/dL', 0.2495, SOURCES.calcium)] },
   { id: 'magnesium', name: 'Magnesium', panel: 'kidney', aliases: ['magnesium', 'magnesio', 'mg'], units: [base('mmol/L'), linear('mg/dL', 0.4114, SOURCES.magnesium)] },
-  { id: 'phosphate', name: 'Phosphate', panel: 'kidney', aliases: ['phosphate', 'phosphorus', 'fosforo', 'fosfato', 'fosforo inorganico', 'p'], units: [base('mmol/L'), linear('mg/dL', 0.3229, SOURCES.phosphate)] },
+  { id: 'phosphate', name: 'Phosphate', panel: 'kidney', aliases: ['phosphate', 'phosphorus', 'fosforo', 'fosfato', 'fosforo inorganico', 'p', 'fosfatemia'], units: [base('mmol/L'), linear('mg/dL', 0.3229, SOURCES.phosphate)] },
 
   // Thyroid
   { id: 'tsh', name: 'TSH', panel: 'thyroid', aliases: ['tsh', 'thyrotropin', 'thyroid stimulating hormone', 'tirotropina', 'hormona estimulante da tiroide', 'tsh ultrassensivel', 'tsh 3a geracao'], units: [base('mIU/L'), same('µIU/mL')] },
@@ -131,6 +131,13 @@ export const MARKERS: Marker[] = [
 
   // Hormones
   { id: 'testosterone', name: 'Total testosterone', panel: 'hormones', aliases: ['total testosterone', 'testosterone total', 'testosterone', 'testosterona total', 'testosterona'], units: [base('nmol/L'), linear('ng/dL', 0.03467, SOURCES.testosterone), linear('ng/mL', 0.3467, SOURCES.testosterone)] },
+  {
+    id: 'free-testosterone',
+    name: 'Free testosterone',
+    panel: 'hormones',
+    aliases: ['free testosterone', 'testosterone free', 'free t', 'testosterona livre', 'testosterona livre calculada', 'calculated free testosterone'],
+    units: [base('pmol/L'), linear('pg/mL', 3.467, SOURCES.testosterone), linear('ng/dL', 34.67, SOURCES.testosterone)],
+  },
   { id: 'shbg', name: 'SHBG', panel: 'hormones', aliases: ['shbg', 'sex hormone binding globulin', 'globulina de ligacao as hormonas sexuais'], units: [base('nmol/L')] },
   { id: 'oestradiol', name: 'Oestradiol', panel: 'hormones', aliases: ['oestradiol', 'estradiol', 'e2', '17 beta estradiol'], units: [base('pmol/L'), linear('pg/mL', 3.671, SOURCES.oestradiol)] },
   { id: 'lh', name: 'LH', panel: 'hormones', aliases: ['lh', 'luteinising hormone', 'luteinizing hormone', 'hormona luteinizante', 'hormonio luteinizante'], units: [base('U/L'), same('mIU/mL')] },
@@ -143,7 +150,7 @@ export const MARKERS: Marker[] = [
   // Inflammation
   { id: 'crp', name: 'CRP', panel: 'inflammation', aliases: ['crp', 'c reactive protein', 'pcr', 'proteina c reactiva', 'proteina c reativa'], units: [base('mg/L'), linear('mg/dL', 10, SOURCES.siPrefixes)] },
   { id: 'hs-crp', name: 'hs-CRP', panel: 'inflammation', aliases: ['hs crp', 'hscrp', 'high sensitivity crp', 'high sensitivity c reactive protein', 'pcr ultrassensivel', 'pcr alta sensibilidade', 'proteina c reactiva ultrassensivel', 'proteina c reativa ultrassensivel'], units: [base('mg/L'), linear('mg/dL', 10, SOURCES.siPrefixes)] },
-  { id: 'esr', name: 'ESR', panel: 'inflammation', aliases: ['esr', 'erythrocyte sedimentation rate', 'sed rate', 'vs', 'velocidade de sedimentacao', 'velocidade de sedimentacao eritrocitaria', 'vhs'], units: [base('mm/h')] },
+  { id: 'esr', name: 'ESR', panel: 'inflammation', aliases: ['esr', 'erythrocyte sedimentation rate', 'sed rate', 'vs', 'velocidade de sedimentacao', 'velocidade de sedimentacao eritrocitaria', 'vhs', 'VS à 1ª hora', 'velocidade de sedimentacao 1a hora'], units: [base('mm/h')] },
   { id: 'homocysteine', name: 'Homocysteine', panel: 'inflammation', aliases: ['homocysteine', 'homocisteina'], units: [base('µmol/L')] },
 ]
 

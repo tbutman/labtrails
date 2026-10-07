@@ -62,11 +62,14 @@ export function normaliseUnit(printed: string): string {
     .replace(/\/mm3$|\/mm³$/, '/µl') // per cubic millimetre is per microlitre
 
   // Powers of ten: "x10^3/uL", "x10E3/µL", "10*3/ul", "x 10³/µL", "10^9/L", "G/L" (giga per litre)
-  const power = u.match(/^(?:x|×)?10(?:\^|e|\*)?([0-9]+|[³⁶⁹])(?:\/)(µl|l)$/)
+  // A count printed with its denominator cut off ("x 10³/") is per µL for 10³ and 10⁶ (as blood
+  // counts are printed per µL) and per L for 10⁹ and 10¹².
+  const power = u.match(/^(?:x|×)?10(?:\^|e|\*)?([0-9]+|[³⁶⁹]|¹²)(?:\/)(µl|l)?$/)
   if (power) {
-    const exp = ({ '³': '3', '⁶': '6', '⁹': '9' } as Record<string, string>)[power[1]] ?? power[1]
+    const exp = ({ '³': '3', '⁶': '6', '⁹': '9', '¹²': '12' } as Record<string, string>)[power[1]] ?? power[1]
     const sup = ({ '3': '³', '6': '⁶', '9': '⁹', '12': '¹²' } as Record<string, string>)[exp]
-    if (sup) u = `10${sup}/${power[2]}`
+    const per = power[2] ?? (exp === '3' || exp === '6' ? 'µl' : 'l')
+    if (sup) u = `10${sup}/${per}`
   }
   if (u === 'g/l' && printed.trim() === 'G/L') u = '10⁹/l' // "G/L" in capitals means 10⁹ per litre
   if (u === 't/l' && printed.trim() === 'T/L') u = '10¹²/l'

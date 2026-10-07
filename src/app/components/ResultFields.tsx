@@ -8,7 +8,7 @@ import { MARKERS, PANELS, getMarker } from '../../labs/catalogue/catalogue'
 import { understandInput, type ResultInput } from '../../labs/edit'
 import type { UserAlias } from '../../labs/match/match'
 import { normaliseUnit } from '../../labs/units/normalise'
-import type { DecimalHint } from '../../labs/units/parse'
+import type { DecimalHint, Person } from '../../labs/units/parse'
 import { TextField } from '../../core/ui/components'
 import { formatValue } from '../format'
 
@@ -36,10 +36,12 @@ type Props = {
   label: string
   /** Lets the user change a marker the code found by itself (when correcting a saved result). */
   canChangeMarker?: boolean
+  /** For ranges printed by age or sex. */
+  person?: Person
 }
 
-export function ResultFields({ input, decimal, aliases, onChange, onRemove, label, canChangeMarker }: Props) {
-  const u = understandInput(input, decimal, aliases)
+export function ResultFields({ input, decimal, aliases, onChange, onRemove, label, canChangeMarker, person }: Props) {
+  const u = understandInput(input, decimal, aliases, person)
   const marker = u.markerId ? getMarker(u.markerId) : undefined
   const unitKnown = marker && input.unit.trim() ? marker.units.some((d) => d.unit === normaliseUnit(input.unit)) : true
   const unitsId = `units-${useId()}`

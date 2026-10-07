@@ -5,6 +5,7 @@
 
 import { analyse, type MarkerAnalysis } from '../analysis'
 import { rangeFlag, type Point } from '../flags/flags'
+import { ageInYears } from '../person'
 import type { Profile, Report, Result, TestContext } from '../types'
 
 export type FactPoint = { date: string; value: number; comparator?: string; range?: { low?: number; high?: number } }
@@ -47,11 +48,7 @@ function withFlag(p: Point) {
   return { ...point(p), ...(f?.basis === 'range' ? { outsideRange: f.side } : {}) }
 }
 
-export function ageInYears(dateOfBirth: string, on: string): number {
-  const [by, bm, bd] = dateOfBirth.split('-').map(Number)
-  const [y, m, d] = on.split('-').map(Number)
-  return y - by - (m < bm || (m === bm && d < bd) ? 1 : 0)
-}
+export { ageInYears } from '../person'
 
 /** Replaces the person's name (and its parts) in free text with "the person". */
 export function redactName(text: string, name: string): string {

@@ -12,6 +12,7 @@ const row = (over: Record<string, unknown> = {}) => ({
   confidence: 'high',
   page: 1,
   samplePrinted: null,
+  specimen: 'blood',
   ...over,
 })
 

@@ -15,6 +15,13 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- Reading real reports better (found by testing with four real Portuguese reports, October 2026):
+  urinalysis rows are recognised as urine and never matched to blood markers (a "Sample" field in the
+  review); ranges printed by age, sex or category use the right band (vitamin D's sufficient band, PSA
+  for your age), or none rather than a wrong one; earlier-date columns use the report's printed range,
+  marked as such; sample times, percentages written into values and cut-off count units are read;
+  Portuguese report names (V.G.M., Creatininémia, TFGe and more) match without a manual check; free
+  testosterone is in the catalogue; a realistic cost estimate.
 - Ask about your results: questions answered from the markers they name (or the flagged ones), with
   every number checked against what was sent before the answer is shown; saved conversations per
   person; prepared answers in the demo.

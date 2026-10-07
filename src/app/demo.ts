@@ -187,6 +187,7 @@ export const DEMO_EXTRACTION: Extraction = {
     confidence: confidence as Extraction['rows'][number]['confidence'],
     page: 1,
     samplePrinted: null,
+    specimen: 'blood' as const,
   })),
 }
 

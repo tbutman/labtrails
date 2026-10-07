@@ -172,7 +172,7 @@ export function Reports() {
                       <tr key={x.id}>
                         <th scope="row">
                           {x.nameAsPrinted}
-                          {!x.markerId && <span className="faint"> · not mapped</span>}
+                          {x.specimen === 'urine' ? <span className="faint"> · urine</span> : x.specimen === 'other' ? <span className="faint"> · not blood</span> : !x.markerId && <span className="faint"> · not mapped</span>}
                         </th>
                         <td>
                           {x.comparator ?? ''}
