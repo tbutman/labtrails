@@ -40,7 +40,9 @@ at rest, and sent nowhere without the user's go-ahead. The personal timeline is 
   (19 MiB memory, 2 passes, OWASP's recommended setting), or PBKDF2-SHA256 with 600,000 iterations if
   Argon2id can't run. Each record is bound to its collection and ID, so records can't be swapped.
 - **Locking.** The vault locks after 5 minutes of inactivity by default, and when the page has been
-  hidden that long. Locking drops the keys from memory. Reloading the page also locks it.
+  hidden that long. Locking drops the keys from memory. Reloading the page also locks it. With
+  LabTrails open in several tabs, locking one locks them all; the tabs tell each other only that
+  something changed, never what.
 - **No server data.** No accounts, database, analytics, cookies or third-party scripts.
 - **A strict Content-Security-Policy.** The page may only load its own files and talk to itself and
   `https://api.anthropic.com`. Browser tests fail if the app requests anything else.
@@ -59,7 +61,8 @@ at rest, and sent nowhere without the user's go-ahead. The personal timeline is 
 ### Someone gets the device while the vault is locked
 
 - **Mitigation:** everything is encrypted, and each passphrase guess has to go through a deliberately
-  slow key derivation. Setup requires at least 12 characters and suggests four or more random words.
+  slow key derivation. A new passphrase needs at least 12 characters, at least 4 different ones, not
+  one word repeated and not built from the app's name; setup suggests four or more random words.
 - **Limit:** anyone can copy the browser's database and guess offline, with no lockout. A short or
   common passphrase can be guessed. Not hidden: the number of records in each collection and their
   names (`profiles`, `reports`, `results`, `aliases`, `summaries`, `askThreads`, `timeline`, `lines`,
@@ -77,8 +80,19 @@ at rest, and sent nowhere without the user's go-ahead. The personal timeline is 
 
 ### A lost passphrase
 
-- **Mitigation:** a clear warning and a confirmation at setup, and encrypted backups.
+- **Mitigation:** a clear warning and a confirmation at setup, and encrypted backups. Under Unlock,
+  "Forgot your passphrase?" says nobody can reset it, and offers restoring a backup or erasing the
+  vault to start again. Changing the passphrase asks for the new one twice.
 - **Limit:** by design there's no recovery. A backup needs the passphrase it was made with.
+
+### Erasing this vault
+
+"Erase this vault" (in Settings, and under Unlock) deletes LabTrails' database in this browser, its
+Cache Storage and service worker, and its local and session storage, then reloads; other open tabs
+reload too. It needs no passphrase, because it only destroys, but it asks for "LabTrails" to be typed.
+- **Limit:** anyone holding the unlocked or locked device can erase the vault (as they could by
+  clearing the browser's data). They still can't read it. Backups downloaded elsewhere aren't
+  affected.
 
 ### The browser deletes the data
 

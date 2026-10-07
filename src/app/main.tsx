@@ -9,6 +9,7 @@ import { createBrowserRouter, Navigate, RouterProvider, type LazyRouteFunction, 
 import { LegacyProfile, ProfileLayout, Root } from './components/Layout'
 import { SessionProvider } from './session'
 import { Landing } from './screens/Landing'
+import { RouteError } from '../core/ui/RouteError'
 
 // The landing page loads first and alone; each screen of the app is fetched when it's first opened
 // (and precached by the service worker, so it works offline once the app has been visited).
@@ -16,29 +17,14 @@ const screen =
   <M extends Record<string, unknown>>(load: () => Promise<M>, name: keyof M): LazyRouteFunction<RouteObject> =>
   async () => ({ Component: (await load())[name] as ComponentType })
 
-/** Shown instead of a screen that fails, in place of the router's developer page (BABY-05). */
-function ScreenError() {
-  return (
-    <main id="main" className="container narrow">
-      <h1>Something went wrong on this screen.</h1>
-      <p>Your records are safe.</p>
-      <p>
-        <a className="button primary" href="/app">
-          Back to the start
-        </a>
-      </p>
-    </main>
-  )
-}
-
 const router = createBrowserRouter([
   {
     element: <Root />,
-    errorElement: <ScreenError />,
+    errorElement: <RouteError home="/app" />,
     children: [
       {
         // A failing screen shows the message inside the app's frame.
-        errorElement: <ScreenError />,
+        errorElement: <RouteError home="/app" />,
         children: [
           { path: '/', element: <Landing /> },
           { path: '/how-flags-work', lazy: screen(() => import('./screens/HowFlagsWork'), 'HowFlagsWork') },

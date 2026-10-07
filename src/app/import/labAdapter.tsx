@@ -91,6 +91,8 @@ export function labAdapter(deps: {
 
   return {
     appName: 'LabTrails',
+    // "add one in Settings" links here (LAB-14).
+    settingsPath: '/app/settings#ai',
     documentKind: 'lab-report',
     noun: { one: 'report', many: 'reports' },
     columns: EXTRACTION_COLUMNS,

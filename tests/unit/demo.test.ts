@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { analyse, unmapped } from '../../src/labs/analysis'
-import { DEMO_REPORTS, DEMO_RESULTS } from '../../src/app/demo'
+import { DEMO_REPORTS, DEMO_RESULTS, DEMO_SUMMARIES } from '../../src/app/demo'
+import { bannedPhrase } from '../../src/core/ask/wording'
 
 // The demo is what portfolio visitors see, so its data must show what the summaries claim.
 describe('demo data', () => {
@@ -70,5 +71,11 @@ describe('demo flags match the pre-written summaries', () => {
       'vitamin-d': 'rising:4',
       crp: 'changed:down',
     })
+  })
+})
+
+describe('the demo summaries use no banned wording (CORE-04)', () => {
+  it('passes the same check as real summaries', () => {
+    for (const s of DEMO_SUMMARIES) expect(bannedPhrase(s.text), s.id).toBeUndefined()
   })
 })

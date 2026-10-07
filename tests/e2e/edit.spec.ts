@@ -221,3 +221,21 @@ test('leaving a form with typed values asks first (X-05)', async ({ page }) => {
   await page.reload()
   expect(await asked).toBe('beforeunload')
 })
+
+test('a forgotten passphrase: erase this vault and start again (CORE-01)', async ({ page }) => {
+  await vaultWithReport(page)
+  await page.getByRole('button', { name: 'Lock' }).click()
+  await page.getByRole('button', { name: 'Forgot your passphrase?' }).click()
+  await page.getByRole('button', { name: 'Erase this vault' }).click()
+  await page.getByLabel('Type LabTrails to confirm').fill('LabTrails')
+  await page.getByRole('button', { name: 'Erase everything' }).click()
+  await expect(page.getByRole('heading', { name: 'Set up your vault' })).toBeVisible()
+  await expect(page.getByText('Everything is deleted from this browser.')).toBeVisible()
+})
+
+test('changing the passphrase asks for the new one twice (CORE-02)', async ({ page }) => {
+  await vaultWithReport(page)
+  await page.getByRole('link', { name: 'Settings' }).first().click()
+  await expect(page.getByRole('heading', { name: 'Erase this vault' })).toBeVisible()
+  await expect(page.getByLabel('New passphrase again')).toBeVisible()
+})

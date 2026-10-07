@@ -1,4 +1,5 @@
 import type { Point } from '../labs/flags/flags'
+import { formatDate } from '../core/format'
 
 /**
  * A value with sensible precision for lab results. Values under 1 keep three significant digits, so a
@@ -30,10 +31,8 @@ export function labRange(range: Point['range'], start: 'Lab' | 'lab' = 'Lab'): s
   return r === 'no range printed' ? (start === 'Lab' ? 'No range printed' : r) : `${start}'s range ${r}`
 }
 
-export function formatDate(iso: string): string {
-  const [y, m, d] = iso.split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
-}
+/** "Sep 19, 2026": the core's shared US date (Q1), so both apps write dates the same way. */
+export { formatDate }
 
 /** A day ("Jan 6, 2025") or, for a month-only date, the month ("Nov 2024"). */
 export function formatWhen(when: string): string {

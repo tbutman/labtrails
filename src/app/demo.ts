@@ -234,7 +234,7 @@ export const DEMO_ANSWERS: Record<Suggestion['id'], Answer> = {
   },
   changed: {
     kind: 'answer',
-    text: "Since your previous test in November 2025, the biggest changes LabTrails flagged were:\n\n- **CRP** fell from 6.8 mg/L to 0.9 mg/L, back inside the lab's range (below 5 mg/L).\n- **Triglycerides** fell from 1.83 mmol/L to 1.14 mmol/L, also back inside the range (below 1.7 mmol/L).\n- **Glucose** rose from 5.8 mmol/L to 6.2 mmol/L, just above the range (up to 6.0 mmol/L).\n\nOver a longer time, your ferritin has fallen at every test, from 142 µg/L to 38 µg/L, still inside its lab's range. These could be good to go through with your doctor.",
+    text: "Since your previous test in November 2025, the biggest changes LabTrails flagged were:\n\n- **CRP** fell from 6.8 mg/L to 0.9 mg/L, back inside the lab's range (below 5 mg/L).\n- **Triglycerides** fell from 1.83 mmol/L to 1.14 mmol/L, also back inside the range (below 1.7 mmol/L).\n- **Glucose** rose from 5.8 mmol/L to 6.2 mmol/L, just above the range (up to 6.0 mmol/L).\n\nOver a longer time, your ferritin has fallen at every test, from 142 µg/L to 38 µg/L, still inside its lab's range. These are worth going through with your doctor.",
     numbers: [
       { text: '6.8 mg/L', fact: 'markers[7].results[4].value' },
       { text: '0.9 mg/L', fact: 'markers[7].results[5].value' },

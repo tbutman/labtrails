@@ -8,19 +8,20 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { AiError } from '../../core/ai/client'
 import { redactNames } from '../../core/ai/redact'
 import { SendSheet } from '../../core/ai/SendSheet'
-import { askQuestion } from '../../core/ask/ask'
+import { askQuestion, FOLLOW_UP_NOTE } from '../../core/ask/ask'
 import { AskThreadView } from '../../core/ask/AskThreadView'
 import type { AskThread, AskTurn } from '../../core/ask/model'
 import { EmptyState, PageHeader, TextAreaField } from '../../core/ui/components'
 import { ASK_BANNED, ASK_SYSTEM, askFacts, askFactsText, askSuggestions, LAB_UNITS, OUT_OF_SCOPE } from '../../labs/ai/ask'
 import { digest } from '../../labs/ai/digest'
 import { DISCLAIMER } from '../components/Flags'
+import { demoNote } from '../../core/ui/copy'
 import { DEMO_ANSWERS } from '../demo'
 import { formatDate, plural } from '../format'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 
-const PREPARED_NOTE = 'Demo: prepared in advance for this made-up person; no AI was called. Not medical advice.'
+const PREPARED_NOTE = demoNote('person')
 const nowIso = () => new Date().toISOString()
 
 export function Ask() {
@@ -176,7 +177,7 @@ export function Ask() {
               ...(thread ? ['The earlier questions and answers in this conversation'] : []),
             ]}
             notSending={['Your name and date of birth', "Your tests' notes and medications text", 'Your documents', "Other people's results"]}
-            notes={['If your question includes your name, LabTrails replaces it with “the person” before sending.']}
+            notes={['If your question includes your name, LabTrails replaces it with “the person” before sending.', ...(thread ? [FOLLOW_UP_NOTE] : [])]}
             model={core.ai.model}
             estimate={estimate}
             busy={busy}
