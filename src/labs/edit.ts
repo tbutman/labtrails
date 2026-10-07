@@ -54,6 +54,19 @@ export function understandInput(input: ResultInput, decimal: DecimalHint | undef
 }
 
 /**
+ * A typed value more than ten times beyond the range typed with it (6500 for platelets of 150–400), a
+ * likely slip in the value or unit worth a second look before saving (LAB-23).
+ */
+export function farFromRange(u: ReturnType<typeof understandInput>): boolean {
+  if (u.value.kind !== 'number' || !u.range) return false
+  const v = u.value.value
+  const { low, high } = u.range
+  return (high !== undefined && high > 0 && v > 10 * high) || (low !== undefined && low > 0 && v < low / 10)
+}
+
+export const FAR_FROM_RANGE = "This is far from the lab's range. Check the value and unit before saving."
+
+/**
  * Builds the saved result from the input, keeping only the original's identity, creation time and
  * sample type: everything else comes from the input, so unmapping a name or changing a number to text
  * leaves nothing of the old value behind.

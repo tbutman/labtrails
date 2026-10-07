@@ -9,7 +9,7 @@ import { lineIn, lineText, validateLine, type PersonalLine } from '../../labs/li
 import { getMarker } from '../../labs/catalogue/catalogue'
 import { CHANGE_THRESHOLD, TREND_THRESHOLD, changeBasis } from '../../labs/flags/flags'
 import { convertibleUnits } from '../../labs/units/convert'
-import { Callout, PageHeader, TextField } from '../../core/ui/components'
+import { Callout, PageHeader, SelectField, TextField } from '../../core/ui/components'
 import { CriticalNotice, DISCLAIMER, MarkerFlags, RangeMeaning, changeAmount, labMarkText } from '../components/Flags'
 import { chartEvents } from '../chartEvents'
 import { personalFlag, shownLine } from '../personalLine'
@@ -248,7 +248,9 @@ function YourLine({ a, lines }: { a: MarkerAnalysis; lines: PersonalLine[] }) {
   const [low, setLow] = useState(shown?.low !== undefined ? formatValue(shown.low) : '')
   const [high, setHigh] = useState(shown?.high !== undefined ? formatValue(shown.high) : '')
   const [error, setError] = useState('')
-  const unit = a.series.unit
+  // The unit the line's values are typed in: a menu, so a value isn't saved in the wrong unit (LAB-23).
+  const units = convertibleUnits(a.marker, a.series.unit)
+  const [unit, setUnit] = useState(a.series.unit)
 
   async function save(e: FormEvent) {
     e.preventDefault()
@@ -295,6 +297,13 @@ function YourLine({ a, lines }: { a: MarkerAnalysis; lines: PersonalLine[] }) {
         {editing ? (
           <form className="line-form" onSubmit={save} noValidate>
             <TextField label="What it is" value={label} onChange={(e) => setLabel(e.target.value)} hint="For example “My doctor's target” or “Limit while on medication”." />
+            {units.length > 1 && (
+              <SelectField label="Unit of the values" value={unit} onChange={(e) => setUnit(e.target.value)}>
+                {units.map((u) => (
+                  <option key={u}>{u}</option>
+                ))}
+              </SelectField>
+            )}
             <div className="input-row">
               <TextField label={`Lower value (${unit}, optional)`} inputMode="decimal" value={low} onChange={(e) => setLow(e.target.value)} />
               <TextField label={`Upper value (${unit}, optional)`} inputMode="decimal" value={high} onChange={(e) => setHigh(e.target.value)} />
@@ -314,7 +323,7 @@ function YourLine({ a, lines }: { a: MarkerAnalysis; lines: PersonalLine[] }) {
         ) : existing && shown ? (
           <div className="row">
             <span>
-              <strong>{shown.label}</strong>: {lineText(shown, formatValue)} {unit}. <span className="faint">Set by you; the lab's range is shown separately.</span>
+              <strong>{shown.label}</strong>: {lineText(shown, formatValue)} {a.series.unit}. <span className="faint">Set by you; the lab's range is shown separately.</span>
             </span>
             <button type="button" className="button small" onClick={() => setEditing(true)}>
               Change

@@ -4,8 +4,10 @@
 
 import { CalendarRange, Copy, Plus, Save } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router'
-import { aliasToRemember, resultFromInput, understandInput, validateInput, type ResultInput } from '../../labs/edit'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router'
+import type { StoredDoc } from '../../core/import/duplicates'
+import { Pages, usePages } from './Reports'
+import { FAR_FROM_RANGE, aliasToRemember, farFromRange, resultFromInput, understandInput, validateInput, type ResultInput } from '../../labs/edit'
 import { personAt } from '../../labs/person'
 import { activeOn, entryLabel, timedOn } from '../../labs/timeline'
 import type { Alias, DoseTiming, Recently, Report, TestContext } from '../../labs/types'
@@ -47,6 +49,9 @@ export function ReportForm() {
   const [doseTiming, setDoseTiming] = useState<DoseTiming[]>([])
   const [rows, setRows] = useState<Row[]>([emptyRow(), emptyRow(), emptyRow()])
   const [error, setError] = useState('')
+  // A kept file to type the results from, shown alongside (LAB-14).
+  const documentId = useSearchParams()[0].get('document')
+  const pages = usePages(store, documentId)
 
   useEffect(() => {
     if (store) void store.list<Alias>('aliases').then(setAliases)
@@ -76,6 +81,9 @@ export function ReportForm() {
     if (filled.length === 0) return setError('Add at least one result with a name and a value.')
     const unresolved = filled.find((r) => understandInput(r, decimal, aliases ?? []).match.status === 'ambiguous' && !r.markerId)
     if (unresolved) return setError(`Choose which marker "${unresolved.name}" is.`)
+    // A value far beyond its range is asked about once more before saving (LAB-23).
+    const far = filled.filter((r) => farFromRange(understandInput(r, decimal, aliases ?? [], personAt(profile, date))))
+    if (far.length && !window.confirm(`${far.map((r) => r.name.trim()).join(', ')}: ${FAR_FROM_RANGE}\n\nSave anyway?`)) return
 
     const now = new Date().toISOString()
     const context: TestContext = {
@@ -92,6 +100,7 @@ export function ReportForm() {
       ...(time ? { time } : {}),
       ...(lab.trim() ? { lab: lab.trim() } : {}),
       source: 'manual',
+      ...(pages.length ? { documentId: pages[0].id } : {}),
       ...(Object.keys(context).length ? { context } : {}),
       createdAt: now,
       updatedAt: now,
@@ -103,6 +112,8 @@ export function ReportForm() {
       const alias = aliasToRemember(r, aliases ?? [], undefined, () => crypto.randomUUID())
       if (alias) await store.put('aliases', alias)
     }
+    // The file it was typed from is now read.
+    for (const page of pages as StoredDoc[]) await store.put('documents', { ...page, meta: { ...page.meta, importStatus: 'read' } })
     await saveCore({ ...core, changesSinceBackup: core.changesSinceBackup + 1 })
     changed()
     navigate(base)
@@ -112,6 +123,12 @@ export function ReportForm() {
     <>
       <PageHeader title="Add results" subtitle="Type them in as printed on the report." back={{ to: base, label: profile.name }} />
       <form onSubmit={submit} noValidate className="form-layout">
+        {pages.length > 0 && store && (
+          <section className="card typed-from">
+            <h2 className="card-title">The report</h2>
+            <Pages store={store} pages={pages} />
+          </section>
+        )}
         <section className="card">
           <h2 className="card-title">The test</h2>
           <div className="input-row three">

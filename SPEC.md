@@ -569,9 +569,11 @@ doctor report only when the user ticks it. `THREAT_MODEL.md` gains the timeline.
 ### 18.9 Demo
 
 Sam's timeline (fictional): started vitamin D3 2,000 IU daily in November 2024 (vitamin D rises
-after it), started marathon training in January 2025 (endurance training is a documented influence
-on ferritin, which keeps falling), and the existing notes (a long run, a cold). The demo shows the
-persistent flag on LDL and the influences matched.
+after it), started marathon training in January 2025 (shown as a band on every chart, including
+ferritin, which keeps falling; it isn't matched as an influence, because no allowed source states
+one for ferritin and hard exercise is matched only from a test's own notes), and the existing notes
+(a long run, a cold). The demo shows the persistent flag on LDL and the influences matched from the
+timeline and the notes (vitamin D3 on vitamin D, the long run on the tests it can affect).
 
 ### 18.10 Not in this step
 

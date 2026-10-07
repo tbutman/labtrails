@@ -459,3 +459,37 @@
 .person-row > .icon-button {
   margin-right: var(--space-3);
 }
+
+/* Files not read yet: read, view or type the results (LAB-14). The viewer opens full width. */
+.kept-file {
+  flex-wrap: wrap;
+}
+.kept-file-actions {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.kept-file-actions .original:has(> :nth-child(2)) {
+  flex-basis: 100%;
+}
+@media (min-width: 900px) {
+  .typed-from {
+    position: sticky;
+    top: var(--space-2);
+    z-index: 1;
+    max-height: 55vh;
+    overflow: auto;
+  }
+}
+
+/* All results: the table scrolls inside its own box, so the date header stays in view while the
+   marker column stays at the left (LAB-25). */
+.results-table {
+  max-height: calc(100dvh - 180px);
+  overflow: auto;
+}
+.results-table thead th {
+  z-index: 2;
+}
+.results-table thead th:first-child {
+  z-index: 3;
+}

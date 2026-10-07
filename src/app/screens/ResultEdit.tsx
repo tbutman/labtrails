@@ -6,7 +6,7 @@ import { Save, Trash2 } from 'lucide-react'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { getMarker } from '../../labs/catalogue/catalogue'
-import { aliasToRemember, inputFromResult, reportDecimal, resultFromInput, sameNameResults, understandInput, validateInput, type ResultInput } from '../../labs/edit'
+import { FAR_FROM_RANGE, aliasToRemember, farFromRange, inputFromResult, reportDecimal, resultFromInput, sameNameResults, understandInput, validateInput, type ResultInput } from '../../labs/edit'
 import { personAt } from '../../labs/person'
 import type { Alias, Report, Result } from '../../labs/types'
 import type { DecimalHint } from '../../labs/units/parse'
@@ -15,7 +15,7 @@ import { DecimalSwitch, MarkerNames, ResultFields } from '../components/ResultFi
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 import { formatDate, plural } from '../format'
-import { Original } from './Reports'
+import { OriginalOf } from './Reports'
 
 const timestamp = () => new Date().toISOString()
 
@@ -60,6 +60,7 @@ function EditResult({ report, result, aliases, base }: { report: Report; result?
     const invalid = validateInput(input)
     if (invalid) return setError(invalid)
     if (u.match.status === 'ambiguous' && !input.markerId) return setError(`Choose which marker "${input.name.trim()}" is.`)
+    if (farFromRange(u) && !window.confirm(`${FAR_FROM_RANGE}\n\nSave anyway?`)) return
     const now = timestamp()
     const saved = resultFromInput(input, result ?? { id: crypto.randomUUID(), reportId: report.id, profileId: profile.id, createdAt: now }, decimal, now, aliases, person)
     await store.put('results', saved)
@@ -122,7 +123,7 @@ function EditResult({ report, result, aliases, base }: { report: Report; result?
           </button>
         </div>
       </form>
-      {report.documentId && store && <Original store={store} documentId={report.documentId} />}
+      {report.documentId && store && <OriginalOf store={store} documentId={report.documentId} />}
     </>
   )
 }

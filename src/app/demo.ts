@@ -105,7 +105,7 @@ export const DEMO_REPORTS: Report[] = REPORTS.map((r) => ({
 export const DEMO_RESULTS: Result[] = buildResults()
 
 // Sam's timeline (SPEC.md section 18.9): what started between tests. Vitamin D rises after the
-// supplement; ferritin keeps falling through marathon training.
+// supplement; ferritin keeps falling through marathon training (on the chart, not a matched influence).
 export const DEMO_TIMELINE: TimelineEntry[] = [
   { id: 'demo-t1', profileId: DEMO_PROFILE.id, kind: 'supplement', name: 'Vitamin D3', dose: '2,000 IU', every: { n: 1, unit: 'day' }, start: '2024-11', createdAt: '2024-11-02T09:00:00Z', updatedAt: '2024-11-02T09:00:00Z' },
   { id: 'demo-t2', profileId: DEMO_PROFILE.id, kind: 'lifestyle', name: 'Marathon training', start: '2025-01-06', notes: 'Four runs a week.', createdAt: '2025-01-06T09:00:00Z', updatedAt: '2025-01-06T09:00:00Z' },

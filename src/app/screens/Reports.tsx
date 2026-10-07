@@ -39,6 +39,19 @@ export function Reports() {
   const pages = (d: StoredDoc) => pagesOf(d, docs)
   const docLabel = (d: StoredDoc) => (d.group ? `${d.title} · ${plural(pages(d).length, 'page')}` : d.title)
   const readLink = (list: StoredDoc[]) => `${base}/reports/read?documents=${list.flatMap(pages).map((d) => d.id).join(',')}`
+  // Without a key, reading means AI the person can't use yet; viewing and typing the results still work (LAB-14).
+  const noKey = mode === 'unlocked' && !core.ai.apiKey
+  const read = (label: string) => (noKey ? `${label} with AI (needs a key)` : label)
+  const fileActions = (d: StoredDoc) => (
+    <>
+      {store && <Original store={store} pages={pages(d)} label="View" />}
+      {mode === 'unlocked' && (
+        <Link className="button small" to={`${base}/reports/new?document=${d.id}`}>
+          Type the results
+        </Link>
+      )}
+    </>
+  )
 
   async function removeDoc(doc: StoredDoc) {
     const all = pages(doc)
@@ -80,17 +93,20 @@ export function Reports() {
           <div className="card padless">
             <ul className="list">
               {unread.map((d) => (
-                <li key={d.id} className="list-row">
+                <li key={d.id} className="list-row kept-file">
                   <span className="list-row-main">
                     <span className="list-row-title">{docLabel(d)}</span>
                     <span className="list-row-sub">Added {formatDate(d.createdAt.slice(0, 10))}</span>
                   </span>
-                  <Link className="button small" to={readLink([d])}>
-                    Read
-                  </Link>
-                  <button className="icon-button" onClick={() => void removeDoc(d)} aria-label={`Delete ${d.title}`}>
-                    <Trash2 size={16} aria-hidden />
-                  </button>
+                  <span className="row kept-file-actions">
+                    <Link className="button small" to={readLink([d])}>
+                      {read('Read')}
+                    </Link>
+                    {fileActions(d)}
+                    <button className="icon-button" onClick={() => void removeDoc(d)} aria-label={`Delete ${d.title}`}>
+                      <Trash2 size={16} aria-hidden />
+                    </button>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -98,7 +114,7 @@ export function Reports() {
           {unread.length > 1 && (
             <p className="row unread-all">
               <Link className="button small primary" to={readLink(unread)}>
-                Read all {unread.length}
+                {read(`Read all ${unread.length}`)}
               </Link>
             </p>
           )}
@@ -110,13 +126,16 @@ export function Reports() {
           <div className="disclosure-body">
             <ul className="list">
               {kept.map((d) => (
-                <li key={d.id} className="list-row">
+                <li key={d.id} className="list-row kept-file">
                   <span className="list-row-main">
                     <span className="list-row-title">{docLabel(d)}</span>
                   </span>
-                  <Link className="button small" to={readLink([d])}>
-                    Read now
-                  </Link>
+                  <span className="row kept-file-actions">
+                    <Link className="button small" to={readLink([d])}>
+                      {read('Read now')}
+                    </Link>
+                    {fileActions(d)}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -197,7 +216,7 @@ export function Reports() {
                 </table>
               </div>
               <div className="row report-actions">
-                {r.documentId && store && <Original store={store} documentId={r.documentId} />}
+                {r.documentId && store && <OriginalOf store={store} documentId={r.documentId} />}
                 <Link className="button small" to={`${base}/reports/${r.id}/edit`}>
                   <Pencil size={14} aria-hidden /> Edit details
                 </Link>
@@ -218,24 +237,40 @@ export function Reports() {
   )
 }
 
-/** The report as it was imported: one document, or every page of a group of photos. */
-export function Original({ store, documentId }: { store: RecordStore; documentId: string }) {
+/** A report's pages as stored: one document, or every page of a group of photos. */
+export function usePages(store: RecordStore | null, documentId: string | null | undefined): DocumentRecord[] {
   const [pages, setPages] = useState<DocumentRecord[]>([])
-  const [open, setOpen] = useState(false)
   useEffect(() => {
+    if (!store || !documentId) return
     void (async () => {
       const doc = await store.get<DocumentRecord>('documents', documentId)
       setPages(doc ? (doc.group ? pagesOf(doc, await store.list<DocumentRecord>('documents')) : [doc]) : [])
     })()
   }, [store, documentId])
+  return pages
+}
+
+/** The report as it was imported, for a saved report. */
+export function OriginalOf({ store, documentId }: { store: RecordStore; documentId: string }) {
+  const pages = usePages(store, documentId)
+  return pages.length ? <Original store={store} pages={pages} /> : null
+}
+
+/** A button that shows or hides a document's pages. */
+export function Original({ store, pages, label }: { store: RecordStore; pages: DocumentRecord[]; label?: string }) {
+  const [open, setOpen] = useState(false)
   if (!pages.length) return null
   const many = pages.length > 1
   return (
     <div className="original">
       <button className="button small" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        {open ? 'Hide the original report' : many ? `Show the original report (${pages.length} pages)` : 'Show the original report'}
+        {open ? (label ? 'Hide' : 'Hide the original report') : (label ?? (many ? `Show the original report (${pages.length} pages)` : 'Show the original report'))}
       </button>
-      {open && (many ? <DocumentPages store={store} pages={pages} alt="The original lab report" /> : <DocumentViewer store={store} doc={pages[0]} alt="The original lab report" />)}
+      {open && <Pages store={store} pages={pages} />}
     </div>
   )
+}
+
+export function Pages({ store, pages }: { store: RecordStore; pages: DocumentRecord[] }) {
+  return pages.length > 1 ? <DocumentPages store={store} pages={pages} alt="The original lab report" /> : <DocumentViewer store={store} doc={pages[0]} alt="The original lab report" />
 }

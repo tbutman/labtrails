@@ -5,7 +5,7 @@
 import { CheckCircle2, CircleHelp, X } from 'lucide-react'
 import { useId } from 'react'
 import { MARKERS, PANELS, getMarker } from '../../labs/catalogue/catalogue'
-import { understandInput, type ResultInput } from '../../labs/edit'
+import { FAR_FROM_RANGE, farFromRange, understandInput, type ResultInput } from '../../labs/edit'
 import type { UserAlias } from '../../labs/match/match'
 import { normaliseUnit } from '../../labs/units/normalise'
 import type { DecimalHint, Person } from '../../labs/units/parse'
@@ -109,6 +109,7 @@ export function ResultFields({ input, decimal, aliases, onChange, onRemove, labe
             </span>
           )}
           {input.range.trim() && <span className="faint">{u.range ? `Range ${u.range.low ?? '…'} to ${u.range.high ?? '…'}` : 'Range kept as printed'}</span>}
+          {farFromRange(u) && <span className="error">{FAR_FROM_RANGE}</span>}
           {!unitKnown && <span className="error">LabTrails doesn't know this unit for {marker?.name}; it'll be kept but can't be converted.</span>}
           {onRemove && (
             <button type="button" className="icon-button remove-row" onClick={onRemove} aria-label={`Remove ${label.toLowerCase()}`}>
