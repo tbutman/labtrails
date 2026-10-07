@@ -71,16 +71,25 @@ export const DISCLAIMER = `${disclaimer('LabTrails', 'your doctor')} Flags are s
 export const CRITICAL_TEXT =
   "This result is far outside the lab's range. First check it matches the report (the number and the unit). If it does and no doctor has talked to you about it yet, contact your doctor or the lab today. If you feel unwell, call your local emergency number."
 
+/** CRITICAL_TEXT without its first sentence, for a result the lab marked critical that isn't far outside. */
+export const CRITICAL_ACTION =
+  'First check it matches the report (the number and the unit). If it does and no doctor has talked to you about it yet, contact your doctor or the lab today. If you feel unwell, call your local emergency number.'
+
 /** CRITICAL_TEXT for several results at once, on the overview. */
 export const CRITICAL_TEXT_MANY =
   "These results are far outside the lab's range. First check each one matches the report (the number and the unit). If it does and no doctor has talked to you about it yet, contact your doctor or the lab today. If you feel unwell, call your local emergency number."
+
+/** CRITICAL_ACTION for several results at once, when not all of them are far outside. */
+export const CRITICAL_ACTION_MANY =
+  'First check each one matches the report (the number and the unit). If it does and no doctor has talked to you about it yet, contact your doctor or the lab today. If you feel unwell, call your local emergency number.'
 
 export function CriticalNotice({ a }: { a: MarkerAnalysis }) {
   if (!a.latestCritical) return null
   return (
     <Callout icon={TriangleAlert} tone="warning">
       {a.latestCritical.labMarked && <strong>The lab marked this result as critical. </strong>}
-      {CRITICAL_TEXT}
+      {/* "Far outside the lab's range" only when it is (CHK-03): a lab's mark can come with no range, or just outside it. */}
+      {a.latestCritical.far ? CRITICAL_TEXT : CRITICAL_ACTION}
     </Callout>
   )
 }

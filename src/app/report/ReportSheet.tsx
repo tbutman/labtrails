@@ -118,6 +118,15 @@ export function reportRows(markers: MarkerAnalysis[], reports: Report[], lines: 
   })
 }
 
+/**
+ * The markers a doctor report includes by default (LAB-11): results outside the lab's range, results
+ * the lab marked critical or far outside it (even with no range printed, CHK-02), and trends. The
+ * person can add any other marker.
+ */
+export function defaultReportMarkers(all: MarkerAnalysis[]): string[] {
+  return all.filter((a) => a.latestFlag || a.latestCritical || a.trend).map((a) => a.marker.id)
+}
+
 /** The header's second line: the span of results, who prepared it and when, and age and sex if shown. */
 export function reportHeader(reports: Report[], preparedOn: string, person?: { age?: number; sex?: 'female' | 'male' }): string {
   const dates = reports.map((r) => r.date).sort()

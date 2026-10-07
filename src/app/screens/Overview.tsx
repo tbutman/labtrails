@@ -2,7 +2,7 @@ import { CircleAlert, ClipboardCheck, FilePlus2, FileSearch, HelpCircle, ListX, 
 import { Link } from 'react-router'
 import { analyse, notRepeated, unmapped, type MarkerAnalysis } from '../../labs/analysis'
 import { Callout, EmptyState, MetricCard, PageHeader, Sparkline } from '../../core/ui/components'
-import { CRITICAL_TEXT, CRITICAL_TEXT_MANY, DISCLAIMER, MarkerFlags, labMarkText } from '../components/Flags'
+import { CRITICAL_ACTION, CRITICAL_ACTION_MANY, CRITICAL_TEXT, CRITICAL_TEXT_MANY, DISCLAIMER, MarkerFlags, labMarkText } from '../components/Flags'
 import type { PersonalLine } from '../../labs/lines'
 import { personalFlag } from '../personalLine'
 import { sparkPoints } from '../spark'
@@ -128,7 +128,9 @@ export function Overview() {
               </span>
             </span>
           ))}
-          . {critical.length === 1 ? CRITICAL_TEXT : CRITICAL_TEXT_MANY}
+          .{' '}
+          {/* "Far outside" only when every one is (CHK-03); the heading already names both kinds. */}
+          {critical.every((m) => m.latestCritical?.far) ? (critical.length === 1 ? CRITICAL_TEXT : CRITICAL_TEXT_MANY) : critical.length === 1 ? CRITICAL_ACTION : CRITICAL_ACTION_MANY}
         </Callout>
       )}
 

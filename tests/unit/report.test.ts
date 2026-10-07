@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DEMO_REPORTS, DEMO_RESULTS } from '../../src/app/demo'
 import { analyse } from '../../src/labs/analysis'
-import { REPORT_FOOTER, reportHeader, reportRows } from '../../src/app/report/ReportSheet'
+import { REPORT_FOOTER, defaultReportMarkers, reportHeader, reportRows } from '../../src/app/report/ReportSheet'
 
 const markers = analyse(DEMO_RESULTS, DEMO_REPORTS).flatMap((p) => p.markers)
 const rows = reportRows(markers, DEMO_REPORTS, [])
@@ -33,5 +33,15 @@ describe('the doctor report', () => {
     )
     expect(reportHeader(DEMO_REPORTS, '2026-10-07')).not.toMatch(/age|female|male/)
     expect(REPORT_FOOTER).not.toMatch(/Discuss your results with your doctor/)
+  })
+
+  it('includes by default a result the lab marked critical with no range printed (CHK-02)', () => {
+    const results = DEMO_RESULTS.map((r) => (r.reportId === 'r6' && r.markerId === 'crp' ? { ...r, value: 0.9, flagAsPrinted: 'Critical', range: undefined } : r))
+    const m = analyse(results, DEMO_REPORTS).flatMap((p) => p.markers)
+    const crp = m.find((a) => a.marker.id === 'crp')!
+    expect(crp.latestFlag).toBeNull()
+    expect(crp.latestCritical).toEqual({ labMarked: true, far: null })
+    expect(defaultReportMarkers(m)).toContain('crp')
+    expect(defaultReportMarkers(markers)).not.toContain('crp') // back inside the range, no trend: not by default
   })
 })

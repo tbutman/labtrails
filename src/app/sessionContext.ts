@@ -17,6 +17,8 @@ export type Session = {
   store: RecordStore | null
   core: CoreSettings
   app: AppSettings
+  /** When this vault was created, so the backup nudge counts from it before any backup (CHK-04). */
+  vaultCreatedAt?: string
   /** Bumped after every write, so screens reload. */
   version: number
   changed: () => void

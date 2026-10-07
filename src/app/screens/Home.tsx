@@ -199,7 +199,7 @@ function Unlock() {
 }
 
 function Profiles() {
-  const { store, version, core, mode } = useSession()
+  const { store, version, core, mode, vaultCreatedAt } = useSession()
   const [profiles, setProfiles] = useState<Profile[] | null>(null)
   const [now] = useState(() => Date.now())
   useEffect(() => {
@@ -207,7 +207,9 @@ function Profiles() {
     void store.list<Profile>('profiles').then((p) => setProfiles(p.sort((a, b) => a.name.localeCompare(b.name))))
   }, [store, version])
 
-  const nudge = core.changesSinceBackup > 0 && (!core.lastBackupAt || now - Date.parse(core.lastBackupAt) > 14 * 86_400_000)
+  // Two weeks since the last backup, or since the vault was created if there's none yet (CHK-04, as BabyTrails).
+  const last = Date.parse(core.lastBackupAt ?? vaultCreatedAt ?? '') || now
+  const nudge = core.changesSinceBackup > 0 && now - last > 14 * 86_400_000
 
   return (
     <Shell>

@@ -55,7 +55,7 @@ not-medical-advice rules are never cut.**
    auto-lock, persistent-storage request. Several profiles.
 2. **Results by hand (no AI needed).** A test date and lab; per result: the name as printed, value,
    unit, reference range as printed and flag as printed (H or L). Optional context (section 7).
-3. **Marker catalog.** About 70 common markers in ten panels, with canonical names, English and
+3. **Marker catalog.** More than 70 common markers in ten panels, with canonical names, English and
    Portuguese aliases and cited unit conversions (section 8). Unknown markers are kept as printed and
    can be mapped later.
 4. **Trends.** A chart per marker over time, in the user's chosen unit, each point drawn against its
@@ -195,11 +195,11 @@ request the user confirms; the send sheet lists them.
 
 ## 8. Marker catalog and units
 
-**Panels and markers** (about 70; English canonical name, then Portuguese aliases):
+**Panels and markers** (more than 70; English canonical name, then Portuguese aliases):
 
 | Panel | Markers |
 | --- | --- |
-| Blood count (Hemograma) | Haemoglobin (Hemoglobina), haematocrit (Hematócrito), red cells (Eritrócitos), MCV (VGM), MCH (HGM), MCHC (CHGM), RDW, white cells (Leucócitos), neutrophils, lymphocytes, monocytes, eosinophils, basophils (Neutrófilos, Linfócitos, Monócitos, Eosinófilos, Basófilos; absolute counts and %), platelets (Plaquetas), MPV (VPM) |
+| Blood count (Hemograma) | Hemoglobin (Hemoglobina), hematocrit (Hematócrito), red cells (Eritrócitos), MCV (VGM), MCH (HGM), MCHC (CHGM), RDW, white cells (Leucócitos), neutrophils, lymphocytes, monocytes, eosinophils, basophils (Neutrófilos, Linfócitos, Monócitos, Eosinófilos, Basófilos; absolute counts and %), platelets (Plaquetas), MPV (VPM) |
 | Glucose | Glucose (Glicose, Glicemia), HbA1c (Hemoglobina glicada), insulin (Insulina) |
 | Lipids | Total cholesterol (Colesterol total), HDL (Colesterol HDL), LDL (Colesterol LDL), non-HDL cholesterol, triglycerides (Triglicéridos, Triglicerídeos), ApoB (Apolipoproteína B), Lp(a) (Lipoproteína (a)) |
 | Liver | ALT (TGP, ALT), AST (TGO, AST), GGT (Gama-GT), alkaline phosphatase (Fosfatase alcalina), bilirubin total and direct (Bilirrubina total, directa/direta), albumin (Albumina), total protein (Proteínas totais) |
@@ -207,7 +207,7 @@ request the user confirms; the send sheet lists them.
 | Thyroid | TSH, free T4 (T4 livre), free T3 (T3 livre), anti-TPO (Anticorpos anti-TPO) |
 | Iron | Iron (Ferro sérico), ferritin (Ferritina), transferrin (Transferrina), transferrin saturation (Saturação da transferrina), TIBC (CTFF) |
 | Vitamins | Vitamin D 25-OH (25-OH vitamina D), vitamin B12 (Vitamina B12), folate (Ácido fólico, Folato) |
-| Hormones | Total testosterone (Testosterona total), SHBG, oestradiol (Estradiol), LH, FSH, prolactin (Prolactina), cortisol (Cortisol), DHEA-S, PSA (PSA total) |
+| Hormones | Total testosterone (Testosterona total), SHBG, estradiol (Estradiol), LH, FSH, prolactin (Prolactina), cortisol (Cortisol), DHEA-S, PSA (PSA total) |
 | Inflammation | CRP and hs-CRP (Proteína C reactiva/reativa, PCR), ESR (Velocidade de sedimentação, VS), homocysteine (Homocisteína) |
 
 Aliases include accented and unaccented spellings, European and Brazilian Portuguese, and common
@@ -254,10 +254,10 @@ and every factor has a test. Creatinine was corrected from 88.42 to 88.4.
 | Free T4 | ng/dL | pmol/L | 12.87 |
 | Free T3 | pg/mL | pmol/L | 1.536 |
 | Total testosterone | ng/dL | nmol/L | 0.03467 |
-| Oestradiol | pg/mL | pmol/L | 3.671 |
+| Estradiol | pg/mL | pmol/L | 3.671 |
 | Cortisol | µg/dL | nmol/L | 27.59 |
 | Insulin | µIU/mL | pmol/L | 6.00 (Knopp et al. 2019; the older 6.945, still in the AMA table, comes from a superseded 1959 standard) |
-| Haemoglobin, albumin, total protein | g/dL | g/L | 10 |
+| Hemoglobin, albumin, total protein | g/dL | g/L | 10 |
 | CRP | mg/dL | mg/L | 10 |
 | HbA1c | % (NGSP) | mmol/mol (IFCC) | IFCC = (NGSP − 2.15) × 10.929, from the IFCC–NGSP master equation |
 
@@ -594,7 +594,7 @@ medication names from prescriptions; per-marker change thresholds (section 9, st
 7. Before your next test.
 
 Each is its own pull request, merged with Thomas's OK. Agreed with Thomas (October 7, 2026): three
-tests in a row for "persistent"; MedlinePlus, the NHS and Lab Tests Online (now Testing.com; Lab
+tests in a row for "persistent"; MedlinePlus, the NHS and Testing.com (formerly Lab Tests Online) (Lab
 Tests Online UK was added on October 7, 2026, section 19) as sources for known influences; English and Portuguese for the "ask for these tests" request.
 
 ## 19. After the outside review (agreed with Thomas, October 7, 2026)

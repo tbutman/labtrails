@@ -22,7 +22,7 @@ conversation with my doctor. Not a diagnosis.
 
 ## The decisions that shaped it
 
-**Local-first, bring your own key.** The app is static files. Results are encrypted in the browser
+**Private by design, bring your own key.** The app is static files. Results are encrypted in the browser
 (AES-256-GCM, with the key derived from a passphrase using Argon2id) and never reach my server: no
 accounts, no database, no analytics. AI is optional; the browser calls Anthropic directly with the
 user's own API key, after a screen that shows exactly what will be sent. The cost of this choice is
@@ -30,8 +30,9 @@ real (no password reset, no sync between devices), so the app says so plainly an
 backups.
 
 **The code flags; the AI explains; the user confirms.** This split runs through the whole app:
-- **Flags are code.** "Outside the lab's range", "changed since last time" and "rising or falling"
-  are pure, tested functions, labeled in the app as heuristics, not clinical thresholds.
+- **Flags are code.** Five rules ("outside the lab's range", "marked critical or far outside it",
+  "changed since last time", "rising or falling" and "on several tests in a row") are pure, tested
+  functions, labeled in the app as heuristics, not clinical thresholds.
 - **The AI copies; the code decides.** Reading a report, the AI only copies rows as printed into a
   JSON schema whose marker field is limited to catalog IDs. LabTrails' own matching maps names
   first; the AI's suggestion is a fallback, marked "Unsure".
@@ -50,8 +51,10 @@ that range.
 
 **Store what was printed; convert when showing.** Values, units and ranges are kept exactly as printed,
 and converted only for display and flags, so a wrong factor could be fixed without touching anyone's
-data. Every conversion factor is derived from a molar mass, cross-checked against the AMA's SI table,
-cited in the code and tested against an independently computed value. That check caught one wrong
+data. More than 70 common markers are built in, with English and Portuguese names. Most conversion
+factors are derived from a molar mass and cross-checked against the AMA's SI table; the others
+(insulin, prolactin) come from their WHO standards. Each is cited in the code and tested against an
+independently computed value. That check caught one wrong
 factor (creatinine) before release. A few details mattered more than expected:
 - Insulin uses 6.00 pmol/L per µIU/mL; the often-quoted 6.945 comes from a superseded 1959 standard.
 - Portuguese "ureia" (urea) and US "BUN" (urea nitrogen) are different measurements, about 2.14×
@@ -133,8 +136,8 @@ practices, with first text on screen at 1.8 s (from 2.1 s) and no layout shift.
 The extraction was run, outside the repository, on four of my own Portuguese reports from two labs.
 Every value came back right, but the app's own handling had gaps a fictional demo never shows:
 urinalysis rows named like blood tests ("Glicose", "Leucócitos") were matched to blood markers; an
-age-banded PSA range ("40 - 49 anos: 0 - 2.5") parsed as 40 to 49 and would have flagged a normal
-result; banded vitamin D ranges weren't read; and 81 rows needed a manual check because Portuguese
+age-banded PSA range ("40 - 49 anos: 0 - 2.5") parsed as 40 to 49 and would have flagged a result
+inside the range; banded vitamin D ranges weren't read; and 81 rows needed a manual check because Portuguese
 report names ("V.G.M.", "Creatininémia", "TFGe") weren't in the catalog. After the fixes the same
 reports needed no manual checks. Every case is now reproduced in English, with a made-up person and
 lab, in fictional PDFs and phone photos that a live extraction check (`npm run test:live`) reads
@@ -215,7 +218,7 @@ problems, each now guarded by a test:
 
 ## What was tested
 
-- **421 unit tests**, including every unit conversion both ways, English and Portuguese marker names,
+- **424 unit tests**, including every unit conversion both ways, English and Portuguese marker names,
   the flag rules with ranges from different labs, banded and age-banded ranges, the extraction
   validator, summary facts never containing the name or date of birth, zips and zip bombs, duplicate
   detection, cumulative reports split by date, correcting results, the timeline and dose timing, the

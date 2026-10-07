@@ -4,7 +4,7 @@ import { Checkbox, ChipGroup, PageHeader, TextAreaField } from '../../core/ui/co
 import { analyse, notRepeated, type MarkerAnalysis } from '../../labs/analysis'
 import { activeBetween, entryLabel, sortByStart, type TimelineEntry } from '../../labs/timeline'
 import { useProfileData } from '../profileContext'
-import { ReportSheet, ReportTable, SHEET_WIDTH, reportHeader, reportRows } from '../report/ReportSheet'
+import { ReportSheet, ReportTable, SHEET_WIDTH, defaultReportMarkers, reportHeader, reportRows } from '../report/ReportSheet'
 import { ageInYears } from '../../labs/person'
 import { formatPeriod } from '../format'
 import { useSession } from '../sessionContext'
@@ -29,8 +29,7 @@ export function DoctorReport() {
   const { profile, reports, results, timeline, lines } = useProfileData()
   const { app } = useSession()
   const all = analyse(results, reports, app.preferredUnit).flatMap((p) => p.markers)
-  // By default: results outside the lab's range, and trends (LAB-11). The person can add any other marker.
-  const flagged = all.filter((a) => a.latestFlag || a.trend).map((a) => a.marker.id)
+  const flagged = defaultReportMarkers(all)
   const [selected, setSelected] = useState<string[]>(flagged)
   const [useInitials, setUseInitials] = useState(false)
   const [withAgeSex, setWithAgeSex] = useState(true)

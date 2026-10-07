@@ -20,9 +20,9 @@ export function HowFlagsWork() {
       />
       <main id="main" className="container narrow doc">
         <div className="kicker">How flags work</div>
-        <h1>Four simple rules, decided by code</h1>
+        <h1>Five simple rules, decided by code</h1>
         <p className="doc-lead">
-          LabTrails' flags come from four rules in its open-source code. The AI never decides what's flagged; it only explains flags the code has
+          LabTrails' flags come from five rules in its open-source code. The AI never decides what's flagged; it only explains flags the code has
           already found. None of the flags is a diagnosis.
         </p>
 
