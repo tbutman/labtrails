@@ -464,14 +464,15 @@ site.
 
 ## 18. Next: following a history (agreed with Thomas, 7 October 2026)
 
-**Why.** LabTrails was compared, turn by turn, with the ChatGPT conversations it's meant to replace,
-and run on four real reports (private notes, outside the repository). LabTrails already keeps the
-record better: every report in one place, each result against its own lab's range, values the user
-checked, flags by rule. What made the conversation useful as it went on was **context**: when a
-medication started and at what dose, whether the blood was drawn before or after a dose, lifestyle
-changes (alcohol stopped, weight lost, smoking), and pointing out what wasn't repeated. With that
-context the same numbers were read differently (a testosterone result was a trough; a high
-haematocrit predated the medication). LabTrails holds context only as free text per test.
+**Why.** LabTrails was compared with the kind of AI chat it's meant to replace, and tested on real
+reports (private notes, outside the repository). LabTrails already keeps the record better: every
+report in one place, each result against its own lab's range, values the user checked, flags by
+rule. What makes such a chat useful as it goes on is **context**: when a medication started and at
+what dose, whether the blood was drawn before or after a dose, lifestyle changes (alcohol stopped,
+weight lost, smoking), and pointing out what wasn't repeated. With that context the same numbers read
+differently: a result drawn just before a dose is a low point in the cycle, and a high result that
+was already high before a medication started isn't news. LabTrails holds context only as free text
+per test.
 
 This section adds that context and what the code can compute from it, within the rule in section 1:
 the code computes, the AI explains, the user confirms; no diagnosis, no treatment or dose advice.
@@ -484,7 +485,7 @@ A new collection, `timeline`, per person. Each entry:
 TimelineEntry {
   id, profileId,
   kind: 'medication' | 'supplement' | 'lifestyle' | 'event',
-  name: string,                 // as the user writes it: "Sustanon 250", "Vitamin D3", "Stopped alcohol"
+  name: string,                 // as the user writes it: "Medicine X", "Vitamin D3", "Stopped alcohol"
   start: date, end?: date,      // a day, or just a month ("2026-06")
   dose?: string,                // free text: "250 mg", "2,000 IU"
   every?: { n: number, unit: 'day' | 'week' | 'month' },   // for "how long since the last dose"
@@ -530,8 +531,8 @@ corticosteroids, NSAIDs, iron, vitamin D). Each marker–influence pair cites a 
 example MedlinePlus, NHS, Lab Tests Online or a lab handbook) and says only the direction ("can
 raise", "can lower", "varies through the day"). Shown on the marker page as "Things known to affect
 this test", and **matched against the timeline and the test's context**: *"Your timeline includes
-testosterone, which is known to raise haematocrit."* Never "your haematocrit is high because…": the
-app states a documented influence and the user's own entry, not a cause.
+Vitamin D3; vitamin D supplements are known to raise vitamin D."* Never "your vitamin D is high
+because…": the app states a documented influence and the user's own entry, not a cause.
 
 ### 18.5 Personal lines
 
@@ -553,8 +554,8 @@ hematócrito"), built from the catalogue's names, not by the AI.
 Summaries and Ask gain, in their facts and only with consent (the send sheet lists them): timeline
 entries active in the period (name, kind, start, end, dose, schedule), dose timing per test, matched
 known influences, persistent flags and markers not repeated. The prompts may then say *"your timeline
-shows Sustanon 250 started on 1 June, between these two tests"*, *"this result was drawn before the
-dose"* and *"testosterone is known to raise haematocrit"* (only when the code matched it). Still
+shows Medicine X started on 1 June, between these two tests"*, *"this result was drawn before the
+dose"* and *"vitamin D supplements are known to raise vitamin D"* (only when the code matched it). Still
 never: a diagnosis, a cause for the person, whether someone should start, stop or change a
 medication or dose, eligibility for a treatment, or tests to order. Ask's banned phrases and numbers
 check are unchanged; timeline dates and doses are facts like any other.

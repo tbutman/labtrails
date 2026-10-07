@@ -126,6 +126,41 @@ Its JavaScript and CSS went from 187 kB to 136 kB compressed. On Lighthouse's si
 phone, the landing page scores 97 for performance (from 95), 98 for accessibility and 100 for best
 practices, with first text on screen at 1.8 s (from 2.1 s) and no layout shift.
 
+## Tested on real reports
+
+The extraction was run, outside the repository, on four of my own Portuguese reports from two labs.
+Every value came back right, but the app's own handling had gaps a fictional demo never shows:
+urinalysis rows named like blood tests ("Glicose", "Leucócitos") were matched to blood markers; an
+age-banded PSA range ("40 - 49 anos: 0 - 2.5") parsed as 40 to 49 and would have flagged a normal
+result; banded vitamin D ranges weren't read; and 81 rows needed a manual check because Portuguese
+report names ("V.G.M.", "Creatininémia", "TFGe") weren't in the catalogue. After the fixes the same
+reports needed no manual checks. Every case is now reproduced in English, with a made-up person and
+lab, in fictional PDFs and phone photos that a live extraction check (`npm run test:live`) reads
+for real and compares row by row.
+
+## Reading results in context
+
+An AI chat about blood tests gets useful as it goes on because of context: when a medication started,
+whether the blood was drawn before or after a dose, what wasn't repeated. LabTrails now keeps that
+context and computes from it, without diagnosing:
+
+- **A personal timeline** of medications, supplements, lifestyle changes and events, shown as bands
+  on every chart and in the table, and, if the user ticks it, on the doctor report.
+- **Dose timing per test** ("drawn 29 days after the last dose"), and a fourth flag for results
+  outside the lab's range on several tests in a row.
+- **Known influences**: 40 documented pairs (for example, eating before the test can raise glucose),
+  each cited to MedlinePlus, the NHS or Lab Tests Online with the quote checked against the page, and
+  matched to the user's own timeline and notes. The app states a documented influence and the user's
+  entry, never a cause.
+- **Ask about your results**, answered only from the markers the question names, with every number
+  in an answer checked against what was sent; with consent, the timeline and influences go too.
+  Asked "Why has my vitamin D gone up?", a real model gave the facts, noted the supplement started
+  between two tests, and said a timeline entry doesn't show a cause; asked about changing a dose, it
+  declined.
+- **Personal lines** a user or their doctor sets on a chart, and **"Before your next test"**: what
+  was measured last time, what wasn't repeated, and the user's chosen tests written as a request in
+  English or Portuguese.
+
 ## Shipping and what broke
 
 The apps are served as static files from my home server through a Cloudflare Tunnel, deployed by
@@ -150,28 +185,28 @@ problems, each now guarded by a test:
 
 ## What was tested
 
-- **308 unit tests**, including every unit conversion both ways, English and Portuguese marker names,
-  the flag rules with ranges from different labs, the extraction validator, summary facts never
-  containing the name or date of birth, zips and zip bombs, duplicate detection, cumulative reports
-  split by date, correcting results without changing anything else, colour contrast, and the shared
-  core's encryption, backup and review rules.
-- **15 browser tests** against the production build, every one failing if the app contacts any site
+- **368 unit tests**, including every unit conversion both ways, English and Portuguese marker names,
+  the flag rules with ranges from different labs, banded and age-banded ranges, the extraction
+  validator, summary facts never containing the name or date of birth, zips and zip bombs, duplicate
+  detection, cumulative reports split by date, correcting results, the timeline and dose timing, the
+  influence table (sources, quotes, and the pairs no source supports kept out), Ask's numbers check
+  with lab units, colour contrast, and the shared core's encryption, backup and review rules.
+- **20 browser tests** against the production build, every one failing if the app contacts any site
   other than itself: a full vault round trip that leaves nothing readable in the browser's database,
   the demo, installing and reloading offline, a whole import with all three duplicate levels,
-  correcting, mapping, adding and deleting single results, axe on every screen in both themes at two
-  widths, the keyboard path, and, with a mocked AI, that nothing is sent before the user agrees, the
-  person's name never appears in a request, only ticked rows are saved, a three-date report becomes
-  three reports, and AI text with HTML in it is shown as text.
+  photos grouped as the pages of one report, correcting single results, the timeline on the chart,
+  table and doctor report, dose timing, personal lines across units, axe on every screen in both
+  themes at two widths, the keyboard path, and, with a mocked AI, that nothing is sent before the user
+  agrees, the person's name never appears in a request, only ticked rows are saved, a three-date
+  report becomes three reports, Ask withholds an answer with an unchecked number, and AI text with
+  HTML in it is shown as text.
+- **A live extraction check** on the fictional reports, run by hand after prompt or matching changes.
 - **CI** runs lint, typecheck, the tests, the build and the nginx check (including that missing files
   are never cached) on every push.
 
 ## What's next
 
-- Testing with my own reports, from both countries.
-- Several photos read as the pages of one report, built into the shared core so BabyTrails' booklet
-  pages get it too.
-- Asking questions about your history, as a shared module whose answers may only use numbers the code
-  computed.
+- Using the whole app with my own history: reports, timeline and questions.
 - Per-marker change thresholds based on published biological variation, instead of one percentage for
   every marker.
 - Later: more AI providers, encrypted sync between devices, and a Portuguese interface.
