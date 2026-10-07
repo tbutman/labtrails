@@ -391,3 +391,17 @@
   margin-top: var(--space-1);
   font-size: var(--text-sm);
 }
+
+/* Known influences on a marker page */
+.influences-matched {
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+  font-weight: 500;
+}
+.influences li + li {
+  margin-top: var(--space-1);
+}
+.influences a {
+  font-size: var(--text-sm);
+}
