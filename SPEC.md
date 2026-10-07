@@ -1,6 +1,6 @@
 # LabTrails: specification
 
-Status: **draft for review**, 6 October 2026. Nothing here is built yet.
+Status: **built and live since October 6, 2026**; sections 16 to 19 record what changed.
 
 This file records what the first version does, how it's built and why. Anything not yet verified is
 marked **(unverified)**. LabTrails shares its architecture with its sister app,
@@ -34,7 +34,7 @@ with "worth discussing with your doctor". A short disclaimer appears at setup an
 output. Wording avoids anything that would make it a diagnostic tool, which could raise EU
 medical-device questions.
 
-## 2. Decisions from Thomas (6 October 2026)
+## 2. Decisions from Thomas (October 6, 2026)
 
 | Question | Decision |
 | --- | --- |
@@ -55,7 +55,7 @@ not-medical-advice rules are never cut.**
    auto-lock, persistent-storage request. Several profiles.
 2. **Results by hand (no AI needed).** A test date and lab; per result: the name as printed, value,
    unit, reference range as printed and flag as printed (H or L). Optional context (section 7).
-3. **Marker catalogue.** About 70 common markers in ten panels, with canonical names, English and
+3. **Marker catalog.** About 70 common markers in ten panels, with canonical names, English and
    Portuguese aliases and cited unit conversions (section 8). Unknown markers are kept as printed and
    can be mapped later.
 4. **Trends.** A chart per marker over time, in the user's chosen unit, each point drawn against its
@@ -65,7 +65,7 @@ not-medical-advice rules are never cut.**
 6. **Backup.** Encrypted export and import, from the shared core. (Moved up from 9, as in
    BabyTrails: browser data loss is the biggest risk of local-first, so this is never cut.)
 7. **Demo mode.** A fictional person with three years of results and pre-written summaries; no key
-   and no passphrase; clearly labelled. (Moved up from 10: it's in the day 1 plan, and it's what
+   and no passphrase; clearly labeled. (Moved up from 10: it's in the day 1 plan, and it's what
    portfolio visitors see.)
 8. **AI extraction with review.** From an uploaded report (PDF or photo, often in Portuguese), the AI
    proposes rows; the user reviews every row next to the original page before anything is saved.
@@ -76,7 +76,7 @@ not-medical-advice rules are never cut.**
 
 ---- cut line: below here goes first ----
 
-11. **Doctor-visit report.** One page: flagged markers, their trends, the context and the user's
+11. **Doctor report.** One page: flagged markers, their trends, the context and the user's
     notes, exported as PNG and PDF in the browser and shared as a file. If time is short, the print
     stylesheet (Save as PDF) ships and PNG waits.
 
@@ -96,7 +96,7 @@ oxlint, `idb`, hand-rolled SVG charts, Vitest and Playwright, `vite-plugin-pwa`,
 `.nvmrc`, `engines` and CI, with the lockfile written by npm 10. Versions are plain git tags with a
 `CHANGELOG.md`, not GitHub releases, because the server deploys the newest GitHub release.
 
-No new dependencies are planned beyond what the core brings. The doctor-visit report renders its
+No new dependencies are planned beyond what the core brings. The doctor report renders its
 own SVG, so PNG export needs no library: the SVG is drawn to a canvas. PDF uses the browser's print
 dialog with a print stylesheet.
 
@@ -106,7 +106,7 @@ BabyTrails owns `src/core/`: vault, store, documents, review, AI client, backup,
 design tokens. Its interface is planned in BabyTrails `SPEC.md` section 5; LabTrails' needs are in
 the coordination file Thomas set up for the two projects, and BabyTrails has accepted them all.
 
-- **Until the core is ready (day 1):** LabTrails builds only what needs no core: the catalogue,
+- **Until the core is ready (day 1):** LabTrails builds only what needs no core: the catalog,
   conversions, flags, extraction schema, charts and demo. Data goes through a small `Repository`
   interface backed by in-memory fixtures. Its methods mirror the core store (register collections;
   get, put, delete and list encrypted records by collection), so swapping in the real store is one
@@ -175,7 +175,7 @@ Settings (app part) { preferredUnit: Record<markerId, unit> }
 
 Notes:
 - **Values are stored exactly as printed,** in the printed unit. Conversion happens when charting,
-  flagging and summarising, so a wrong factor can be fixed later without touching stored data.
+  flagging and summarizing, so a wrong factor can be fixed later without touching stored data.
 - **Flags, converted values and trends are always computed, never stored,** and never taken from the
   AI.
 - Each result keeps its own range, because ranges differ between labs, methods and sometimes age
@@ -193,7 +193,7 @@ and as a small marker on the chart point, and they go to the AI so it can say, f
 test was taken after a hard workout". Free-text medications are sent to the AI only as part of an AI
 request the user confirms; the send sheet lists them.
 
-## 8. Marker catalogue and units
+## 8. Marker catalog and units
 
 **Panels and markers** (about 70; English canonical name, then Portuguese aliases):
 
@@ -211,11 +211,11 @@ request the user confirms; the send sheet lists them.
 | Inflammation | CRP and hs-CRP (Proteína C reactiva/reativa, PCR), ESR (Velocidade de sedimentação, VS), homocysteine (Homocisteína) |
 
 Aliases include accented and unaccented spellings, European and Brazilian Portuguese, and common
-abbreviations. Matching normalises case, accents, punctuation and spacing, then tries the alias
+abbreviations. Matching normalizes case, accents, punctuation and spacing, then tries the alias
 list, then the user's own `Alias` mappings. A match that depends on the unit (for example
 neutrophils as a count or a percentage) uses the unit to choose.
 
-**Two traps the catalogue handles explicitly:**
+**Two traps the catalog handles explicitly:**
 - **Urea and BUN are different measurements.** Portuguese labs report urea (Ureia); US labs report
   blood urea nitrogen (BUN). They're two markers, with a documented conversion between them (urea
   mg/dL ≈ BUN mg/dL × 2.14, from the molar masses of urea and of its two nitrogen atoms; cited in
@@ -230,7 +230,7 @@ neutrophils as a count or a percentage) uses the unit to choose.
 source and covered by a test. Factors for single substances come from molar masses, which are
 checked against a published SI conversion table (for example the AMA Manual of Style's SI
 conversion table, or Young, "Implementation of SI units for clinical laboratory data", *Annals of
-Internal Medicine* 1987). **Verified 6 October 2026:** each factor is derived from a PubChem molar
+Internal Medicine* 1987). **Verified October 6, 2026:** each factor is derived from a PubChem molar
 mass and cross-checked against the AMA table; the citations are in `src/labs/catalogue/sources.ts`
 and every factor has a test. Creatinine was corrected from 88.42 to 88.4.
 
@@ -280,9 +280,9 @@ first. They're tested, including results with different ranges.
    the high end **of its own printed range**. One-sided ranges flag on one side only. A comparator
    result ("<0.5") is flagged only when the whole possible range is outside (for example "<0.5"
    against a range of 1–5). If no range was printed but the lab printed H or L, the lab's flag is
-   shown as printed and labelled so. If the code and the lab disagree, both are shown.
+   shown as printed and labeled so. If the code and the lab disagree, both are shown.
    Wording: *"Outside the lab's range (above). Worth discussing with your doctor."*
-2. **Changed notably since the previous result.** A heuristic, labelled as one in the app. A change
+2. **Changed notably since the previous result.** A heuristic, labeled as one in the app. A change
    is notable when it's at least **25% of the width of the newer result's range**, or, when there's
    no two-sided range, at least **25% of the previous value**. Moving into or out of the range always
    counts. The 25% figure is a starting point chosen for simplicity, not a clinical threshold; it's
@@ -309,7 +309,7 @@ confirms ambiguous dates, and saves. Nothing is saved before that.
 
 **What the code does, not the AI:**
 - **Marker mapping:** the code's alias matching runs first. The AI's suggested marker is used only
-  when alias matching finds nothing, and it can only choose from catalogue IDs (an enum in the
+  when alias matching finds nothing, and it can only choose from catalog IDs (an enum in the
   schema) or "unknown". AI suggestions are marked lower confidence and highlighted.
 - **Dates:** the AI returns the date as printed and the format it believes was used. If the date
   could be read both ways (03/04/2025), the review screen asks. A hint: a Portuguese lab name or
@@ -349,7 +349,7 @@ exactly what's sent.
 or abnormal beyond the code's flags; never diagnose, name conditions as likely, or suggest
 treatments, supplements, doses, or starting or stopping medication; neutral wording; plain language
 for a non-specialist. Output is plain text or the core's restricted Markdown, rendered as React
-elements, never HTML. Every summary is labelled as AI-written, with the disclaimer.
+elements, never HTML. Every summary is labeled as AI-written, with the disclaimer.
 
 **Rough cost** (estimates from Sonnet 5.5's prices, $2 per million input and $10 per million output
 tokens, as BabyTrails `SPEC.md` section 10 records; the user's own Anthropic account is billed):
@@ -359,19 +359,19 @@ tokens, as BabyTrails `SPEC.md` section 10 records; the user's own Anthropic acc
 Provider facts (the browser-access header, data retention and training policy, limits) are
 BabyTrails `SPEC.md` section 10; the README and app use the same wording.
 
-## 12. Doctor-visit report (below the cut line)
+## 12. Doctor report (below the cut line)
 
 One page for a profile: the flagged markers with a small trend chart each, their latest values and
 ranges, the context of the latest test, and the user's own notes, plus the disclaimer. Options:
 name or initials, and which markers to include. It's a file the user saves or shares (Web Share API
 where supported), never a link to a server.
 
-## 13. Visual identity (agreed 6 October 2026)
+## 13. Visual identity (agreed October 6, 2026)
 
 The shared "Trails" design system, with BabyTrails' "Honey and ink" as the family base (BabyTrails
 `SPEC.md` section 11): warm white `#FFFBF2` and deep ink `#12162B` backgrounds, ink text, Quicksand
 for the wordmark and headings, system UI font for body text, and the three-dot trail icon. Tokens come
-from the core; LabTrails sets only these. Agreed for both apps on 6 October 2026.
+from the core; LabTrails sets only these. Agreed for both apps on October 6, 2026.
 
 | Token | Light mode | Dark mode | Use |
 | --- | --- | --- | --- |
@@ -382,8 +382,8 @@ from the core; LabTrails sets only these. Agreed for both apps on 6 October 2026
 **Why plum for flags:** red, amber and green read as verdicts, which BabyTrails avoids and which
 would push LabTrails toward a diagnostic tone. Amber would also look like BabyTrails' honey. Plum is
 distinct from both, and calm. Plum and teal have similar lightness (1.5:1), so **a flag is never
-shown by colour alone**: it always has a ring on the chart point, an icon and the words. "Changed"
-and "trending" use ink arrows and words, with no colour. Ratios are WCAG 2.1, computed 6 October
+shown by color alone**: it always has a ring on the chart point, an icon and the words. "Changed"
+and "trending" use ink arrows and words, with no color. Ratios are WCAG 2.1, computed October 6,
 2026.
 
 Wordmark: "labtrails", lowercase, with "trails" in teal. Icon: the three-dot trail, teal on ink.
@@ -440,7 +440,7 @@ production deploy:** work happens on branches and Thomas approves each push to `
 | Alias matching | English and Portuguese names, accents and no accents, abbreviations, unit-dependent matches, unknown names kept as printed, user mappings. |
 | Parsing | Decimal commas, comparators, one- and two-sided ranges in several formats, qualitative results. |
 | Flags | Each rule, including results with different ranges from different labs, mixed units, one-sided ranges, comparator values, missing ranges, and the code disagreeing with the lab's printed flag. |
-| Extraction | Nothing saved without confirmation; invalid AI output rejected; ambiguous dates must be confirmed; AI marker suggestions limited to the catalogue. |
+| Extraction | Nothing saved without confirmation; invalid AI output rejected; ambiguous dates must be confirmed; AI marker suggestions limited to the catalog. |
 | Encryption and backup | Round trips through the core (its tests come with it, and LabTrails adds a round trip with its own collections). |
 | Network | The allow-list test. |
 | AI output | Never rendered as HTML. |
@@ -450,11 +450,11 @@ CI runs lint, typecheck, tests and build on every push and pull request.
 
 ## 17. Build order
 
-- **Day 1 (no core needed):** project setup and CI; catalogue, aliases and conversions with
+- **Day 1 (no core needed):** project setup and CI; catalog, aliases and conversions with
   citations; parsing; flags; extraction schema; trend charts and table; demo data; all on in-memory
   fixtures behind the `Repository` interface.
 - **Day 2:** copy the core and wire it in; profiles and vault; manual entry with context; extraction
-  with review; summaries; backup; PWA; doctor-visit report if time allows; deployment staging;
+  with review; summaries; backup; PWA; doctor report if time allows; deployment staging;
   README, `THREAT_MODEL.md`, `SECURITY.md` and `docs/case-study.md`.
 
 **Done means:** the app is live at labtrails.app as static files; Thomas has extracted one of his own
@@ -462,7 +462,7 @@ reports in his own browser and seen the trends; the demo works without a key; th
 the README explains the privacy model in plain language; and `docs/case-study.md` is ready for his
 site.
 
-## 18. Next: following a history (agreed with Thomas, 7 October 2026)
+## 18. Next: following a history (agreed with Thomas, October 7, 2026)
 
 **Why.** LabTrails was compared with the kind of AI chat it's meant to replace, and tested on real
 reports (private notes, outside the repository). LabTrails already keeps the record better: every
@@ -514,7 +514,7 @@ an optional "Timeline" block (entries active in the period shown, with start dat
 
 **Persistent.** The latest result and at least the two before it are all outside their own labs'
 ranges, on the same side. Wording: *"Outside the lab's range on the last 4 tests."* Like the other
-rules: a pure, tested function, labelled a heuristic, one constant (3) to change.
+rules: a pure, tested function, labeled a heuristic, one constant (3) to change.
 
 ### 18.3 Not repeated since
 
@@ -524,14 +524,15 @@ overview, in the after-report summary's facts, and on the doctor report. Code on
 
 ### 18.4 Known influences
 
-The catalogue gains, per marker, a short list of documented influences from a fixed vocabulary:
+The catalog gains, per marker, a short list of documented influences from a fixed vocabulary:
 time of day, fasting, hydration, recent hard exercise, recent illness, smoking, alcohol, biotin, and
 medication classes (testosterone and anabolic steroids, GLP-1 agonists, statins, thyroid hormone,
 corticosteroids, NSAIDs, iron, vitamin D). Each marker–influence pair cites a public source (for
-example MedlinePlus, NHS, Lab Tests Online or a lab handbook) and says only the direction ("can
-raise", "can lower", "varies through the day"). Shown on the marker page as "Things known to affect
-this test", and **matched against the timeline and the test's context**: *"Your timeline includes
-Vitamin D3; vitamin D supplements are known to raise vitamin D."* Never "your vitamin D is high
+example MedlinePlus, the NHS or Lab Tests Online UK, and Testing.com (formerly Lab Tests Online) only
+where none of those says the same thing) and says only the direction ("can raise", "can lower",
+"varies through the day"), with the source's own limits ("in some people"). Shown on the marker page
+as "Things that can affect this test", and **matched against the timeline and the test's context**:
+*"Your timeline includes Vitamin D3; vitamin D supplements can raise vitamin D."* Never "your vitamin D is high
 because…": the app states a documented influence and the user's own entry, not a cause.
 
 ### 18.5 Personal lines
@@ -547,7 +548,7 @@ the history (the times of day of earlier draws for markers that vary through the
 medications: "note whether the draw is before or after your dose"; fasting if earlier tests were
 fasting), and a list the user ticks of tests to ask for. The ticked list is shown as a request in
 English or Portuguese ("Gostaria de fazer análises a: testosterona total, testosterona livre e
-hematócrito"), built from the catalogue's names, not by the AI.
+hematócrito"), built from the catalog's names, not by the AI.
 
 ### 18.7 What the AI gets and may say
 
@@ -585,11 +586,43 @@ medication names from prescriptions; per-marker change thresholds (section 9, st
 1. Persistent flag and "not repeated since" (pure functions, small).
 2. Timeline: data, screen, chart bands and dots, table row, doctor report block.
 3. Dose timing per test.
-4. Known influences in the catalogue, with citations and tests, and matching.
+4. Known influences in the catalog, with citations and tests, and matching.
 5. Facts and prompts for summaries and Ask; demo answers updated and checked.
 6. Personal lines.
 7. Before your next test.
 
-Each is its own pull request, merged with Thomas's OK. Agreed with Thomas (7 October 2026): three
-tests in a row for "persistent"; MedlinePlus, the NHS and Lab Tests Online as sources for known
-influences; English and Portuguese for the "ask for these tests" request.
+Each is its own pull request, merged with Thomas's OK. Agreed with Thomas (October 7, 2026): three
+tests in a row for "persistent"; MedlinePlus, the NHS and Lab Tests Online (now Testing.com; Lab
+Tests Online UK was added on October 7, 2026, section 19) as sources for known influences; English and Portuguese for the "ask for these tests" request.
+
+## 19. After the outside review (agreed with Thomas, October 7, 2026)
+
+An independent product review, with a clinical pass, led to these changes. The rules stay simple
+and published in How flags work.
+
+- **Critical results.** The lab's own critical marks (HH, LL, critical, crítico, panic, !!) are their
+  own flag. A result at least one range width beyond a two-sided range, or at least twice a one-sided
+  upper limit or at most half a one-sided lower limit, is flagged "far outside the lab's range". No
+  table of clinical limits. Either shows fixed text: check the result against the report; if it
+  matches and no doctor has talked to you about it, contact your doctor or the lab today; if you feel
+  unwell, call your local emergency number. The AI facts carry `farOutside`, with a rule to say so
+  plainly.
+- **The lab's marks** are shown as printed ("Lab's mark: HH"), including "N" next to a result outside
+  the printed range.
+- **Changes** on a one-sided range scale by its limit, not by the previous value. The overview splits
+  "Outside the lab's range" from "Changed or trending inside the range".
+- **Values** under 1 keep three significant digits. A value more than ten times beyond the range
+  typed with it asks before saving. Add results starts with no decimal mark.
+- **Units LabTrails can't convert** are flagged against their own printed range and shown in their
+  own unit, not dropped.
+- **The doctor report** dates each row, gives the previous result and the lab, the lab's marks and
+  conversions, units on ranges and lines, the span of results and the number of reports, who
+  prepared it and when, and, optionally, age and sex. A hidden table carries the same rows for
+  screen readers. By default it includes results outside the range and trends.
+- **Known influences** say "can", with each source's limits; alcohol matches ALT and AST only from a
+  test's "recent alcohol" note; thyroid hormone means levothyroxine; steroid creams, sprays and
+  inhalers don't count. Pairs are cited to MedlinePlus, the NHS or Lab Tests Online UK, and to
+  Testing.com (formerly Lab Tests Online) only where none of those says the same thing.
+- **People** can be deleted with everything kept about them. Locking or reloading returns to the same
+  screen after unlocking; a reloaded demo says it ended.
+- **US English** throughout, with dates like "Sep 19, 2026".

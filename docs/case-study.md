@@ -1,7 +1,9 @@
 # LabTrails: blood test results over time, private by design
 
-*Case study, October 2026. LabTrails is live at [labtrails.app](https://labtrails.app) and in active
-development. Screenshots show the demo; every name and value in them is made up.*
+*Case study, October 2026, by [Thomas Butman](https://tbutman.com). LabTrails is live at
+[labtrails.app](https://labtrails.app) and in active development. Free and open source (MIT). Code:
+[github.com/tbutman/labtrails](https://github.com/tbutman/labtrails). Screenshots show the demo;
+every name and value in them is made up.*
 
 <p>
   <img src="screenshots/landing.png" width="720" alt="The LabTrails landing page: every blood test, one clear timeline">
@@ -29,9 +31,9 @@ backups.
 
 **The code flags; the AI explains; the user confirms.** This split runs through the whole app:
 - **Flags are code.** "Outside the lab's range", "changed since last time" and "rising or falling"
-  are pure, tested functions, labelled in the app as heuristics, not clinical thresholds.
+  are pure, tested functions, labeled in the app as heuristics, not clinical thresholds.
 - **The AI copies; the code decides.** Reading a report, the AI only copies rows as printed into a
-  JSON schema whose marker field is limited to catalogue IDs. LabTrails' own matching maps names
+  JSON schema whose marker field is limited to catalog IDs. LabTrails' own matching maps names
   first; the AI's suggestion is a fallback, marked "Unsure".
 - **The user confirms every row** next to the original page before anything is saved, so text in a
   document that tries to steer the AI goes nowhere unless the user ticks it.
@@ -53,7 +55,7 @@ cited in the code and tested against an independently computed value. That check
 factor (creatinine) before release. A few details mattered more than expected:
 - Insulin uses 6.00 pmol/L per µIU/mL; the often-quoted 6.945 comes from a superseded 1959 standard.
 - Portuguese "ureia" (urea) and US "BUN" (urea nitrogen) are different measurements, about 2.14×
-  apart, so they're separate markers and BUN appears on the urea chart converted and labelled.
+  apart, so they're separate markers and BUN appears on the urea chart converted and labeled.
 - Lp(a) refuses to convert between mg/dL and nmol/L, following the European Atherosclerosis Society's
   advice that no single factor is valid.
 - Reports from two countries mean decimal commas and points, "<0,5" and "inferior a", and dates like
@@ -66,9 +68,9 @@ queue:
 
 - **Several files or zips at once.** Zips are opened in the browser, with caps on file count and
   unpacked size so a crafted zip can't exhaust memory.
-- **Duplicates caught at three levels.** The same file is recognised by its SHA-256 fingerprint before
+- **Duplicates caught at three levels.** The same file is recognized by its SHA-256 fingerprint before
   anything is sent to the AI (saving the cost of reading it again). The same report from a different
-  file, such as a PDF and a photo of it, is recognised by its values, with a "Skip this one" link. And
+  file, such as a PDF and a photo of it, is recognized by its values, with a "Skip this one" link. And
   rows already saved are left out of the review, so nothing is doubled on the charts.
 - **One agreement for the batch,** then each report is stored, read and checked in turn. Anything not
   read yet stays listed, so leaving mid-way loses nothing.
@@ -85,14 +87,14 @@ queue:
 ## Fixing what was misread
 
 Reviewing every row catches most mistakes, but not all. Any saved result can now be corrected on its
-own: fix a misread value, add a result the AI missed, delete one, or map a name the catalogue didn't
+own: fix a misread value, add a result the AI missed, delete one, or map a name the catalog didn't
 know to a marker. A mapping is remembered, so the next report printed the same way matches by itself,
 and it can be applied to every earlier result with that name. The same fields and parser serve manual
 entry, so a value reads the same however it got in, and numbers are shown with the report's own
 decimal mark.
 
 <p>
-  <img src="screenshots/correct-result.png" width="560" alt="Correcting a saved result: a name the catalogue doesn't know, about to be mapped to a marker">
+  <img src="screenshots/correct-result.png" width="560" alt="Correcting a saved result: a name the catalog doesn't know, about to be mapped to a marker">
 </p>
 
 ## Two apps, one core, two agents
@@ -108,12 +110,12 @@ that affected both apps.
 **A design system, not a theme.** After the first versions worked, both apps were rebuilt on one kit:
 Inter throughout with tabular figures, a shared palette with one accent per app, and components from
 form fields to metric cards and landing-page sections. Each app has its own landing page from the same
-template. Colour contrast is checked against WCAG 2.1 by a unit test in both apps; it caught a teal
+template. Color contrast is checked against WCAG 2.1 by a unit test in both apps; it caught a teal
 that was 4.3:1 on one surface, below the 4.5:1 minimum.
 
 ## Accessible and fast
 
-Accessibility is tested, not assumed. In CI, axe checks all twelve screens against WCAG 2.1 AA in the
+Accessibility is tested, not assumed. In CI, axe checks all 16 screens against WCAG 2.1 AA in the
 light and dark themes, at phone and desktop widths, and a separate check fails any screen that scrolls
 sideways. That check found a real bug: on a phone, the table of every marker made the whole page 888
 pixels wide on a 375-pixel screen, because screen-reader-only labels inside table cells escaped the
@@ -133,7 +135,7 @@ Every value came back right, but the app's own handling had gaps a fictional dem
 urinalysis rows named like blood tests ("Glicose", "Leucócitos") were matched to blood markers; an
 age-banded PSA range ("40 - 49 anos: 0 - 2.5") parsed as 40 to 49 and would have flagged a normal
 result; banded vitamin D ranges weren't read; and 81 rows needed a manual check because Portuguese
-report names ("V.G.M.", "Creatininémia", "TFGe") weren't in the catalogue. After the fixes the same
+report names ("V.G.M.", "Creatininémia", "TFGe") weren't in the catalog. After the fixes the same
 reports needed no manual checks. Every case is now reproduced in English, with a made-up person and
 lab, in fictional PDFs and phone photos that a live extraction check (`npm run test:live`) reads
 for real and compares row by row.
@@ -148,9 +150,11 @@ context and computes from it, without diagnosing:
   on every chart and in the table, and, if the user ticks it, on the doctor report.
 - **Dose timing per test** ("drawn 29 days after the last dose"), and a fourth flag for results
   outside the lab's range on several tests in a row.
-- **Known influences**: 40 documented pairs (for example, eating before the test can raise glucose),
-  each cited to MedlinePlus, the NHS or Lab Tests Online with the quote checked against the page, and
-  matched to the user's own timeline and notes. The app states a documented influence and the user's
+- **Known influences**: 42 documented pairs (for example, eating before the test can raise glucose
+  slightly), each cited to MedlinePlus, the NHS, Lab Tests Online UK or, where none of those says the
+  same thing, Testing.com (formerly Lab Tests Online), with the quote checked against the page, and
+  matched to the user's own timeline and notes. Each sentence is no stronger than its source ("statins
+  can raise glucose in some people"). The app states a documented influence and the user's
   entry, never a cause.
 - **Ask about your results**, answered only from the markers the question names, with every number
   in an answer checked against what was sent; with consent, the timeline and influences go too.
@@ -160,6 +164,26 @@ context and computes from it, without diagnosing:
 - **Personal lines** a user or their doctor sets on a chart, and **"Before your next test"**: what
   was measured last time, what wasn't repeated, and the user's chosen tests written as a request in
   English or Portuguese.
+
+## After an outside review
+
+In October 2026 an independent product review of both apps, with a clinical pass, found things the
+tests hadn't. The fixes, each now tested:
+
+- **Critical results looked like slightly high ones.** A glucose the lab marked "HH" showed the same
+  chip as a TSH just above its range. The lab's critical marks are now their own flag, a simple rule
+  flags results at least one range width outside the range, and both show fixed text: check the
+  result against the report, then contact your doctor or the lab today.
+- **Small values rounded to a different number.** 0.003 showed as "0"; values under 1 now keep three
+  significant digits.
+- **The doctor report lacked dates.** Each row now has its date, lab and previous result, the lab's
+  own marks and conversions, with a header saying what it covers and a hidden table for screen readers.
+- **Sources and wording.** Influence sentences said "is known to raise" where the sources say "may, in
+  some people"; they now say "can", with the source's own limits. Nine of the 17 pairs that cited
+  Testing.com, which now sells the tests it explains, cite Lab Tests Online UK instead.
+- **Smaller gaps:** a person can be deleted with everything about them, "6,500" no longer defaults to
+  6.5, units LabTrails can't convert are flagged against their own range instead of vanishing, and
+  locking or reloading returns you to the same screen.
 
 ## Shipping and what broke
 
@@ -190,7 +214,7 @@ problems, each now guarded by a test:
   validator, summary facts never containing the name or date of birth, zips and zip bombs, duplicate
   detection, cumulative reports split by date, correcting results, the timeline and dose timing, the
   influence table (sources, quotes, and the pairs no source supports kept out), Ask's numbers check
-  with lab units, colour contrast, and the shared core's encryption, backup and review rules.
+  with lab units, color contrast, and the shared core's encryption, backup and review rules.
 - **20 browser tests** against the production build, every one failing if the app contacts any site
   other than itself: a full vault round trip that leaves nothing readable in the browser's database,
   the demo, installing and reloading offline, a whole import with all three duplicate levels,

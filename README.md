@@ -4,9 +4,13 @@
 marker over time against the lab's own reference range, and spot what's outside the range or has
 changed, to discuss with your doctor.
 
-**Free and open source** (MIT licence). No account, no subscription, no ads, no analytics. Your results
-are encrypted and stay in your own browser. Website: [labtrails.app](https://labtrails.app) (being set
-up).
+**Free and open source** (MIT license). No account, no subscription, no ads, no analytics. Your results
+are encrypted on your device, in your browser, and never reach our server.
+
+Website: [labtrails.app](https://labtrails.app). Live and in active development; more markers are next.
+
+Part of **Trails**, with [BabyTrails](https://babytrails.app) (a baby's growth on the WHO charts). Made
+by [Thomas Butman](https://tbutman.com).
 
 <p>
   <img src="docs/screenshots/landing.png" width="720" alt="The LabTrails landing page: every blood test, one clear timeline">
@@ -21,17 +25,21 @@ up).
 ## What it does
 
 - **All your results in one place,** from any lab and any country. Portuguese and English names
-  ("Glicose", "Colesterol HDL", "TGO/AST") are recognised, and about 70 common markers are built in.
+  ("Glicose", "Colesterol HDL", "TGO/AST") are recognized, and more than 70 common markers are built in.
   Anything else is kept exactly as printed.
 - **Each marker over time.** One chart per marker, in the unit you choose (mg/dL or mmol/L, for
   example). Labs print different reference ranges, so each result is drawn against **its own** lab's
   range, not one "normal" band. A table shows every marker by date.
 - **Flags decided by simple, published rules, not by AI:**
   - *Outside the lab's range*: compared with the range printed on that report.
-  - *Changed since last time*: a change of at least a quarter of the range's width.
+  - *Changed since last time*: a change of at least a quarter of the range's width (or of its one
+    limit, for a range like "up to 5").
   - *Rising* or *falling*: three or more results moving the same way.
   - *On several tests in a row*: outside the lab's range on the last three or more tests, so a
     one-off result looks different from one that keeps happening.
+  - *Marked critical, or far outside the range*: the lab's own critical mark ("HH", "LL",
+    "critical"), or a result at least one range width beyond the range. LabTrails then says to check
+    the result against the report and, if it matches, to contact your doctor or the lab today.
 
   LabTrails also lists markers you had measured in the two years before your latest report that
   aren't in it ("not in your latest report: HbA1c, HDL").
@@ -40,17 +48,18 @@ up).
 - **A personal timeline:** medications, supplements and changes like stopping alcohol or starting
   training, with when they started and ended, shown as bands on every chart and in the table, and on
   the doctor report if you choose. It never changes a flag.
-- **Things known to affect a test,** from MedlinePlus, the NHS and Lab Tests Online, matched to
-  your timeline and notes ("your timeline includes vitamin D3; vitamin D supplements are known to
-  raise vitamin D"). Documented influences in general, never a reason for your result.
+- **Things that can affect a test,** from MedlinePlus, the NHS, Lab Tests Online UK and a few from
+  Testing.com (formerly Lab Tests Online), matched to your timeline and notes ("your timeline includes
+  vitamin D3; vitamin D supplements can raise vitamin D"). Documented influences in general, never a
+  reason for your result.
 - **Notes on each test:** fasting or not, the time of day, medications and supplements ("same as last
   time" is one tap), recent illness, hard exercise, alcohol or poor sleep. They never change a flag,
   but they show on the chart and help explain a result.
 - **Import reports with AI (optional).** Add PDFs or photos, several at once or in a zip. If you
-  agree, the AI copies out the results; LabTrails matches them to its catalogue; **you check every row**
+  agree, the AI copies out the results; LabTrails matches them to its list of markers; **you check every row**
   next to the original page before anything is saved. Files you've already imported, rows you already
-  have, and a second copy of a report you already saved are all recognised. Files you keep for later
-  wait under "Not read yet". A report that also lists earlier results (several sample dates side by
+  have, and a second copy of a report you already saved are all recognized. Files you keep for later
+  wait under "Not read yet", where you can view them or type the results in by hand. A report that also lists earlier results (several sample dates side by
   side) becomes one report per date, and several photos of one paper report can be read together as
   its pages.
 - **Fix one result without starting over.** Correct a value that was misread, add one that was
@@ -64,7 +73,8 @@ up).
   against those results before you see it; an answer that doesn't check out isn't shown.
 - **Before your next test:** what you had measured last time, what wasn't repeated, notes from your
   history, and the tests you choose written as a request in English or Portuguese.
-- **A one-page report for your doctor,** printed, saved as PDF or shared as an image. It's a file you
+- **A doctor report:** one page for your next appointment, printed, saved as PDF or shared as an
+  image, with each result's date and lab, the previous result and the lab's own marks. It's a file you
   share yourself, never a link to a server.
 - **Several people** in one vault (for example you and your partner). Make sure they're happy for
   their results to be kept here.
@@ -91,7 +101,7 @@ doctor", nothing more.
   Before anything is sent, LabTrails shows you exactly what goes and asks you to confirm. For summaries,
   your name and date of birth are left out. An uploaded report usually shows your name itself, and
   LabTrails can't remove it from a PDF or photo.
-- **What Anthropic does with it:** as of 6 October 2026, Anthropic's
+- **What Anthropic does with it:** as of October 6, 2026, Anthropic's
   [Commercial Terms](https://www.anthropic.com/legal/commercial-terms) say it may not train models on
   what you send through the API, and its
   [Privacy Center](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data)
@@ -118,13 +128,13 @@ sees, a malicious version of the app), read the [threat model](THREAT_MODEL.md).
 
 LabTrails is free. The AI features use your own Anthropic account, billed by Anthropic. Rough estimates
 with the default model (Claude Sonnet 5.5, $2 per million input tokens and $10 per million output
-tokens, Anthropic's prices on 6 October 2026):
+tokens, Anthropic's prices on October 6, 2026):
 
 - Reading a three-page report: about **3 to 4 US cents**.
 - A summary: about **1 to 2 US cents**.
 
 Use a dedicated API key with a spending limit, set in Anthropic's console. Without a key, everything
-except reading reports and writing summaries still works.
+except reading reports, summaries and Ask still works.
 
 ## For developers
 
@@ -145,12 +155,11 @@ npm run test:live # real extraction of the fictional test reports (needs ANTHROP
   regenerates them; `npm run test:live` checks the real extraction against them, row by row.
 
 - [SPEC.md](SPEC.md): what the first version does and why.
-- `src/labs/`: the catalogue, unit conversions (every factor cited in `catalogue/sources.ts` and
+- `src/labs/`: the marker catalog, unit conversions (every factor cited in `catalogue/sources.ts` and
   tested), parsing, matching and the flag rules. All pure and tested.
 - `src/core/` (the encrypted vault, storage, backup, settings, documents, the import flow, the review
   screen, the AI client and the Trails UI kit) is shared with LabTrails' sister app, [BabyTrails](https://github.com/tbutman/babytrails),
-  and copied from it with `scripts/sync-core.sh`. The source commit is in `src/core/SOURCE`; currently
-  [babytrails@471767d](https://github.com/tbutman/babytrails/commit/471767d).
+  and copied from it with `scripts/sync-core.sh`. The source commit is in `src/core/SOURCE`.
 - Every push and pull request runs lint, typecheck, unit tests, the build and the browser tests. The
   browser tests fail if the app requests anything from any site other than itself (and, in the tests
   that use a mocked AI, Anthropic's API). They also run [axe](https://github.com/dequelabs/axe-core)
@@ -162,6 +171,8 @@ npm run test:live # real extraction of the fictional test reports (needs ANTHROP
   offline by the service worker.
 - Found a security problem? See [SECURITY.md](SECURITY.md).
 
-## Licence
+## License
 
-Free and open source under the [MIT licence](LICENSE).
+Free and open source under the [MIT license](LICENSE). Known influences quote public pages briefly;
+see [DATA-NOTICE.md](DATA-NOTICE.md). pdf.js is Apache-2.0; Inter is under the SIL Open Font License;
+Lucide icons are ISC.

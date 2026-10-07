@@ -80,7 +80,7 @@ nginx config changes aren't part of a release: copy the changed files into the c
 
 ## Tested
 
-On 6 October 2026, before anything on the server changed:
+On October 6, 2026, before anything on the server changed:
 
 - `trails-deploy.sh` in an Ubuntu 24.04 container against this repository's real releases: first
   install (`site-6-8b9bd21`), a no-op re-run, rollback and pin, a timer run while pinned (no change),

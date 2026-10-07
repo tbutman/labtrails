@@ -2,9 +2,38 @@
 
 ## Unreleased
 
-The first version, not yet released.
+Changes from an independent product review (October 7, 2026):
 
-- A catalogue of about 70 markers in ten panels, with English and Portuguese names and unit
+- Results the lab marked critical (HH, LL, critical, panic, !!), or at least one range width outside
+  the range, are their own flag, with fixed text to check the result and contact a doctor or the lab
+  today. The lab's printed mark is shown everywhere, including "N".
+- Values under 1 keep three significant digits (0.003 no longer shows as 0).
+- The doctor report dates every row and shows the previous result, the lab, the lab's marks,
+  conversions and units, with a header (span, number of reports, prepared on, optional age and sex),
+  a footer written for the doctor, and a hidden table for screen readers. Titled "Doctor report".
+- "What 'outside the range' means", under a flag and in How flags work, citing MedlinePlus.
+- Changes on a one-sided range are measured against its limit; the overview splits results outside
+  the range from changes and trends inside it, and says "Back inside the lab's range".
+- Known influences say "can", with each source's own limits, match more narrowly, and cite Lab Tests
+  Online UK for 9 of the 17 pairs that cited Testing.com (the rest are named "Testing.com (formerly
+  Lab Tests Online)"); two pairs added (statins and LDL, thyroid hormone and TSH), 42 in all; a script
+  to recheck every quote by hand.
+- Add results starts with no decimal mark; a value ten times beyond its range asks before saving; a
+  personal line's unit is a menu.
+- Units LabTrails can't convert are flagged against their own range and shown, not dropped; B12 in
+  ng/L and glucose in g/L convert.
+- A person can be deleted with everything kept about them; summary facts redact accented names.
+- Files not read yet can be viewed and typed in by hand; PDFs open offline.
+- Locking or reloading returns to the same screen after unlocking; a reloaded demo says it ended;
+  forms warn before closing with typed values.
+- Ask wraps on phones and shows the no-key notice on open; a root error screen; counts read
+  "× 10⁹/L"; the table's date header stays in view; US English, with dates like "Sep 19, 2026".
+
+## 0.1.0
+
+The first version, live at [labtrails.app](https://labtrails.app) since October 6, 2026.
+
+- A catalog of about 70 markers in ten panels, with English and Portuguese names and unit
   conversions. Every conversion factor is cited and tested.
 - Each marker over time, every result against its own lab's range, in the unit you choose; a table of
   every marker by date.
@@ -45,14 +74,14 @@ The first version, not yet released.
   (mmol/L and other SI units) on one chart, and an English sample report with a urinalysis row.
 - Fictional test reports (a multi-page PDF with a previous-results column and a urinalysis page, and a
   two-photo US report) and a live extraction check against them. Text results such as "Negative" on
-  a urinalysis are now recognised as already saved when a report is imported again.
+  a urinalysis are now recognized as already saved when a report is imported again.
 - Reading real reports better (found by testing with four real Portuguese reports, October 2026):
-  urinalysis rows are recognised as urine and never matched to blood markers (a "Sample" field in the
+  urinalysis rows are recognized as urine and never matched to blood markers (a "Sample" field in the
   review); ranges printed by age, sex or category use the right band (vitamin D's sufficient band, PSA
   for your age), or none rather than a wrong one; earlier-date columns use the report's printed range,
   marked as such; sample times, percentages written into values and cut-off count units are read;
   Portuguese report names (V.G.M., Creatininémia, TFGe and more) match without a manual check; free
-  testosterone is in the catalogue; a realistic cost estimate.
+  testosterone is in the catalog; a realistic cost estimate.
 - Ask about your results: questions answered from the markers they name (or the flagged ones), with
   every number checked against what was sent before the answer is shown; saved conversations per
   person; prepared answers in the demo.
