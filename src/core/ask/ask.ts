@@ -18,6 +18,8 @@ export async function askQuestion(o: {
   banned?: RegExp[]
   /** The units whose numbers must be declared (GROWTH_UNITS by default). */
   units?: string[]
+  /** Who the facts are about, for the retry's wording: "the baby", "the person" (the default). */
+  subject?: string
   signal?: AbortSignal
 }): Promise<AskOutcome> {
   const earlier = historyText(o.history)
@@ -25,7 +27,7 @@ export async function askQuestion(o: {
   const usage: AiUsage = { inputTokens: 0, outputTokens: 0 }
   let problems: string[] = []
   for (let attempt = 0; attempt < 2; attempt++) {
-    const text = attempt === 0 ? base : `${base}\n\nYour previous answer was withheld because: ${problems.join('; ')}. Answer again, following the rules: declare every number about the baby in "numbers" with the fact it came from, and use no other numbers with units.`
+    const text = attempt === 0 ? base : `${base}\n\nYour previous answer was withheld because: ${problems.join('; ')}. Answer again, following the rules: declare every number about ${o.subject ?? 'the person'} in "numbers" with the fact it came from, and use no other numbers with units.`
     const { value, usage: u } = await askJson({ apiKey: o.apiKey, model: o.model, system: o.system, content: [{ type: 'text', text }], maxTokens: 1200, signal: o.signal }, ANSWER_SCHEMA, parseAnswer)
     usage.inputTokens += u.inputTokens
     usage.outputTokens += u.outputTokens

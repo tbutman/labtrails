@@ -18,9 +18,10 @@ export type AnswerNumber = { text: string; fact: string }
 export type Answer = { kind: 'answer' | 'out-of-scope'; text: string; numbers: AnswerNumber[] }
 
 export type AskTurn = {
-  role: 'parent' | 'ai'
+  /** A question from the person using the app, or the answer to it. */
+  role: 'question' | 'answer'
   text: string
-  /** For AI turns: an answer, a question it doesn't answer, or one whose numbers couldn't be checked. */
+  /** For answers: an answer, a question it doesn't answer, or one whose numbers couldn't be checked. */
   kind?: 'answer' | 'out-of-scope' | 'unchecked' | 'prepared'
   /** The facts this turn was answered from (a digest), to tell when the data changed. */
   factsDigest?: string
@@ -136,7 +137,7 @@ export function checkAnswer(answer: Answer, facts: unknown, banned: RegExp[] = [
 /** Earlier turns, as text for the next request. */
 export function historyText(turns: AskTurn[]): string {
   return turns
-    .filter((t) => t.role === 'parent' || t.kind === 'answer' || t.kind === 'prepared')
-    .map((t) => `${t.role === 'parent' ? 'Parent' : 'Answer'}: ${t.text}`)
+    .filter((t) => t.role === 'question' || t.kind === 'answer' || t.kind === 'prepared')
+    .map((t) => `${t.role === 'question' ? 'Question' : 'Answer'}: ${t.text}`)
     .join('\n\n')
 }

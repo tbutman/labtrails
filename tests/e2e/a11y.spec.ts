@@ -100,6 +100,8 @@ async function everyScreen(page: Page, found: Found[]) {
 for (const colorScheme of ['light', 'dark'] as const) {
   for (const width of ['phone', 'desktop'] as const) {
     test(`no accessibility violations: ${colorScheme}, ${width}`, async ({ page }) => {
+      // Every screen with axe takes about 20s alone, so more when other tests share the machine.
+      test.slow()
       await page.emulateMedia({ colorScheme })
       if (width === 'desktop') await page.setViewportSize({ width: 1280, height: 900 })
       const found: Found[] = []

@@ -55,10 +55,10 @@ export function Ask() {
     )
 
   // The facts for a question: the markers it (or the conversation so far) is about.
-  const asked = (text: string) => [...(thread?.turns ?? []).filter((t) => t.role === 'parent').map((t) => t.text), text]
+  const asked = (text: string) => [...(thread?.turns ?? []).filter((t) => t.role === 'question').map((t) => t.text), text]
   const factsFor = (text: string) => askFacts(profile, reports, results, asked(text), app.preferredUnit, undefined, timeline, lines)
   // A question that would send different facts from the last answer asks for agreement again.
-  const lastDigest = thread?.turns.filter((t) => t.role === 'ai').at(-1)?.factsDigest
+  const lastDigest = thread?.turns.filter((t) => t.role === 'answer').at(-1)?.factsDigest
   const hide = (t: string) => redactNames(t, [profile.name], 'the person')
 
   async function saveTurns(turns: AskTurn[]) {
@@ -80,8 +80,8 @@ export function Ask() {
       setQuestion('')
       const prepared = DEMO_ANSWERS[match.id]
       return saveTurns([
-        { role: 'parent', text, createdAt: nowIso() },
-        { role: 'ai', kind: 'prepared', text: prepared.text, model: 'prepared in advance', createdAt: nowIso() },
+        { role: 'question', text, createdAt: nowIso() },
+        { role: 'answer', kind: 'prepared', text: prepared.text, model: 'prepared in advance', createdAt: nowIso() },
       ])
     }
     if (!core.ai.apiKey) return setError('NO_KEY')
@@ -111,9 +111,9 @@ export function Ask() {
       const factsDigest = digest(factsText)
       const ai: AskTurn =
         'withheld' in outcome
-          ? { role: 'ai', kind: 'unchecked', text: '', model: core.ai.model, factsDigest, createdAt: nowIso() }
-          : { role: 'ai', kind: outcome.answer.kind, text: outcome.answer.text, model: core.ai.model, factsDigest, createdAt: nowIso() }
-      await saveTurns([{ role: 'parent', text, createdAt: nowIso() }, ai])
+          ? { role: 'answer', kind: 'unchecked', text: '', model: core.ai.model, factsDigest, createdAt: nowIso() }
+          : { role: 'answer', kind: outcome.answer.kind, text: outcome.answer.text, model: core.ai.model, factsDigest, createdAt: nowIso() }
+      await saveTurns([{ role: 'question', text, createdAt: nowIso() }, ai])
       setQuestion('')
       setPending(null)
     } catch (err) {
@@ -235,7 +235,7 @@ export function Ask() {
                   <span className="list-row-main">
                     <span className="list-row-title">{t.turns[0]?.text}</span>
                     <span className="list-row-sub">
-                      {formatDate(t.updatedAt.slice(0, 10))} · {plural(t.turns.filter((x) => x.role === 'parent').length, 'question')}
+                      {formatDate(t.updatedAt.slice(0, 10))} · {plural(t.turns.filter((x) => x.role === 'question').length, 'question')}
                     </span>
                   </span>
                 </Link>
