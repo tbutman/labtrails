@@ -165,6 +165,10 @@ context and computes from it, without diagnosing:
   was measured last time, what wasn't repeated, and the user's chosen tests written as a request in
   English or Portuguese.
 
+<p>
+  <img src="screenshots/marker-timeline-dark.png" width="300" alt="Vitamin D over three years in the dark theme, with the timeline's vitamin D3 and marathon training as bands above the chart">
+</p>
+
 ## After an outside review
 
 In October 2026 an independent product review of both apps, with a clinical pass, found things the
@@ -183,7 +187,9 @@ tests hadn't. The fixes, each now tested:
   Testing.com, which now sells the tests it explains, cite Lab Tests Online UK instead.
 - **Smaller gaps:** a person can be deleted with everything about them, "6,500" no longer defaults to
   6.5, units LabTrails can't convert are flagged against their own range instead of vanishing, and
-  locking or reloading returns you to the same screen.
+  locking or reloading returns you to the same screen. From the shared core: "Erase this vault" for a
+  forgotten passphrase, a new passphrase asked twice, and a restore that checks the passphrase before
+  replacing anything.
 
 ## Shipping and what broke
 
@@ -209,13 +215,15 @@ problems, each now guarded by a test:
 
 ## What was tested
 
-- **368 unit tests**, including every unit conversion both ways, English and Portuguese marker names,
+- **421 unit tests**, including every unit conversion both ways, English and Portuguese marker names,
   the flag rules with ranges from different labs, banded and age-banded ranges, the extraction
   validator, summary facts never containing the name or date of birth, zips and zip bombs, duplicate
   detection, cumulative reports split by date, correcting results, the timeline and dose timing, the
   influence table (sources, quotes, and the pairs no source supports kept out), Ask's numbers check
-  with lab units, color contrast, and the shared core's encryption, backup and review rules.
-- **20 browser tests** against the production build, every one failing if the app contacts any site
+  with lab units, critical marks and the far-outside rule, small values never rounding to 0, the
+  doctor report's rows, deleting a person, color contrast, and the shared core's encryption, backup,
+  passphrase, erase and review rules.
+- **27 browser tests** against the production build, every one failing if the app contacts any site
   other than itself: a full vault round trip that leaves nothing readable in the browser's database,
   the demo, installing and reloading offline, a whole import with all three duplicate levels,
   photos grouped as the pages of one report, correcting single results, the timeline on the chart,
@@ -223,7 +231,9 @@ problems, each now guarded by a test:
   themes at two widths, the keyboard path, and, with a mocked AI, that nothing is sent before the user
   agrees, the person's name never appears in a request, only ticked rows are saved, a three-date
   report becomes three reports, Ask withholds an answer with an unchecked number, and AI text with
-  HTML in it is shown as text.
+  HTML in it is shown as text. Newer ones: a kept PDF opening offline, deleting a person, returning to
+  the same screen after a lock or reload, a reloaded demo, a warning before leaving a filled form,
+  erasing the vault, and changing the passphrase.
 - **A live extraction check** on the fictional reports, run by hand after prompt or matching changes.
 - **CI** runs lint, typecheck, the tests, the build and the nginx check (including that missing files
   are never cached) on every push.
