@@ -93,6 +93,8 @@ export function labAdapter(deps: {
     appName: 'LabTrails',
     // "add one in Settings" links here (LAB-14).
     settingsPath: '/app/settings#ai',
+    // Saving dates the document by its newest sample, unless the person gave a date at import.
+    datesFromContents: true,
     documentKind: 'lab-report',
     noun: { one: 'report', many: 'reports' },
     columns: EXTRACTION_COLUMNS,
@@ -164,7 +166,9 @@ export function labAdapter(deps: {
       // Every page of a group carries the report's date and lab, like a single document.
       const latest = (await store.get<StoredDoc>('documents', doc.id)) ?? doc
       const pages = pagesOf(latest, await store.list<StoredDoc>('documents'))
-      if (newest) for (const page of pages) await store.put('documents', { ...page, date: newest.date, meta: { ...page.meta, lab: meta.lab.trim() || undefined } })
+      if (newest)
+        for (const page of pages)
+          await store.put('documents', { ...page, ...(page.meta?.datedByUser ? {} : { date: newest.date }), meta: { ...page.meta, lab: meta.lab.trim() || undefined } })
       await deps.onSaved()
       return savedSummary(results.length, reports.map((r) => r.date))
     },
