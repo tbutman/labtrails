@@ -35,7 +35,7 @@ async function vaultWithReport(page: Page) {
 
 async function openReport(page: Page) {
   await page.getByRole('link', { name: 'Reports', exact: true }).first().click()
-  await page.locator('summary', { hasText: '30 Sept 2026' }).click()
+  await page.locator('summary', { hasText: 'Sep 30, 2026' }).click()
 }
 
 test('correcting, mapping, adding and deleting single results', async ({ page }) => {
@@ -105,16 +105,18 @@ test('the timeline: an entry shows on the chart, in the table and, when ticked, 
 
   await page.getByRole('link', { name: 'Overview' }).first().click()
   await page.getByRole('link', { name: /^Glucose/ }).first().click()
-  await expect(page.getByRole('img', { name: /Timeline: Medicine X 100 mg, every day, from 15 Oct 2026/ })).toBeVisible()
+  await expect(page.getByRole('img', { name: /Timeline: Medicine X 100 mg, every day, from Oct 15, 2026/ })).toBeVisible()
   await expect(page.getByRole('list', { name: 'Timeline on this chart' })).toContainText('Medicine X')
 
   await page.getByRole('link', { name: 'Table' }).first().click()
   await expect(page.getByRole('row', { name: /Timeline/ })).toContainText('Started Medicine X 100 mg, every day')
 
   await page.getByRole('link', { name: 'Doctor' }).first().click()
-  await expect(page.getByRole('img', { name: /Lab results report/ })).not.toContainText('Medicine X')
+  await expect(page.getByRole('img', { name: /Lab results to discuss with your doctor/ })).not.toContainText('Medicine X')
+  // Back inside the range is no longer included by default (only results outside the range, and trends).
+  await page.getByRole('checkbox', { name: 'Glucose' }).check()
   await page.getByLabel(/Include the timeline/).check()
-  await expect(page.locator('.report-sheet svg')).toContainText('Timeline: Medicine X 100 mg, every day (from 15 Oct 2026)')
+  await expect(page.locator('.report-sheet svg')).toContainText('Timeline: Medicine X 100 mg, every day (from Oct 15, 2026)')
 })
 
 test('dose timing: a test records when the blood was drawn relative to a timed dose', async ({ page }) => {
@@ -155,5 +157,5 @@ test('a personal line: drawn on the chart in any unit, flagged as yours, and on 
   await page.getByRole('link', { name: 'Overview' }).first().click()
   await expect(page.getByText('Above your line').first()).toBeVisible()
   await page.getByRole('link', { name: 'Doctor' }).first().click()
-  await expect(page.locator('.report-sheet svg')).toContainText("Above your line (My doctor's target: under 38.9)")
+  await expect(page.locator('.report-sheet svg')).toContainText("(My doctor's target: under 38.9 mmol/L)")
 })

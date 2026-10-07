@@ -4,7 +4,7 @@
 // them.
 
 import { analyse, notRepeated, type MarkerAnalysis } from '../analysis'
-import { rangeFlag, type Point } from '../flags/flags'
+import { critical, rangeFlag, type Point } from '../flags/flags'
 import { INFLUENCE_NAMES, effectWords, matchInfluences } from '../influences'
 import { lineFlag, lineIn, type PersonalLine } from '../lines'
 import { ageInYears } from '../person'
@@ -17,8 +17,8 @@ export type MarkerFacts = {
   marker: string
   panel: string
   unit: string
-  latest: FactPoint & { outsideRange?: 'above' | 'below' }
-  previous?: FactPoint & { outsideRange?: 'above' | 'below' }
+  latest: FactPoint & { outsideRange?: 'above' | 'below'; farOutside?: true }
+  previous?: FactPoint & { outsideRange?: 'above' | 'below'; farOutside?: true }
   changedNotably?: { direction: 'up' | 'down' | 'same'; percent: number | null; crossedRange: boolean }
   trend?: { direction: 'rising' | 'falling'; results: number }
   /** Outside the lab's range on this many tests in a row, ending with the latest. */
@@ -65,7 +65,7 @@ export type SummaryFacts = {
 }
 
 const RULES =
-  'Flags were computed by code: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" means a change of at least 25% of the range width (or of the previous value without a two-sided range), or moving into or out of the range; "trend" means 3 or more results moving the same way by at least 10% of the range width; "persistent" means outside the lab\'s range on that many tests in a row (3 or more). "notInLatestReport" lists markers measured before but not in the latest report. These are simple heuristics, not clinical thresholds. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events, with dates and doses; "doseTiming" says when a test was drawn relative to a dose; "knownInfluences" are documented influences on a marker from public health sources that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result. "personalLine" is a value the person or their doctor chose for a marker, not a lab or clinical range.'
+  'Flags were computed by code: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" means a change of at least 25% of the range width (of its one limit for a one-sided range, or of the previous value without a range), or moving into or out of the range; "trend" means 3 or more results moving the same way by at least 10% of the range width; "persistent" means outside the lab\'s range on that many tests in a row (3 or more); "farOutside" means the lab marked the result critical (for example HH, LL or "critical") or it is at least one range width outside the lab\'s range. "notInLatestReport" lists markers measured before but not in the latest report. These are simple heuristics, not clinical thresholds. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events, with dates and doses; "doseTiming" says when a test was drawn relative to a dose; "knownInfluences" are documented influences on a marker from health information sites that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result. "personalLine" is a value the person or their doctor chose for a marker, not a lab or clinical range.'
 
 function point(p: Point): FactPoint {
   return { date: p.date, value: round(p.value), ...(p.comparator ? { comparator: p.comparator } : {}), ...(p.range ? { range: roundRange(p.range) } : {}) }
@@ -76,7 +76,7 @@ const roundRange = (r: { low?: number; high?: number }) => ({ ...(r.low !== unde
 
 function withFlag(p: Point) {
   const f = rangeFlag(p)
-  return { ...point(p), ...(f?.basis === 'range' ? { outsideRange: f.side } : {}) }
+  return { ...point(p), ...(f?.basis === 'range' ? { outsideRange: f.side } : {}), ...(critical(p) ? { farOutside: true as const } : {}) }
 }
 
 export { ageInYears } from '../person'

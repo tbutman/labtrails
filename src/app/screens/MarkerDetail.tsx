@@ -7,16 +7,18 @@ import { Link, useParams } from 'react-router'
 import { analyseMarker, type MarkerAnalysis } from '../../labs/analysis'
 import { lineIn, lineText, validateLine, type PersonalLine } from '../../labs/lines'
 import { getMarker } from '../../labs/catalogue/catalogue'
-import { CHANGE_THRESHOLD, TREND_THRESHOLD } from '../../labs/flags/flags'
+import { CHANGE_THRESHOLD, TREND_THRESHOLD, changeBasis } from '../../labs/flags/flags'
 import { convertibleUnits } from '../../labs/units/convert'
 import { Callout, PageHeader, TextField } from '../../core/ui/components'
-import { DISCLAIMER, MarkerFlags } from '../components/Flags'
+import { CriticalNotice, DISCLAIMER, MarkerFlags, RangeMeaning, changeAmount, labMarkText } from '../components/Flags'
 import { chartEvents } from '../chartEvents'
 import { personalFlag, shownLine } from '../personalLine'
 import { MarkerChart, ResultsList } from '../components/MarkerChart'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 import { formatDate, formatPercent, formatPoint, formatRange, formatValue, formatWhen } from '../format'
+
+const BASIS_WORDS = { width: "the lab's range width", limit: "the lab's limit", previous: 'the previous value' } as const
 
 const RECENTLY: Record<string, string> = { illness: 'recent illness', 'hard-exercise': 'recent hard exercise', alcohol: 'recent alcohol', 'poor-sleep': 'poor sleep' }
 
@@ -48,12 +50,23 @@ export function MarkerDetail() {
     <>
       <PageHeader
         title={marker.name}
-        subtitle={a.latest ? `${formatPoint(a.latest)} ${a.series.unit} on ${formatDate(a.latest.date)} · lab's range ${formatRange(a.latest.range)}` : undefined}
+        subtitle={
+          a.latest
+            ? [`${formatPoint(a.latest)} ${a.series.unit} on ${formatDate(a.latest.date)}`, `lab's range ${formatRange(a.latest.range)}`, labMarkText(a.latest.flagAsPrinted)?.replace(/^L/, 'l')].filter(Boolean).join(' · ')
+            : undefined
+        }
         back={{ to: base, label: 'Overview' }}
       />
       <div className="row chips-row">
         <MarkerFlags a={a} line={personalFlag(a, lines)} />
       </div>
+      {a.latestFlag?.labNormal && a.latest && (
+        <p className="hint">
+          The lab marked this normal; the printed range is {formatRange(a.latest.range)}.
+        </p>
+      )}
+      <CriticalNotice a={a} />
+      {a.latestFlag && <RangeMeaning />}
 
       <div className="card chart-card">
         <div className="card-header">
@@ -101,14 +114,17 @@ export function MarkerDetail() {
           <ul className="plain-list">
             {a.change?.notable && (
               <li>
-                From {formatDate(a.change.from.date)} to {formatDate(a.change.to.date)} it went {a.change.direction}
-                {a.change.relative !== null && ` by ${formatPercent(a.change.relative)}`}.{' '}
-                {a.change.crossedRange ? "It moved into or out of the lab's range, which always counts as a change." : `That's at least ${formatPercent(CHANGE_THRESHOLD)} of the lab's range width.`}
+                From {formatDate(a.change.from.date)} to {formatDate(a.change.to.date)} it went {a.change.direction} by {changeAmount(a).replace(/^[+−]/, '')}
+                {a.change.relative !== null && ` (${formatPercent(a.change.relative)})`}.{' '}
+                {a.change.crossedRange
+                  ? `It moved ${a.latestFlag ? 'outside' : 'back inside'} the lab's range, which always counts as a change.`
+                  : `That's at least ${formatPercent(CHANGE_THRESHOLD)} of ${BASIS_WORDS[changeBasis(a.change.to)]}.`}
               </li>
             )}
             {a.trend && (
               <li>
-                The last {a.trend.results} results all {a.trend.direction === 'rising' ? 'rose' : 'fell'}, by at least {formatPercent(TREND_THRESHOLD)} of the range width in total.
+                The last {a.trend.results} results all {a.trend.direction === 'rising' ? 'rose' : 'fell'}, by at least {formatPercent(TREND_THRESHOLD)} of{' '}
+                {BASIS_WORDS[changeBasis(a.trend.to)].replace('the previous value', 'the first value')} in total.
               </li>
             )}
           </ul>

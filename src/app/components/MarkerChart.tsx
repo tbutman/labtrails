@@ -213,7 +213,7 @@ export function ResultsList({ points, unit }: { points: SeriesPoint[]; unit: str
                 <span className="list-row-sub">
                   Lab's range {formatRange(p.range)}
                   {p.convertedFrom && ` · converted from ${p.convertedFrom}`}
-                  {f?.labDisagrees && ' · the lab printed a different flag'}
+                  {p.flagAsPrinted?.trim() && ` · lab's mark: ${p.flagAsPrinted.trim()}${f?.labDisagrees || f?.labNormal ? ' (differs from the printed range)' : ''}`}
                 </span>
               </span>
               {f && <span className="chip flag">! {f.side === 'above' ? 'Above' : 'Below'}</span>}

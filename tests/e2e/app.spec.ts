@@ -26,9 +26,9 @@ test('the demo works without a passphrase or key', async ({ page }) => {
   await expect(page.getByText(/pre-written example/).first()).toBeVisible()
 
   await page.getByRole('link', { name: 'Doctor' }).click()
-  await expect(page.getByRole('img', { name: 'Lab results report for Sam (demo)' })).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Lab results to discuss with your doctor, for Sam (demo)' })).toBeVisible()
   await page.getByLabel('Show initials instead of the name').check()
-  await expect(page.getByRole('img', { name: 'Lab results report for S. (.' })).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Lab results to discuss with your doctor, for S. (.' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Leave demo' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Every blood test')

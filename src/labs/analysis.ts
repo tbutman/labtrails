@@ -3,7 +3,7 @@
 
 import { MARKERS, PANELS, getMarker } from './catalogue/catalogue'
 import type { Marker, PanelId } from './catalogue/types'
-import { changeSincePrevious, persistent, rangeFlag, trend, labFlagWithoutCodeFlag, type Change, type Persistent, type RangeFlag, type Trend } from './flags/flags'
+import { changeSincePrevious, critical, persistent, rangeFlag, trend, labFlagWithoutCodeFlag, type Change, type Critical, type Persistent, type RangeFlag, type Trend } from './flags/flags'
 import { buildSeries, displayUnit, type Series, type SeriesPoint } from './series'
 import type { Report, Result } from './types'
 
@@ -12,6 +12,8 @@ export type MarkerAnalysis = {
   series: Series
   latest: SeriesPoint | undefined
   latestFlag: RangeFlag | null
+  /** The latest result was marked critical by the lab, or is far outside the lab's range. */
+  latestCritical: Critical | null
   labOnlyFlag: 'above' | 'below' | null
   change: Change | null
   trend: Trend | null
@@ -32,6 +34,7 @@ export function analyseMarker(markerId: string, results: Result[], reportsById: 
     series,
     latest,
     latestFlag: latest ? rangeFlag(latest) : null,
+    latestCritical: latest ? critical(latest) : null,
     labOnlyFlag: latest ? labFlagWithoutCodeFlag(latest) : null,
     change: changeSincePrevious(series.points),
     trend: trend(series.points),

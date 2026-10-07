@@ -1,10 +1,14 @@
 import type { Point } from '../labs/flags/flags'
 
-/** A value with sensible precision for lab results: more decimals for small numbers. */
+/**
+ * A value with sensible precision for lab results. Values under 1 keep three significant digits, so a
+ * non-zero value never rounds to 0 or to a different number (0.003 stays 0.003, not "0").
+ */
 export function formatValue(value: number): string {
   const abs = Math.abs(value)
-  const digits = abs === 0 ? 0 : abs < 1 ? 2 : abs < 10 ? 2 : abs < 100 ? 1 : 0
-  return new Intl.NumberFormat('en-GB', { maximumFractionDigits: digits, minimumFractionDigits: 0 }).format(value)
+  if (abs > 0 && abs < 1) return new Intl.NumberFormat('en-US', { maximumSignificantDigits: 3 }).format(value)
+  const digits = abs === 0 ? 0 : abs < 10 ? 2 : abs < 100 ? 1 : 0
+  return new Intl.NumberFormat('en-US', { maximumFractionDigits: digits, minimumFractionDigits: 0 }).format(value)
 }
 
 export function formatPoint(p: Pick<Point, 'value' | 'comparator'>): string {
@@ -22,19 +26,19 @@ export function formatRange(range: Point['range']): string {
 
 export function formatDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
-  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+  return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
 }
 
-/** A day ("6 Jan 2025") or, for a month-only date, the month ("Nov 2024"). */
+/** A day ("Jan 6, 2025") or, for a month-only date, the month ("Nov 2024"). */
 export function formatWhen(when: string): string {
   if (/^\d{4}-\d{2}$/.test(when)) {
     const [y, m] = when.split('-').map(Number)
-    return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' })
+    return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' })
   }
   return formatDate(when)
 }
 
-/** "from Nov 2024", "6 Jan 2025 to 3 Mar 2025". */
+/** "from Nov 2024", "Jan 6, 2025 to Mar 3, 2025". */
 export function formatPeriod(start: string, end?: string): string {
   return end ? `${formatWhen(start)} to ${formatWhen(end)}` : `from ${formatWhen(start)}`
 }

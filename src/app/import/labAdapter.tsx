@@ -35,7 +35,7 @@ function validated(value: unknown): { extraction: Extraction; dropped: number } 
   return v
 }
 
-/** "12 results on 15 Sept 2026", or for a cumulative report "48 results in 4 reports, 3 Mar 2024 to 15 Sept 2026". */
+/** "12 results on Sep 15, 2026", or for a cumulative report "48 results in 4 reports, Mar 3, 2024 to Sep 15, 2026". */
 export function savedSummary(results: number, dates: string[]): string {
   const sorted = [...dates].sort()
   if (sorted.length === 0) return plural(results, 'result')

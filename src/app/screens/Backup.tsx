@@ -36,7 +36,7 @@ export function ExportBackup() {
           browser's data deletes everything here.
         </p>
         <p className="hint">
-          {core.lastBackupAt ? `Last backup: ${new Date(core.lastBackupAt).toLocaleDateString('en-GB', { dateStyle: 'medium' })}.` : 'No backup yet.'}
+          {core.lastBackupAt ? `Last backup: ${new Date(core.lastBackupAt).toLocaleDateString('en-US', { dateStyle: 'medium' })}.` : 'No backup yet.'}
         </p>
       </div>
       <button className="button primary" onClick={() => void download()} disabled={busy}>

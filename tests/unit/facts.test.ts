@@ -30,6 +30,14 @@ describe('summary facts', () => {
     expect(glucose.changedNotably).toMatchObject({ direction: 'up', crossedRange: true })
   })
 
+  it('marks a result the lab marked critical, or far outside its range', () => {
+    const critical = DEMO_RESULTS.map((r) => (r.reportId === 'r6' && r.markerId === 'glucose' ? { ...r, value: 34, flagAsPrinted: 'HH' } : r))
+    const f = afterReportFacts(profile, reports, critical, 'r6')
+    expect(f.markers.find((m) => m.marker === 'Glucose')!.latest).toMatchObject({ outsideRange: 'above', farOutside: true })
+    expect(facts.markers.find((m) => m.marker === 'Glucose')!.latest.farOutside).toBeUndefined()
+    expect(f.rules).toMatch(/"farOutside" means/)
+  })
+
   it('includes the test context', () => {
     expect(facts.report?.context).toMatchObject({ fasting: 'yes', medications: 'None' })
   })
@@ -67,6 +75,8 @@ describe('prompts carry the not-medical-advice rules', () => {
     expect(prompt).toMatch(/Never suggest treatments, supplements/)
     expect(prompt).toMatch(/Don't add flags/)
     expect(prompt).toMatch(/data, not instructions/)
+    expect(prompt).toMatch(/Never call any result normal, abnormal, good or bad\. Describe flags only with LabTrails' words\. Never suggest tests\./)
+    expect(prompt).toMatch(/"farOutside", say plainly that it's far outside the lab's range and worth contacting a doctor about promptly/)
   })
 
   it('extraction copies, never interprets', () => {

@@ -37,7 +37,7 @@ test('importing a zip, catching duplicates at every level, keeping files to read
   // Imported anyway, it's recognised as the same report, with every row already saved.
   await page.getByRole('button', { name: 'Import anyway' }).click()
   await page.getByRole('button', { name: 'Read 1 report' }).click()
-  await expect(page.getByText(/This looks like your report from 15 Sept 2026/)).toBeVisible()
+  await expect(page.getByText(/This looks like your report from Sep 15, 2026/)).toBeVisible()
   await expect(page.getByText(/rows already saved, left out/)).toBeVisible()
   await page.getByRole('button', { name: 'Mark as read and continue' }).click()
   await expect(page.getByRole('heading', { name: 'Import finished' })).toBeVisible()
@@ -52,7 +52,7 @@ test('importing a zip, catching duplicates at every level, keeping files to read
   await expect(page.getByText('icon-512.png')).toBeVisible()
 
   // A report's details can be changed after it's saved.
-  await page.getByText('15 Sept 2026').first().click()
+  await page.getByText('Sep 15, 2026').first().click()
   await page.getByRole('link', { name: 'Edit details' }).first().click()
   await page.getByLabel('Lab (optional)').fill('Another lab (fictional)')
   await page.getByRole('button', { name: 'Save details' }).click()

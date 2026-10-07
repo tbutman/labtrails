@@ -10,7 +10,7 @@
 import { analyse, type MarkerAnalysis } from '../analysis'
 import { MARKERS, PANELS } from '../catalogue/catalogue'
 import type { PanelId } from '../catalogue/types'
-import { rangeFlag } from '../flags/flags'
+import { critical, rangeFlag } from '../flags/flags'
 import { normaliseName } from '../match/match'
 import type { Profile, Report, Result } from '../types'
 import { normaliseUnit } from '../units/normalise'
@@ -27,6 +27,8 @@ export type AskResult = {
   /** The lab's own range, in the shown unit. */
   range?: { low?: number; high?: number }
   outsideRange?: 'above' | 'below'
+  /** The lab marked it critical, or it's at least one range width outside the lab's range. */
+  farOutside?: true
   /** As printed, when the report used a different unit. */
   printed?: { value: number; unit: string }
   /** When the blood was drawn relative to a dose, from the test's notes. */
@@ -58,7 +60,7 @@ export type AskFacts = {
 }
 
 const RULES =
-  'Flags were computed by LabTrails: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" is a change of at least 25% of the range width since the previous result, or moving into or out of the range; "trend" is 3 or more results moving the same way; "persistent" is outside the lab\'s range on that many tests in a row. They are simple heuristics, not clinical thresholds. Each result\'s value and range are in the marker\'s unit; "printed" is the value as the lab printed it, in its own unit. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events with dates and doses; "drawn" says when a test was drawn relative to a dose; "knownInfluences" are documented influences from public health sources that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result. "personalLine" is a value the person or their doctor chose for a marker, not a lab or clinical range.'
+  'Flags were computed by LabTrails: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" is a change of at least 25% of the range width since the previous result, or moving into or out of the range; "trend" is 3 or more results moving the same way; "persistent" is outside the lab\'s range on that many tests in a row; "farOutside" means the lab marked the result critical (for example HH, LL or "critical") or it is at least one range width outside the lab\'s range. They are simple heuristics, not clinical thresholds. Each result\'s value and range are in the marker\'s unit; "printed" is the value as the lab printed it, in its own unit. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events with dates and doses; "drawn" says when a test was drawn relative to a dose; "knownInfluences" are documented influences from health information sites that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result. "personalLine" is a value the person or their doctor chose for a marker, not a lab or clinical range.'
 
 const MAX_RESULTS = 12
 const MAX_FLAGGED = 15
@@ -112,6 +114,7 @@ function markerFacts(a: MarkerAnalysis, panel: string, resultsById: Map<string, 
         ...(p.comparator ? { comparator: p.comparator } : {}),
         ...(p.range ? { range: { ...(p.range.low !== undefined ? { low: round(p.range.low) } : {}), ...(p.range.high !== undefined ? { high: round(p.range.high) } : {}) } } : {}),
         ...(flag?.basis === 'range' ? { outsideRange: flag.side } : {}),
+        ...(critical(p) ? { farOutside: true as const } : {}),
         ...(r?.value !== undefined && printedUnit && printedUnit !== a.series.unit ? { printed: { value: round(r.value), unit: printedUnit } } : {}),
       }
     }),
@@ -213,7 +216,8 @@ Numbers:
 What you may and may not say:
 - Explain what the results and flags show: how a marker changed over time, whether a result is inside its own lab's range, and what LabTrails' flags mean. General knowledge about what a test measures is fine.
 - Never say or imply that a result is healthy, unhealthy, normal, abnormal, good, bad, fine, dangerous or nothing to worry about. No reassurance and no alarm. Never diagnose, suggest causes, or recommend treatment, supplements, diet changes or more tests.
-- The facts may include the person's timeline (medications, supplements, lifestyle changes and events, with dates and doses), when a test was drawn relative to a dose ("drawn"), and "knownInfluences". You may state them as facts: "your timeline shows X started in June, between these two tests", "this test was drawn before that day's dose", and "X is known to raise Y" only for an influence listed in that marker's knownInfluences. Never say a timeline entry or an influence caused or explains a result, never comment on whether a medication or dose is right, and never suggest starting, stopping or changing anything. Doses and dates can be written as they appear in the facts; they don't need listing in "numbers".
+- If a result has "farOutside", say plainly that it's far outside the lab's range and worth contacting a doctor about promptly.
+- The facts may include the person's timeline (medications, supplements, lifestyle changes and events, with dates and doses), when a test was drawn relative to a dose ("drawn"), and "knownInfluences". You may state them as facts: "your timeline shows X started in June, between these two tests", "this test was drawn before that day's dose", and "X can raise Y" only for an influence listed in that marker's knownInfluences. Never say a timeline entry or an influence caused or explains a result, never comment on whether a medication or dose is right, and never suggest starting, stopping or changing anything. Doses and dates can be written as they appear in the facts; they don't need listing in "numbers".
 - If the facts don't cover the question (a marker that wasn't sent, or something the results can't tell), say so; you may name markers from "otherMarkers" the person could ask about, and suggest discussing it with their doctor.
 - If the question is about symptoms, illness, medicines, dosing or an emergency, reply with kind "out-of-scope" and an empty text.
 - Format: short paragraphs or "- " bullets; **bold** allowed. No headings, links, tables or HTML.

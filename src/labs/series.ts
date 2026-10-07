@@ -13,6 +13,8 @@ export type SeriesPoint = Point & {
   reportId: string
   /** The result came from a related marker (BUN shown as urea) and was converted. */
   convertedFrom?: string
+  /** The unit the lab printed, when the value was converted from it to the unit shown. */
+  printedUnit?: string
 }
 
 export type Series = {
@@ -77,6 +79,7 @@ export function buildSeries(markerId: string, unit: string, results: Result[], r
       continue
     }
     const range = r.range ? convertRange(r.range, conv) : undefined
+    const printedUnit = from && normaliseUnit(from) !== unit ? normaliseUnit(from) : undefined
     points.push({
       resultId: r.id,
       reportId: r.reportId,
@@ -86,6 +89,7 @@ export function buildSeries(markerId: string, unit: string, results: Result[], r
       ...(range ? { range } : {}),
       ...(r.flagAsPrinted ? { flagAsPrinted: r.flagAsPrinted } : {}),
       ...(convertedFrom ? { convertedFrom } : {}),
+      ...(printedUnit ? { printedUnit } : {}),
     })
   }
   return { markerId, unit, points: sortByDate(points), skipped }

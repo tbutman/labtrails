@@ -4,6 +4,7 @@ import { CHANGE_THRESHOLD, PERSISTENT_MIN_RESULTS, TREND_MIN_RESULTS, TREND_THRE
 import { LandingNav, SiteFooter } from '../../core/ui/landing'
 import { APP, BRAND } from '../brand'
 import { formatPercent } from '../format'
+import { CRITICAL_TEXT, RANGE_SOURCE } from '../components/Flags'
 
 export function HowFlagsWork() {
   return (
@@ -29,19 +30,35 @@ export function HowFlagsWork() {
         <p>
           Each result is compared with the reference range printed by <em>its own</em> lab. Labs use different methods and print different ranges, so
           the same value can be inside one lab's range and outside another's. If a lab printed no range but marked a result high or low, LabTrails
-          shows the lab's mark. If the lab's mark and the printed range disagree, both are shown.
+          shows the lab's mark. If the lab's mark and the printed range disagree, both are shown, including when the lab marked a result normal
+          ("N") that's outside the printed range.
+        </p>
+
+        <h2>What “outside the range” means</h2>
+        <p>
+          A lab's range is where most healthy people's results fall, so some healthy people are just outside it. Food, exercise, a recent illness or the
+          time of day can move a result too. A result outside the range is worth bringing to your doctor, who can read it with your history.{' '}
+          <a href={RANGE_SOURCE.url}>{RANGE_SOURCE.title}</a>
+        </p>
+
+        <h2>Marked critical, or far outside the range</h2>
+        <p>
+          Some labs mark results that need attention soon: "HH", "LL", "critical", "crítico", "panic" or "!!". LabTrails shows that mark as its own flag.
+          It also flags a result that's far outside the lab's range: at least one range width beyond it, or, when the range has only one end, at least
+          twice the upper limit or at most half the lower one. Either way, it shows this: “{CRITICAL_TEXT}”
         </p>
 
         <h2>Changed since last time</h2>
         <p>
           A change is flagged when it's at least {formatPercent(CHANGE_THRESHOLD)} of the width of the lab's range (or, if the range only has one
-          end, {formatPercent(CHANGE_THRESHOLD)} of the previous value). Moving into or out of the range always counts.
+          end, {formatPercent(CHANGE_THRESHOLD)} of that limit; with no range, {formatPercent(CHANGE_THRESHOLD)} of the previous value). Moving into
+          or out of the range always counts, and a result back inside the range says so.
         </p>
 
         <h2>Rising or falling</h2>
         <p>
           Flagged when the last {TREND_MIN_RESULTS} or more results all rose, or all fell, by at least {formatPercent(TREND_THRESHOLD)} of the range
-          width in total, so small wobbles don't count.
+          width (or of the one limit) in total, so small wobbles don't count.
         </p>
 
         <h2>Outside the range on several tests</h2>
@@ -49,6 +66,12 @@ export function HowFlagsWork() {
           When the latest result and at least the {PERSISTENT_MIN_RESULTS - 1} before it are all outside their own labs' ranges, on the same side,
           the flag says for how many tests in a row ("outside the lab's range on the last 4 tests"), so a single unusual result looks different from
           one that keeps happening.
+        </p>
+
+        <h2>Your own line</h2>
+        <p>
+          If you or your doctor set a line for a marker, results past it are marked “Above your line” or “Below your line”. LabTrails never suggests a
+          line.
         </p>
 
         <h2>Not in your latest report</h2>

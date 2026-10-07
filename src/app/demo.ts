@@ -129,7 +129,7 @@ export const DEMO_SUMMARIES: Summary[] = [
       '- **Ferritin** fell from 51 to 38 µg/L. It\'s still inside the lab\'s range of 30–400, but it has fallen at every test since 2023, from 142.',
       '- **LDL cholesterol** (3.6 mmol/L) and **total cholesterol** (5.7 mmol/L) are above this lab\'s ranges, and both have risen at each test. LDL has been above the range at every test since 2023, total cholesterol since October 2024.',
       '- **CRP** is back inside the range (0.9 mg/L) after 6.8 in November, when you noted a cold the week before.',
-      '- **Triglycerides** are back inside the range (1.14 mmol/L); November\'s higher value was from a non-fasting test.',
+      '- **Triglycerides** are back inside the range (1.14 mmol/L). The November test wasn\'t fasting, and eating before a test can raise triglycerides.',
       '',
       'Glucose, ferritin and the cholesterol results are worth discussing with your doctor, especially the steady direction of each.',
     ].join('\n'),

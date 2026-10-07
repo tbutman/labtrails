@@ -119,7 +119,7 @@ export function matchInfluences(markerId: string, timeline: TimelineEntry[], tes
   return out
 }
 
-/** "Your timeline includes Sustanon 250 (from 1 Jun 2026); testosterone therapy is known to raise haematocrit." */
+/** "Your timeline includes Sustanon 250 (from Jun 1, 2026); testosterone therapy can raise hematocrit." */
 export function matchedSentence(m: Matched, markerName: string, formatWhen: (iso: string) => string): string {
   const what = lowerFirst(INFLUENCE_NAMES[m.influence.influence])
   const be = PLURAL.has(m.influence.influence) ? 'are' : 'is'
