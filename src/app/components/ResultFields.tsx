@@ -83,7 +83,7 @@ export function ResultFields({ input, decimal, aliases, onChange, onRemove, labe
             ) : (
               <label className="map-to">
                 <CircleHelp size={15} aria-hidden />
-                {u.match.status === 'ambiguous' ? 'Which marker is this?' : found ? 'Map it to' : 'Not in the catalogue. Map it to'}
+                {u.match.status === 'ambiguous' ? 'Which marker is this?' : found ? 'Map it to' : "Not in LabTrails' list of markers. Map it to"}
                 <select value={input.markerId} onChange={(e) => onChange({ markerId: e.target.value })}>
                   <option value={KEEP}>{u.match.status === 'ambiguous' ? 'Choose…' : found ? `${getMarker(found)?.name} (as found)` : 'Keep as printed'}</option>
                   {PANELS.map((p) => (

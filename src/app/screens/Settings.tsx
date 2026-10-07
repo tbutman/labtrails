@@ -25,10 +25,6 @@ export function Settings() {
         AI (optional)
       </h2>
       <div className="card">
-        <p className="muted small">
-          Reading reports and writing summaries use your own Anthropic API key. Use a dedicated key with a spending limit set in Anthropic's console.
-          The key is stored only in this encrypted vault and sent only to Anthropic.
-        </p>
         <ApiKeySettings apiKey={core.ai.apiKey} model={core.ai.model} onSave={({ apiKey, model }) => void saveCore({ ...core, ai: { ...core.ai, apiKey, model } })} />
       </div>
 

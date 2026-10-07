@@ -8,10 +8,10 @@ import { personalFlag } from '../personalLine'
 import { sparkPoints } from '../spark'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
-import { formatDate, formatPoint, formatRange, plural, unitLabel } from '../format'
+import { formatDate, formatPoint, labRange, plural, unitLabel } from '../format'
 
 /** "Glucose" → "glucose", but "HbA1c" and "LDL cholesterol" keep their capitals. */
-const inSentence = (name: string) => (/^[A-Z][a-z]/.test(name) ? name[0].toLowerCase() + name.slice(1) : name)
+const inSentence = (name: string) => (/^[A-Z][a-z]+(?=\s|$)/.test(name) ? name[0].toLowerCase() + name.slice(1) : name)
 
 function Metric({ a, base, lines }: { a: MarkerAnalysis; base: string; lines: PersonalLine[] }) {
   // A newer result in a unit LabTrails can't convert is shown as printed, in its own unit (LAB-04).
@@ -37,7 +37,7 @@ function Metric({ a, base, lines }: { a: MarkerAnalysis; base: string; lines: Pe
       chips={<MarkerFlags a={a} compact line={line} />}
       foot={
         latest
-          ? [`Lab's range ${formatRange(latest.range)}`, labMarkText(latest.flagAsPrinted), formatDate(latest.date), a.latestUnconverted ? 'not converted' : null].filter(Boolean).join(' · ')
+          ? [labRange(latest.range), labMarkText(latest.flagAsPrinted), formatDate(latest.date), a.latestUnconverted ? 'not converted' : null].filter(Boolean).join(' · ')
           : undefined
       }
     >
@@ -171,14 +171,14 @@ export function Overview() {
 
       {missing.length > 0 && (
         <Callout icon={ListX}>
-          <strong>Not in your latest report:</strong>{' '}
+          <strong>Measured before but not in your latest report:</strong>{' '}
           {missing.map((m, i) => (
             <span key={m.markerId}>
               {i > 0 && ', '}
               <Link to={`${base}/marker/${m.markerId}`}>{m.name}</Link> <span className="faint">(last {formatDate(m.lastDate)})</span>
             </span>
           ))}
-          . Worth asking about if you'd like them followed.
+          . Some tests are only done once or when needed; your doctor can say whether any should be repeated.
         </Callout>
       )}
 
@@ -197,9 +197,9 @@ export function Overview() {
 
       {unknown.length > 0 && (
         <>
-          <h2 className="section-title">Not in the catalogue</h2>
+          <h2 className="section-title">Not in LabTrails' list of markers</h2>
           <Callout icon={HelpCircle}>
-            Kept exactly as printed: {unknown.join(', ')}. You can map a name to a marker when you next add a report.
+            Kept exactly as printed: {unknown.join(', ')}. To chart it with a marker, open the report and choose Correct.
           </Callout>
         </>
       )}

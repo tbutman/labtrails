@@ -24,6 +24,12 @@ export function formatRange(range: Point['range']): string {
   return 'no range printed'
 }
 
+/** "Lab's range 3.6–6", or "No range printed" (never "Lab's range no range printed"). */
+export function labRange(range: Point['range'], start: 'Lab' | 'lab' = 'Lab'): string {
+  const r = formatRange(range)
+  return r === 'no range printed' ? (start === 'Lab' ? 'No range printed' : r) : `${start}'s range ${r}`
+}
+
 export function formatDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
   return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getMarker } from '../../src/labs/catalogue/catalogue'
 import { INFLUENCES } from '../../src/labs/influences-data'
-import { contextInfluences, entryInfluences, matchInfluences, matchedSentence } from '../../src/labs/influences'
+import { contextInfluences, entryInfluences, lowerFirst, matchInfluences, matchedSentence } from '../../src/labs/influences'
 import { DEMO_REPORTS, DEMO_TIMELINE } from '../../src/app/demo'
 
 describe('what a timeline entry stands for', () => {
@@ -104,5 +104,12 @@ describe('matching the timeline and a test\'s notes', () => {
     expect(matchInfluences('alt', [wine], { date: '2026-01-10' })).toEqual([])
     expect(matchInfluences('alt', [], { date: '2026-01-10', context: { recently: ['alcohol'] } })).toHaveLength(1)
     expect(matchInfluences('triglycerides', [wine], { date: '2026-01-10' })).toHaveLength(1)
+  })
+})
+
+describe('influence names mid-sentence (LAB-20)', () => {
+  it('lowers a leading "A"', () => {
+    expect(lowerFirst('A recent illness or infection')).toBe('a recent illness or infection')
+    expect(lowerFirst('GLP-1 medicines (semaglutide, tirzepatide)')).toBe('GLP-1 medicines (semaglutide, tirzepatide)')
   })
 })

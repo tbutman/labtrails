@@ -65,7 +65,7 @@ export function changeAmount(a: MarkerAnalysis): string {
 }
 
 export const DISCLAIMER =
-  "LabTrails records and charts results; it doesn't diagnose anything or give medical advice. Flags are simple rules about the lab's own range and changes over time. Discuss your results with your doctor."
+  "LabTrails keeps records and draws charts. It doesn't diagnose or give medical advice; talk to your doctor about anything that worries you. Flags are simple rules about the lab's own range and changes over time."
 
 /** Shown under a result the lab marked critical or that's far outside its range (LAB-01). Fixed wording. */
 export const CRITICAL_TEXT =

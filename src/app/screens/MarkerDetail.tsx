@@ -16,7 +16,7 @@ import { personalFlag, shownLine } from '../personalLine'
 import { MarkerChart, ResultsList } from '../components/MarkerChart'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
-import { formatDate, formatPercent, formatPoint, formatRange, formatValue, formatWhen, unitLabel } from '../format'
+import { formatDate, formatPercent, formatPoint, formatRange, formatValue, formatWhen, labRange, unitLabel } from '../format'
 
 const BASIS_WORDS = { width: "the lab's range width", limit: "the lab's limit", previous: 'the previous value' } as const
 
@@ -54,7 +54,7 @@ export function MarkerDetail() {
           const shown = a.latestUnconverted ?? a.latest
           const unit = a.latestUnconverted ? a.latestUnconverted.unit : a.series.unit
           return shown
-            ? [`${formatPoint(shown)} ${unitLabel(unit)} on ${formatDate(shown.date)}`, `lab's range ${formatRange(shown.range)}`, labMarkText(shown.flagAsPrinted)?.replace(/^L/, 'l')].filter(Boolean).join(' · ')
+            ? [`${formatPoint(shown)} ${unitLabel(unit)} on ${formatDate(shown.date)}`, labRange(shown.range, 'lab'), labMarkText(shown.flagAsPrinted)?.replace(/^L/, 'l')].filter(Boolean).join(' · ')
             : undefined
         })()}
         back={{ to: base, label: 'Overview' }}
@@ -111,7 +111,7 @@ export function MarkerDetail() {
             <ul className="plain-list">
               {a.unconverted.map((u) => (
                 <li key={u.resultId}>
-                  {formatDate(u.date)}: {formatPoint(u)} {u.unit}, lab's range {formatRange(u.range)}
+                  {formatDate(u.date)}: {formatPoint(u)} {u.unit}, {labRange(u.range, 'lab')}
                   {u.flag ? ` · outside the lab's range (${u.flag.side})` : ''}.{' '}
                   <Link to={`${base}/reports/${u.reportId}/results/${u.resultId}`}>Correct the unit</Link>
                 </li>
@@ -203,7 +203,8 @@ function KnownInfluences({ markerId, markerName, tests, timeline }: { markerId: 
       seen.add(key)
       return true
     })
-  const name = markerName.charAt(0).toLowerCase() + markerName.slice(1)
+  // "Ferritin" → "ferritin" mid-sentence; "HbA1c", "LDL cholesterol" and "TSH" keep their capitals.
+  const name = /^[A-Z][a-z]+(?=\s|$)/.test(markerName) ? markerName.charAt(0).toLowerCase() + markerName.slice(1) : markerName
   return (
     <>
       <h2 className="section-title">
@@ -213,7 +214,7 @@ function KnownInfluences({ markerId, markerName, tests, timeline }: { markerId: 
         {matched.length > 0 && (
           <ul className="plain-list influences-matched">
             {matched.map((m, i) => (
-              <li key={i}>{matchedSentence(m, /^[A-Z]{2}/.test(markerName) ? markerName : name, formatWhen)}</li>
+              <li key={i}>{matchedSentence(m, name, formatWhen)}</li>
             ))}
           </ul>
         )}

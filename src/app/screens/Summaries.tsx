@@ -74,7 +74,7 @@ export function Summaries() {
     const context = request.facts.report?.context
     return (
       <>
-        <PageHeader title={request.kind === 'after-report' ? 'Summarise this report' : 'Overall summary'} />
+        <PageHeader title={request.kind === 'after-report' ? 'Summarize this report' : 'Overall summary'} />
         {error && (
           <p className="error" role="alert">
             {error}
@@ -114,7 +114,7 @@ export function Summaries() {
       {canAsk && latest && (
         <p className="row summaries-actions">
           <button className="button primary" onClick={() => setRequest({ kind: 'after-report', reportId: latest.id, facts: factsFor('after-report', latest.id) })}>
-            Summarise the {formatDate(latest.date)} report
+            Summarize the {formatDate(latest.date)} report
           </button>
           <button className="button" onClick={() => setRequest({ kind: 'overall', facts: factsFor('overall') })}>
             Write an overall summary

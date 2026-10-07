@@ -48,7 +48,7 @@ export function Timeline() {
     <>
       <PageHeader
         title="Timeline"
-        subtitle={`Medications, supplements and changes in ${profile.name}'s life, shown on the charts so results can be read in context. They never change a flag.`}
+        subtitle={`Medications, supplements and changes in ${profile.name.replace(/ \(demo\)$/, '')}'s life, shown on the charts so results can be read in context. They never change a flag.`}
         actions={
           <Link className="button primary" to={`${base}/timeline/new`}>
             <Plus size={16} aria-hidden /> Add to the timeline

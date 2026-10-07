@@ -120,7 +120,7 @@ test.describe('with a mocked Anthropic API', () => {
 
     // Summary of the new report: the facts leave out the name and date of birth.
     await page.getByRole('link', { name: 'Summaries' }).click()
-    await page.getByRole('button', { name: /Summarise the Sep 15, 2026 report/ }).click()
+    await page.getByRole('button', { name: /Summarize the Sep 15, 2026 report/ }).click()
     await expect(page.getByRole('heading', { name: 'Send to Anthropic?' })).toBeVisible()
     expect(bodies).toHaveLength(1)
     await page.getByRole('button', { name: 'Send' }).click()

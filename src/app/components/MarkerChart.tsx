@@ -8,7 +8,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { rangeFlag } from '../../labs/flags/flags'
 import type { SeriesPoint } from '../../labs/series'
 import { lineText, type LineBounds } from '../../labs/lines'
-import { formatDate, formatPoint, formatRange, formatValue, unitLabel } from '../format'
+import { formatDate, formatPoint, formatValue, labRange, unitLabel } from '../format'
 
 const H = 240
 const PAD = { top: 16, right: 16, bottom: 32, left: 48 }
@@ -211,7 +211,7 @@ export function ResultsList({ points, unit }: { points: SeriesPoint[]; unit: str
               <span className="list-row-main">
                 <span className="list-row-title">{formatDate(p.date)}</span>
                 <span className="list-row-sub">
-                  Lab's range {formatRange(p.range)}
+                  {labRange(p.range)}
                   {p.convertedFrom && ` · converted from ${p.convertedFrom}`}
                   {p.flagAsPrinted?.trim() && ` · lab's mark: ${p.flagAsPrinted.trim()}${f?.labDisagrees || f?.labNormal ? ' (differs from the printed range)' : ''}`}
                 </span>

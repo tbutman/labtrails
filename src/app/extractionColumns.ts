@@ -14,7 +14,7 @@ export const EXTRACTION_COLUMNS: Column[] = [
     key: 'marker',
     label: 'Marker',
     type: 'choice',
-    options: [{ value: '', label: 'Not in the catalogue (keep as printed)' }, ...MARKERS.map((m) => ({ value: m.id, label: m.name }))],
+    options: [{ value: '', label: 'Not in LabTrails’ list of markers (keep as printed)' }, ...MARKERS.map((m) => ({ value: m.id, label: m.name }))],
   },
   {
     // Urinalysis rows share names with blood tests ("Glicose", "Leucócitos"); they're kept as printed.
@@ -27,6 +27,6 @@ export const EXTRACTION_COLUMNS: Column[] = [
       { value: 'urine', label: 'Urine' },
       { value: 'other', label: 'Other' },
     ],
-    validate: (v, row) => (v !== 'blood' && row.marker ? 'Only blood results go on a marker’s chart; choose “Not in the catalogue” for this row.' : undefined),
+    validate: (v, row) => (v !== 'blood' && row.marker ? 'Only blood results go on a marker’s chart; choose “Not in LabTrails’ list of markers” for this row.' : undefined),
   },
 ]

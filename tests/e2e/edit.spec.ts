@@ -54,7 +54,7 @@ test('correcting, mapping, adding and deleting single results', async ({ page })
   // Map the unknown name to a marker; the value keeps its decimal comma.
   await page.getByRole('link', { name: 'Correct GLU-X2' }).click()
   await expect(page.getByLabel('Value', { exact: true })).toHaveValue('5,1')
-  await page.getByLabel('Not in the catalogue. Map it to').selectOption('glucose')
+  await page.getByLabel("Not in LabTrails' list of markers. Map it to").selectOption('glucose')
   await expect(page.getByText('LabTrails will remember this')).toBeVisible()
   await page.getByRole('button', { name: 'Save the correction' }).click()
   await expect(page.getByRole('row', { name: /GLU-X2/ })).not.toContainText('not mapped')

@@ -20,7 +20,7 @@ import { formatDate, plural } from '../format'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 
-const PREPARED_NOTE = 'Demo: prepared in advance for this made-up person, in the style of the AI answers. No AI was called.'
+const PREPARED_NOTE = 'Demo: prepared in advance for this made-up person; no AI was called. Not medical advice.'
 const nowIso = () => new Date().toISOString()
 
 export function Ask() {

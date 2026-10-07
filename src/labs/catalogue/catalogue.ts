@@ -46,8 +46,8 @@ const differential = (id: string, name: string, aliases: string[]): Marker[] => 
 
 export const MARKERS: Marker[] = [
   // Blood count
-  { id: 'haemoglobin', name: 'Haemoglobin', panel: 'blood-count', aliases: ['haemoglobin', 'hemoglobin', 'hemoglobina', 'hgb', 'hb'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes)] },
-  { id: 'haematocrit', name: 'Haematocrit', panel: 'blood-count', aliases: ['haematocrit', 'hematocrit', 'hematocrito', 'hct', 'ht'], units: [base('%'), linear('L/L', 100, SOURCES.siPrefixes)] },
+  { id: 'haemoglobin', name: 'Hemoglobin', panel: 'blood-count', aliases: ['haemoglobin', 'hemoglobin', 'hemoglobina', 'hgb', 'hb'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes)] },
+  { id: 'haematocrit', name: 'Hematocrit', panel: 'blood-count', aliases: ['haematocrit', 'hematocrit', 'hematocrito', 'hct', 'ht'], units: [base('%'), linear('L/L', 100, SOURCES.siPrefixes)] },
   { id: 'rbc', name: 'Red blood cells', panel: 'blood-count', aliases: ['red blood cells', 'red cells', 'rbc', 'erythrocytes', 'eritrocitos', 'globulos vermelhos', 'hemacias', 'red cell count', 'red blood cell count', 'rbc count', 'rcc'], units: [base('10¹²/L'), same('10⁶/µL')] },
   { id: 'mcv', name: 'MCV', panel: 'blood-count', aliases: ['mcv', 'mean corpuscular volume', 'vgm', 'volume globular medio', 'vcm', 'volume corpuscular medio'], units: [base('fL')] },
   { id: 'mch', name: 'MCH', panel: 'blood-count', aliases: ['mch', 'mean corpuscular haemoglobin', 'mean corpuscular hemoglobin', 'hgm', 'hemoglobina globular media', 'hcm', 'hemoglobina corpuscular media'], units: [base('pg')] },
@@ -139,7 +139,7 @@ export const MARKERS: Marker[] = [
     units: [base('pmol/L'), linear('pg/mL', 3.467, SOURCES.testosterone), linear('ng/dL', 34.67, SOURCES.testosterone)],
   },
   { id: 'shbg', name: 'SHBG', panel: 'hormones', aliases: ['shbg', 'sex hormone binding globulin', 'globulina de ligacao as hormonas sexuais'], units: [base('nmol/L')] },
-  { id: 'oestradiol', name: 'Oestradiol', panel: 'hormones', aliases: ['oestradiol', 'estradiol', 'e2', '17 beta estradiol'], units: [base('pmol/L'), linear('pg/mL', 3.671, SOURCES.oestradiol)] },
+  { id: 'oestradiol', name: 'Estradiol', panel: 'hormones', aliases: ['oestradiol', 'estradiol', 'e2', '17 beta estradiol'], units: [base('pmol/L'), linear('pg/mL', 3.671, SOURCES.oestradiol)] },
   { id: 'lh', name: 'LH', panel: 'hormones', aliases: ['lh', 'luteinising hormone', 'luteinizing hormone', 'hormona luteinizante', 'hormonio luteinizante'], units: [base('U/L'), same('mIU/mL')] },
   { id: 'fsh', name: 'FSH', panel: 'hormones', aliases: ['fsh', 'follicle stimulating hormone', 'hormona folículo estimulante', 'hormona foliculo estimulante', 'hormonio foliculo estimulante'], units: [base('U/L'), same('mIU/mL')] },
   { id: 'prolactin', name: 'Prolactin', panel: 'hormones', aliases: ['prolactin', 'prolactina', 'prl'], units: [base('ng/mL'), same('µg/L')] },

@@ -147,8 +147,8 @@ export function matchedSentence(m: Matched, markerName: string, formatWhen: (iso
   return `The ${formatWhen(m.from.date)} test ${TEST_NOTES[m.influence.influence] ?? 'has a note about it'}; ${effect}.`
 }
 
-/** "Vitamin D supplements" → "vitamin D supplements"; "GLP-1 medicines" stays as it is. */
-export const lowerFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s[0].toLowerCase() + s.slice(1) : s)
+/** "Vitamin D supplements" → "vitamin D supplements", "A recent illness" → "a recent illness"; "GLP-1 medicines" stays. */
+export const lowerFirst = (s: string) => (/^[A-Z](?:[a-z]|\s)/.test(s) ? s[0].toLowerCase() + s.slice(1) : s)
 
 const TEST_NOTES: Partial<Record<InfluenceId, string>> = {
   eating: 'was not fasting',

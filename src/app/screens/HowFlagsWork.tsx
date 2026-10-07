@@ -14,7 +14,7 @@ export function HowFlagsWork() {
         links={[]}
         actions={
           <Link className="button small" to={APP}>
-            Open app
+            Open the app
           </Link>
         }
       />
@@ -77,7 +77,7 @@ export function HowFlagsWork() {
         <h2>Not in your latest report</h2>
         <p>
           Not a flag on a result: LabTrails lists markers you had measured in the {NOT_REPEATED_MONTHS} months before your latest report that
-          aren't in it, in case you'd like them followed.
+          aren't in it. Some tests are only done once or when needed; your doctor can say whether any should be repeated.
         </p>
 
         <h2>What these rules are, and aren't</h2>

@@ -32,7 +32,7 @@ function Auth() {
           <div className="auth-head">
             <AppIcon />
             <h1>{mode === 'locked' ? 'Welcome back' : 'Set up your vault'}</h1>
-            <p>{mode === 'locked' ? 'Unlock to see your results.' : 'Your results are encrypted with a passphrase and stay in this browser.'}</p>
+            <p>{mode === 'locked' ? 'Unlock to see your results.' : 'Your vault is the locked, encrypted space in this browser where LabTrails keeps your results. Choose a passphrase to lock it: a few random words are easiest.'}</p>
           </div>
           <div className="card">{restoring ? <RestoreBackup /> : mode === 'locked' ? <Unlock /> : <CreateVault />}</div>
           <div className="auth-links">

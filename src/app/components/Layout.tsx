@@ -103,7 +103,7 @@ export function ProfileLayout() {
   if (data === null)
     return (
       <Shell>
-        <h1>Profile not found</h1>
+        <h1>Person not found</h1>
         <Link to={APP}>Back to the start</Link>
       </Shell>
     )

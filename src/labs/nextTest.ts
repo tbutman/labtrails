@@ -90,7 +90,7 @@ export const PORTUGUESE_NAMES: Record<string, string> = {
 }
 
 /** "Total testosterone" → "total testosterone"; "HbA1c" and "TSH" keep their capitals. */
-const inSentence = (name: string) => (/^[A-ZÁÉÍÓÚ][a-záéíóúãõâêôç]/.test(name) ? name[0].toLowerCase() + name.slice(1) : name)
+const inSentence = (name: string) => (/^[A-ZÁÉÍÓÚ][a-záéíóúãõâêôç]+(?=\s|$)/.test(name) ? name[0].toLowerCase() + name.slice(1) : name)
 
 export function requestName(markerId: string, lang: RequestLanguage): string {
   const name = lang === 'pt' ? (PORTUGUESE_NAMES[markerId] ?? getMarker(markerId)?.name ?? markerId) : (getMarker(markerId)?.name ?? markerId)
