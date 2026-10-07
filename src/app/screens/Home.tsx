@@ -12,6 +12,7 @@ import { Shell } from '../components/Layout'
 import { DEMO_PROFILE } from '../demo'
 import { useSession } from '../sessionContext'
 import { RestoreBackup } from './Backup'
+import { clearDemoEnded, demoEnded, forgetReturnPath, placeName, returnPath, takeReturnPath } from '../returnTo'
 
 export function Home() {
   const { mode } = useSession()
@@ -25,6 +26,17 @@ function Auth() {
   const { mode, startDemo } = useSession()
   const navigate = useNavigate()
   const [restoring, setRestoring] = useState(false)
+  // Where the person was before the vault locked or the page reloaded, and whether a demo just ended (X-05).
+  const [ended] = useState(demoEnded)
+  const back = mode === 'locked' ? returnPath() : null
+  useEffect(() => {
+    clearDemoEnded()
+    if (mode === 'welcome') forgetReturnPath()
+  }, [mode])
+  const tryDemo = async () => {
+    await startDemo()
+    navigate(`${APP}/p/${DEMO_PROFILE.id}`)
+  }
   return (
     <Shell>
       <div className="auth">
@@ -32,20 +44,22 @@ function Auth() {
           <div className="auth-head">
             <AppIcon />
             <h1>{mode === 'locked' ? 'Welcome back' : 'Set up your vault'}</h1>
-            <p>{mode === 'locked' ? 'Unlock to see your results.' : 'Your vault is the locked, encrypted space in this browser where LabTrails keeps your results. Choose a passphrase to lock it: a few random words are easiest.'}</p>
+            <p>{mode === 'locked' ? (back ? `You were on ${placeName(back)}. Unlock to continue.` : 'Unlock to see your results.') : 'Your vault is the locked, encrypted space in this browser where LabTrails keeps your results. Choose a passphrase to lock it: a few random words are easiest.'}</p>
           </div>
+          {ended && (
+            <Callout tone="accent">
+              The demo ended because the page was reloaded.{' '}
+              <button className="link-button" onClick={() => void tryDemo()}>
+                Try the demo again
+              </button>
+            </Callout>
+          )}
           <div className="card">{restoring ? <RestoreBackup /> : mode === 'locked' ? <Unlock /> : <CreateVault />}</div>
           <div className="auth-links">
             <button className="link-button" onClick={() => setRestoring((r) => !r)}>
               {restoring ? 'Back' : 'Restore from a backup'}
             </button>
-            <button
-              className="link-button"
-              onClick={async () => {
-                await startDemo()
-                navigate(`${APP}/p/${DEMO_PROFILE.id}`)
-              }}
-            >
+            <button className="link-button" onClick={() => void tryDemo()}>
               Try the demo instead
             </button>
           </div>
@@ -108,6 +122,7 @@ function CreateVault() {
 
 function Unlock() {
   const { unlock } = useSession()
+  const navigate = useNavigate()
   const [passphrase, setPassphrase] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -118,6 +133,8 @@ function Unlock() {
     setError('')
     try {
       await unlock(passphrase)
+      const back = takeReturnPath()
+      if (back) navigate(back, { replace: true })
     } catch (err) {
       setError(err instanceof WrongPassphraseError ? "That passphrase doesn't open this vault." : 'The vault could not be opened.')
     } finally {

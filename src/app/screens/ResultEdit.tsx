@@ -14,6 +14,7 @@ import { Checkbox, PageHeader } from '../../core/ui/components'
 import { DecimalSwitch, MarkerNames, ResultFields } from '../components/ResultFields'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
+import { useLeaveWarning } from '../returnTo'
 import { formatDate, plural } from '../format'
 import { OriginalOf } from './Reports'
 
@@ -45,6 +46,8 @@ function EditResult({ report, result, aliases, base }: { report: Report; result?
   const siblings = results.filter((r) => r.reportId === report.id)
   const [decimal, setDecimal] = useState<DecimalHint | undefined>(() => reportDecimal(siblings))
   const [input, setInput] = useState<ResultInput>(() => (result ? inputFromResult(result, decimal, aliases) : EMPTY))
+  const [initial] = useState(input)
+  useLeaveWarning(JSON.stringify(input) !== JSON.stringify(initial))
   const [mapAll, setMapAll] = useState(true)
   const [error, setError] = useState('')
   const back = `${base}/reports#report-${report.id}`

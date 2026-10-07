@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate } from 'react-router'
+import { ToStart } from '../returnTo'
 import { MIN_PASSPHRASE_LENGTH, WrongPassphraseError } from '../../core'
 import { ApiKeySettings } from '../../core/ai/ApiKeySettings'
 import type { Theme } from '../../core/settings/settings'
@@ -11,7 +11,7 @@ import { ExportBackup, RestoreBackup } from './Backup'
 
 export function Settings() {
   const { mode, core, saveCore } = useSession()
-  if (mode !== 'unlocked') return <Navigate to={APP} replace />
+  if (mode !== 'unlocked') return <ToStart />
   return (
     <Shell narrow>
       <PageHeader title="Settings" back={{ to: APP, label: 'People' }} />

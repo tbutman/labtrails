@@ -179,3 +179,45 @@ test('a person can be renamed, then deleted with everything kept about them', as
   await page.getByRole('button', { name: 'Delete this person' }).click()
   await expect(page.getByRole('heading', { name: 'Add the first person' })).toBeVisible()
 })
+
+test('locking or reloading returns you to the same screen after unlocking (X-05)', async ({ page }) => {
+  await vaultWithReport(page)
+  await page.getByRole('link', { name: 'Table' }).first().click()
+  await expect(page.getByRole('heading', { name: 'All results' })).toBeVisible()
+  await page.getByRole('button', { name: 'Lock' }).click()
+  await expect(page.getByText('You were on All results. Unlock to continue.')).toBeVisible()
+  await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
+  await page.getByRole('button', { name: 'Unlock' }).click()
+  await expect(page.getByRole('heading', { name: 'All results' })).toBeVisible()
+
+  // A reload locks the vault; the address is kept for this tab.
+  await page.reload()
+  await expect(page.getByText('You were on All results. Unlock to continue.')).toBeVisible()
+  await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
+  await page.getByRole('button', { name: 'Unlock' }).click()
+  await expect(page.getByRole('heading', { name: 'All results' })).toBeVisible()
+})
+
+test('a reloaded demo says it ended, and offers it again (X-05)', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Try the demo' }).first().click()
+  await expect(page.getByRole('heading', { name: 'Sam (demo)' })).toBeVisible()
+  await page.reload()
+  await expect(page.getByText('The demo ended because the page was reloaded.')).toBeVisible()
+  await page.getByRole('button', { name: 'Try the demo again' }).click()
+  await expect(page.getByRole('heading', { name: 'Sam (demo)' })).toBeVisible()
+})
+
+test('leaving a form with typed values asks first (X-05)', async ({ page }) => {
+  await vaultWithReport(page)
+  await page.getByRole('link', { name: 'Add results' }).click()
+  await page.getByLabel('Lab (optional)').fill('Northfield (fictional)')
+  const asked = new Promise<string>((resolve) =>
+    page.once('dialog', (d) => {
+      resolve(d.type())
+      void d.accept()
+    }),
+  )
+  await page.reload()
+  expect(await asked).toBe('beforeunload')
+})

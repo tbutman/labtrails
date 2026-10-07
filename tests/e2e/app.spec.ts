@@ -75,11 +75,12 @@ test('a vault: create, add a person and a report, lock, unlock', async ({ page }
   await page.getByRole('button', { name: 'Unlock' }).click()
   await expect(page.getByRole('alert')).toContainText("doesn't open this vault")
 
-  // After a reload the vault is locked; the right passphrase brings everything back.
+  // After a reload the vault is locked; the right passphrase brings everything back, on the same screen.
   await page.reload()
+  await expect(page.getByText('You were on the overview. Unlock to continue.')).toBeVisible()
   await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
   await page.getByRole('button', { name: 'Unlock' }).click()
-  await page.getByRole('link', { name: 'Alex Example', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Alex Example' })).toBeVisible()
   await expect(page.getByText('118').first()).toBeVisible()
 
   // Nothing readable is stored in IndexedDB.

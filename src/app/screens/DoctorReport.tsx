@@ -8,6 +8,7 @@ import { ReportSheet, ReportTable, SHEET_WIDTH, reportHeader, reportRows } from 
 import { ageInYears } from '../../labs/person'
 import { formatPeriod } from '../format'
 import { useSession } from '../sessionContext'
+import { useLeaveWarning } from '../returnTo'
 
 function initials(name: string): string {
   return name
@@ -36,6 +37,8 @@ export function DoctorReport() {
   // Medications and lifestyle are sensitive: off unless the user ticks it (SPEC.md section 18.8).
   const [withTimeline, setWithTimeline] = useState(false)
   const [notes, setNotes] = useState('')
+  // The notes aren't saved, so closing the page with some typed asks first (X-05).
+  useLeaveWarning(!!notes.trim())
   const [status, setStatus] = useState('')
   const sheet = useRef<HTMLDivElement>(null)
   const latest = [...reports].sort((a, b) => a.date.localeCompare(b.date)).at(-1)

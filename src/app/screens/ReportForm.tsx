@@ -17,6 +17,7 @@ import { ChipGroup, PageHeader, Segmented, TextAreaField, TextField } from '../.
 import { DecimalSwitch, MarkerNames, ResultFields } from '../components/ResultFields'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
+import { useLeaveWarning } from '../returnTo'
 
 type Row = ResultInput & { key: string }
 
@@ -52,6 +53,7 @@ export function ReportForm() {
   // A kept file to type the results from, shown alongside (LAB-14).
   const documentId = useSearchParams()[0].get('document')
   const pages = usePages(store, documentId)
+  useLeaveWarning(!!(date || time || lab.trim() || medications.trim() || notes.trim() || rows.some((r) => r.name.trim() || r.value.trim())))
 
   useEffect(() => {
     if (store) void store.list<Alias>('aliases').then(setAliases)

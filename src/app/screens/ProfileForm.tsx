@@ -7,6 +7,7 @@ import { Callout, PageHeader, Segmented, TextField } from '../../core/ui/compone
 import { APP } from '../brand'
 import { Shell } from '../components/Layout'
 import { useSession } from '../sessionContext'
+import { ToStart, useLeaveWarning } from '../returnTo'
 
 /** Adds a person, or with a profile id in the address, changes or deletes one (LAB-08). */
 export function ProfileForm() {
@@ -18,6 +19,7 @@ export function ProfileForm() {
   const [sex, setSex] = useState<'' | 'female' | 'male'>('')
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [error, setError] = useState('')
+  useLeaveWarning(existing ? name.trim() !== existing.name || sex !== (existing.sex ?? '') || dateOfBirth !== (existing.dateOfBirth ?? '') : !!(name.trim() || sex || dateOfBirth))
 
   useEffect(() => {
     if (!store || !profileId) return
@@ -31,7 +33,8 @@ export function ProfileForm() {
     })
   }, [store, profileId])
 
-  if (!store || mode === 'demo') return <Navigate to={APP} replace />
+  if (mode === 'demo') return <Navigate to={APP} replace />
+  if (!store) return <ToStart />
   if (profileId && existing === undefined) return <Shell narrow>{null}</Shell>
   if (profileId && existing === null)
     return (
