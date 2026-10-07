@@ -62,6 +62,8 @@ up).
 - **Ask about your results (optional, AI):** questions like "how has my ferritin changed?", answered
   only from the results LabTrails sends for that question. Every number in an answer is checked
   against those results before you see it; an answer that doesn't check out isn't shown.
+- **Before your next test:** what you had measured last time, what wasn't repeated, notes from your
+  history, and the tests you choose written as a request in English or Portuguese.
 - **A one-page report for your doctor,** printed, saved as PDF or shared as an image. It's a file you
   share yourself, never a link to a server.
 - **Several people** in one vault (for example you and your partner). Make sure they're happy for

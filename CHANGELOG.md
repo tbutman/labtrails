@@ -15,6 +15,10 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- Before your next test (SPEC.md section 18, step 7): what was measured last time and what wasn't
+  repeated, facts from your history (the times of earlier draws for markers that vary through the
+  day, timed medications, fasting), and a request for the tests you tick, in English or Portuguese,
+  to copy. The app never chooses the tests.
 - Personal lines (SPEC.md section 18, step 6): a lower and/or upper value you or your doctor set for a
   marker ("My doctor's target: under 54"), drawn dashed on the chart in whatever unit it's shown,
   flagged as "Above your line", on the doctor report and in the AI's facts as the person's own line.
