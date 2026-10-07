@@ -462,7 +462,7 @@ reports in his own browser and seen the trends; the demo works without a key; th
 the README explains the privacy model in plain language; and `docs/case-study.md` is ready for his
 site.
 
-## 18. Next: following a history (proposed 7 October 2026, for Thomas's approval)
+## 18. Next: following a history (agreed with Thomas, 7 October 2026)
 
 **Why.** LabTrails was compared, turn by turn, with the ChatGPT conversations it's meant to replace,
 and run on four real reports (private notes, outside the repository). LabTrails already keeps the
@@ -587,6 +587,6 @@ medication names from prescriptions; per-marker change thresholds (section 9, st
 6. Personal lines.
 7. Before your next test.
 
-Each is its own pull request, merged with Thomas's OK. Questions for Thomas: is three tests in a row
-right for "persistent"? Are MedlinePlus/NHS/Lab Tests Online acceptable sources for influences? Is
-English plus Portuguese enough for the "ask for these tests" request?
+Each is its own pull request, merged with Thomas's OK. Agreed with Thomas (7 October 2026): three
+tests in a row for "persistent"; MedlinePlus, the NHS and Lab Tests Online as sources for known
+influences; English and Portuguese for the "ask for these tests" request.
