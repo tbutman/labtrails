@@ -15,6 +15,10 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- Known influences (SPEC.md section 18, step 4): each marker page lists documented things that can
+  affect the test (40 marker–influence pairs, each cited to MedlinePlus, the NHS or testing.com with
+  the quote checked against the page), and those the timeline or a test's notes include: "Your
+  timeline includes Vitamin D3; vitamin D supplements are known to raise vitamin D." Never a cause.
 - Dose timing per test (SPEC.md section 18, step 3): for timeline entries where the timing of a test
   matters, a test records whether the blood was drawn before or after that day's dose, or between
   doses with the last dose's date ("29 days after the last dose of …, every month"). Shown on the

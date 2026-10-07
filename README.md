@@ -40,6 +40,9 @@ up).
 - **A personal timeline:** medications, supplements and changes like stopping alcohol or starting
   training, with when they started and ended, shown as bands on every chart and in the table, and on
   the doctor report if you choose. It never changes a flag.
+- **Things known to affect a test,** from MedlinePlus, the NHS and Lab Tests Online, matched to
+  your timeline and notes ("your timeline includes vitamin D3; vitamin D supplements are known to
+  raise vitamin D"). Documented influences in general, never a reason for your result.
 - **Notes on each test:** fasting or not, the time of day, medications and supplements ("same as last
   time" is one tap), recent illness, hard exercise, alcohol or poor sleep. They never change a flag,
   but they show on the chart and help explain a result.

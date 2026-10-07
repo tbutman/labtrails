@@ -1,4 +1,6 @@
-import { describeTiming } from '../../labs/timeline'
+import { INFLUENCE_NAMES, effectWords, influencesFor, lowerFirst, matchInfluences, matchedSentence } from '../../labs/influences'
+import { describeTiming, type TimelineEntry } from '../../labs/timeline'
+import type { Report } from '../../labs/types'
 import { Info, NotebookPen } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router'
@@ -12,7 +14,7 @@ import { chartEvents } from '../chartEvents'
 import { MarkerChart, ResultsList } from '../components/MarkerChart'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
-import { formatDate, formatPercent, formatPoint, formatRange } from '../format'
+import { formatDate, formatPercent, formatPoint, formatRange, formatWhen } from '../format'
 
 const RECENTLY: Record<string, string> = { illness: 'recent illness', 'hard-exercise': 'recent hard exercise', alcohol: 'recent alcohol', 'poor-sleep': 'poor sleep' }
 
@@ -143,9 +145,57 @@ export function MarkerDetail() {
         </>
       )}
 
+      <KnownInfluences markerId={marker.id} markerName={marker.name} tests={a.series.points.map((p) => reportsById.get(p.reportId)!).filter(Boolean)} timeline={timeline} />
+
       <h2 className="section-title">All results</h2>
       <ResultsList points={a.series.points} unit={a.series.unit} />
       <p className="hint disclaimer">{DISCLAIMER}</p>
+    </>
+  )
+}
+
+/**
+ * Documented influences on this test (SPEC.md section 18.4), and those the timeline or a test's notes
+ * include. Each states a direction and its source; none says why a result is what it is.
+ */
+function KnownInfluences({ markerId, markerName, tests, timeline }: { markerId: string; markerName: string; tests: Report[]; timeline: TimelineEntry[] }) {
+  const known = influencesFor(markerId)
+  if (!known.length) return null
+  const seen = new Set<string>()
+  const matched = tests
+    .flatMap((t) => matchInfluences(markerId, timeline, t))
+    .filter((m) => {
+      const key = `${m.influence.influence}|${m.from.kind === 'timeline' ? m.from.entry.id : m.from.date}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  const name = markerName.charAt(0).toLowerCase() + markerName.slice(1)
+  return (
+    <>
+      <h2 className="section-title">
+        <Info size={14} aria-hidden /> Things known to affect this test
+      </h2>
+      <div className="card">
+        {matched.length > 0 && (
+          <ul className="plain-list influences-matched">
+            {matched.map((m, i) => (
+              <li key={i}>{matchedSentence(m, /^[A-Z]{2}/.test(markerName) ? markerName : name, formatWhen)}</li>
+            ))}
+          </ul>
+        )}
+        <ul className="plain-list influences">
+          {known.map((k) => (
+            <li key={`${k.influence}-${k.effect}`}>
+              {k.effect === 'vary' ? `It varies with ${lowerFirst(INFLUENCE_NAMES[k.influence])}.` : `${INFLUENCE_NAMES[k.influence]} ${effectWords(k.effect)} it.`}{' '}
+              <a href={k.source.url} target="_blank" rel="noreferrer noopener">
+                {k.source.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p className="hint">Documented influences in general, from public health sources. They don't say why any one result is what it is; your doctor can.</p>
+      </div>
     </>
   )
 }
