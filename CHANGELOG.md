@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 (October 8, 2026)
 
-Changes from an independent product review (October 7, 2026):
+Changes from an independent product review (October 7, 2026). Tagged `v0.2.0`:
 
 - Results the lab marked critical (HH, LL, critical, panic, !!), or at least one range width outside
   the range, are their own flag, with fixed text to check the result and contact a doctor or the lab
@@ -31,7 +31,7 @@ Changes from an independent product review (October 7, 2026):
 
 ## 0.1.0
 
-The first version, live at [labtrails.app](https://labtrails.app) since October 6, 2026.
+The first version, live at [labtrails.app](https://labtrails.app) since October 6, 2026. Tagged `v0.1.0` (`81be2b3`).
 
 - A catalog of about 70 markers in ten panels, with English and Portuguese names and unit
   conversions. Every conversion factor is cited and tested.
