@@ -4,7 +4,7 @@ import { CHANGE_THRESHOLD, PERSISTENT_MIN_RESULTS, TREND_MIN_RESULTS, TREND_THRE
 import { LandingNav, SiteFooter } from '../../core/ui/landing'
 import { APP, BRAND } from '../brand'
 import { formatPercent } from '../format'
-import { CRITICAL_TEXT, RANGE_SOURCE } from '../components/Flags'
+import { CRITICAL_ACTION, RANGE_SOURCE } from '../components/Flags'
 
 export function HowFlagsWork() {
   return (
@@ -45,7 +45,8 @@ export function HowFlagsWork() {
         <p>
           Some labs mark results that need attention soon: "HH", "LL", "critical", "crítico", "panic" or "!!". LabTrails shows that mark as its own flag.
           It also flags a result that's far outside the lab's range: at least one range width beyond it, or, when the range has only one end, at least
-          twice the upper limit or at most half the lower one. Either way, it shows this: “{CRITICAL_TEXT}”
+          twice the upper limit or at most half the lower one. Either way, it shows what to do: “{CRITICAL_ACTION}” For a result far outside
+          the range, it first says “This result is far outside the lab's range.”
         </p>
 
         <h2>Changed since last time</h2>
