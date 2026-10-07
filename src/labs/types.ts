@@ -12,6 +12,19 @@ export type TestContext = {
   medications?: string
   recently?: Recently[]
   notes?: string
+  /** When the blood was drawn relative to doses of timeline entries where timing matters (SPEC.md 18.1). */
+  doseTiming?: DoseTiming[]
+}
+
+export type DoseTiming = {
+  entryId: string
+  /** The entry's label when this was recorded, so the test reads the same if the entry changes. */
+  name: string
+  when: 'before-dose' | 'after-dose' | 'between'
+  /** For "between": the day of the last dose before the test. */
+  lastDose?: string
+  /** The entry's schedule when this was recorded ("every month"), for context. */
+  every?: string
 }
 
 export type Report = {

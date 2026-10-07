@@ -7,8 +7,9 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router'
 import { aliasToRemember, resultFromInput, understandInput, validateInput, type ResultInput } from '../../labs/edit'
 import { personAt } from '../../labs/person'
-import { activeOn, entryLabel } from '../../labs/timeline'
-import type { Alias, Recently, Report, TestContext } from '../../labs/types'
+import { activeOn, entryLabel, timedOn } from '../../labs/timeline'
+import type { Alias, DoseTiming, Recently, Report, TestContext } from '../../labs/types'
+import { DoseTimingFields } from '../components/DoseTiming'
 import type { DecimalHint } from '../../labs/units/parse'
 import { ChipGroup, PageHeader, Segmented, TextAreaField, TextField } from '../../core/ui/components'
 import { DecimalSwitch, MarkerNames, ResultFields } from '../components/ResultFields'
@@ -42,6 +43,7 @@ export function ReportForm() {
   const [medications, setMedications] = useState('')
   const [recently, setRecently] = useState<Recently[]>([])
   const [notes, setNotes] = useState('')
+  const [doseTiming, setDoseTiming] = useState<DoseTiming[]>([])
   const [rows, setRows] = useState<Row[]>([emptyRow(), emptyRow(), emptyRow()])
   const [error, setError] = useState('')
 
@@ -62,6 +64,7 @@ export function ReportForm() {
   const previous = [...reports].sort((a, b) => b.date.localeCompare(a.date))[0]
   // Medications and supplements on the timeline on the test date (or today, before a date is chosen).
   const onTimeline = activeOn(timeline, date || todayIso()).filter((e) => e.kind === 'medication' || e.kind === 'supplement')
+  const timed = date ? timedOn(timeline, date) : []
   const update = (key: string, patch: Partial<Row>) => setRows((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)))
 
   async function submit(e: FormEvent) {
@@ -79,6 +82,7 @@ export function ReportForm() {
       ...(medications.trim() ? { medications: medications.trim() } : {}),
       ...(recently.length ? { recently } : {}),
       ...(notes.trim() ? { notes: notes.trim() } : {}),
+      ...(doseTiming.length ? { doseTiming: doseTiming.filter((t) => timed.some((e) => e.id === t.entryId)) } : {}),
     }
     const report: Report = {
       id: crypto.randomUUID(),
@@ -146,6 +150,7 @@ export function ReportForm() {
               )}
             </div>
           )}
+          <DoseTimingFields entries={timed} date={date} value={doseTiming} onChange={setDoseTiming} />
           <ChipGroup legend="Recently (optional)" options={RECENTLY} value={recently} onChange={setRecently} />
           <TextAreaField label="Notes (optional)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
         </section>

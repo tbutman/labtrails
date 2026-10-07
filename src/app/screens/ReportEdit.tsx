@@ -5,7 +5,9 @@ import { Save } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { ChipGroup, PageHeader, Segmented, TextAreaField, TextField } from '../../core/ui/components'
-import type { Recently, Report, TestContext } from '../../labs/types'
+import { timedOn } from '../../labs/timeline'
+import type { DoseTiming, Recently, Report, TestContext } from '../../labs/types'
+import { DoseTimingFields } from '../components/DoseTiming'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 import { formatDate } from '../format'
@@ -36,6 +38,11 @@ function EditForm({ report, base }: { report: Report; base: string }) {
   const [medications, setMedications] = useState(report.context?.medications ?? '')
   const [recently, setRecently] = useState<Recently[]>(report.context?.recently ?? [])
   const [notes, setNotes] = useState(report.context?.notes ?? '')
+  const [doseTiming, setDoseTiming] = useState<DoseTiming[]>(report.context?.doseTiming ?? [])
+  const { timeline } = useProfileData()
+  const timed = timedOn(timeline, date)
+  // Timings recorded for entries no longer on the timeline stay as they were.
+  const kept = doseTiming.filter((t) => timed.some((e) => e.id === t.entryId) || !timeline.some((e) => e.id === t.entryId))
   const [error, setError] = useState('')
   const demo = mode === 'demo'
 
@@ -48,6 +55,7 @@ function EditForm({ report, base }: { report: Report; base: string }) {
       ...(medications.trim() ? { medications: medications.trim() } : {}),
       ...(recently.length ? { recently } : {}),
       ...(notes.trim() ? { notes: notes.trim() } : {}),
+      ...(kept.length ? { doseTiming: kept } : {}),
     }
     const { time: _t, lab: _l, context: _c, ...rest } = report
     const next: Report = {
@@ -61,12 +69,12 @@ function EditForm({ report, base }: { report: Report; base: string }) {
     await store.put('reports', next)
     if (mode === 'unlocked') await saveCore({ ...core, changesSinceBackup: core.changesSinceBackup + 1 })
     changed()
-    navigate(`${base}/reports`)
+    navigate(`${base}/reports#report-${report.id}`)
   }
 
   return (
     <>
-      <PageHeader title="Edit report details" subtitle={`The report from ${formatDate(report.date)}. Results stay exactly as printed.`} back={{ to: `${base}/reports`, label: 'Reports' }} />
+      <PageHeader title="Edit report details" subtitle={`The report from ${formatDate(report.date)}. Results stay exactly as printed.`} back={{ to: `${base}/reports#report-${report.id}`, label: 'Reports' }} />
       <form className="card form-layout" onSubmit={submit} noValidate>
         <div className="input-row three">
           <TextField label="Date the blood was taken" type="date" value={date} onChange={(e) => setDate(e.target.value)} error={error} />
@@ -85,11 +93,12 @@ function EditForm({ report, base }: { report: Report; base: string }) {
           ]}
         />
         <TextAreaField label="Medications and supplements (optional)" rows={2} value={medications} onChange={(e) => setMedications(e.target.value)} />
+        <DoseTimingFields entries={timed} date={date} value={doseTiming} onChange={setDoseTiming} />
         <ChipGroup legend="Recently (optional)" options={RECENTLY} value={recently} onChange={setRecently} />
         <TextAreaField label="Notes (optional)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
         {demo && <p className="hint">In the demo, changes last until you leave it.</p>}
         <div className="form-actions">
-          <Link className="button ghost" to={`${base}/reports`}>
+          <Link className="button ghost" to={`${base}/reports#report-${report.id}`}>
             Cancel
           </Link>
           <button className="button primary">

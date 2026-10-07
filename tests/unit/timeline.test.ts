@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activeBetween, activeOn, entryFromInput, entryLabel, firstDay, inputFromEntry, lastDay, startedBetween, validateEntry, type TimelineEntry } from '../../src/labs/timeline'
+import { activeBetween, activeOn, daysBetween, describeTiming, entryFromInput, entryLabel, firstDay, inputFromEntry, lastDay, startedBetween, timedOn, validateEntry, type TimelineEntry } from '../../src/labs/timeline'
 
 const entry = (over: Partial<TimelineEntry>): TimelineEntry => ({ id: 'e', profileId: 'p', kind: 'medication', name: 'Medicine X', start: '2026-06-01', createdAt: 'x', updatedAt: 'x', ...over })
 
@@ -49,5 +49,22 @@ describe('the personal timeline', () => {
       dose: '2,000 IU',
       every: { n: 1, unit: 'day' },
     })
+  })
+})
+
+describe('dose timing', () => {
+  const timed = (over: Partial<TimelineEntry>) => ({ id: 't', profileId: 'p', kind: 'medication' as const, name: 'Injection Y', dose: '250 mg', every: { n: 1, unit: 'month' as const }, timing: true, start: '2026-06-01', createdAt: 'x', updatedAt: 'x', ...over })
+
+  it('offers only entries active on the test date whose timing matters', () => {
+    expect(timedOn([timed({}), timed({ id: 'u', timing: undefined })], '2026-08-29').map((e) => e.id)).toEqual(['t'])
+    expect(timedOn([timed({})], '2026-05-23')).toEqual([])
+  })
+
+  it('says how the draw relates to the dose, as facts', () => {
+    expect(describeTiming({ name: 'Injection Y 250 mg', when: 'before-dose' }, '2026-08-29')).toBe("before that day's dose of Injection Y 250 mg")
+    expect(describeTiming({ name: 'Injection Y 250 mg', when: 'after-dose' }, '2026-08-29')).toBe("after that day's dose of Injection Y 250 mg")
+    expect(describeTiming({ name: 'Injection Y 250 mg', when: 'between', lastDose: '2026-07-31', every: 'every month' }, '2026-08-29')).toBe('29 days after the last dose of Injection Y 250 mg (every month)')
+    expect(describeTiming({ name: 'Injection Y', when: 'between' }, '2026-08-29')).toBe('between doses of Injection Y')
+    expect(daysBetween('2026-02-27', '2026-03-01')).toBe(2)
   })
 })

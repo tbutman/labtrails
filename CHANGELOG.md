@@ -15,6 +15,10 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- Dose timing per test (SPEC.md section 18, step 3): for timeline entries where the timing of a test
+  matters, a test records whether the blood was drawn before or after that day's dose, or between
+  doses with the last dose's date ("29 days after the last dose of …, every month"). Shown on the
+  report, the marker page and the doctor report.
 - The personal timeline (SPEC.md section 18, step 2): medications, supplements, lifestyle changes
   and events with start and end dates (or just months), doses and schedules; bands on every chart, a
   row in the table, an optional block on the doctor report, and "From your timeline" for a test's

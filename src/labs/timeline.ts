@@ -64,13 +64,43 @@ export function startedBetween(entries: TimelineEntry[], after: string | undefin
   return entries.filter((e) => firstDay(e.start) <= upTo && (after === undefined || firstDay(e.start) > after))
 }
 
+/** Entries active on a day whose test timing around a dose matters. */
+export function timedOn(entries: TimelineEntry[], date: string): TimelineEntry[] {
+  return activeOn(entries, date).filter((e) => e.timing)
+}
+
+const dayNumber = (iso: string) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10)) / 86_400_000
+
+/** Whole days from one date to another. */
+export function daysBetween(from: string, to: string): number {
+  return Math.round(dayNumber(to) - dayNumber(from))
+}
+
+export function everyLabel(every: TimelineEntry['every']): string | undefined {
+  if (!every) return undefined
+  return every.n === 1 ? `every ${every.unit}` : `every ${every.n} ${every.unit}s`
+}
+
+/**
+ * How a test relates to a dose, in words: "before that day's dose of Sustanon 250", "29 days after the
+ * last dose of Sustanon 250 (every month)". Facts, not interpretation.
+ */
+export function describeTiming(t: { name: string; when: 'before-dose' | 'after-dose' | 'between'; lastDose?: string; every?: string }, testDate: string): string {
+  if (t.when === 'before-dose') return `before that day's dose of ${t.name}`
+  if (t.when === 'after-dose') return `after that day's dose of ${t.name}`
+  const schedule = t.every ? ` (${t.every})` : ''
+  if (!t.lastDose) return `between doses of ${t.name}${schedule}`
+  const days = daysBetween(t.lastDose, testDate)
+  return `${days === 1 ? '1 day' : `${days} days`} after the last dose of ${t.name}${schedule}`
+}
+
 export function sortByStart(entries: TimelineEntry[]): TimelineEntry[] {
   return [...entries].sort((a, b) => firstDay(a.start).localeCompare(firstDay(b.start)) || a.name.localeCompare(b.name))
 }
 
 /** "Vitamin D3 2,000 IU, every day": the name with its dose and schedule, without dates. */
 export function entryLabel(e: Pick<TimelineEntry, 'name' | 'dose' | 'every'>): string {
-  const every = e.every ? (e.every.n === 1 ? `every ${e.every.unit}` : `every ${e.every.n} ${e.every.unit}s`) : ''
+  const every = everyLabel(e.every)
   return [e.name, e.dose].filter(Boolean).join(' ') + (every ? `, ${every}` : '')
 }
 
