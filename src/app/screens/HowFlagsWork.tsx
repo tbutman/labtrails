@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
-import { CHANGE_THRESHOLD, TREND_MIN_RESULTS, TREND_THRESHOLD } from '../../labs/flags/flags'
+import { NOT_REPEATED_MONTHS } from '../../labs/analysis'
+import { CHANGE_THRESHOLD, PERSISTENT_MIN_RESULTS, TREND_MIN_RESULTS, TREND_THRESHOLD } from '../../labs/flags/flags'
 import { LandingNav, SiteFooter } from '../../core/ui/landing'
 import { APP, BRAND } from '../brand'
 import { formatPercent } from '../format'
@@ -18,9 +19,9 @@ export function HowFlagsWork() {
       />
       <main id="main" className="container narrow doc">
         <div className="kicker">How flags work</div>
-        <h1>Three simple rules, decided by code</h1>
+        <h1>Four simple rules, decided by code</h1>
         <p className="doc-lead">
-          LabTrails' flags come from three rules in its open-source code. The AI never decides what's flagged; it only explains flags the code has
+          LabTrails' flags come from four rules in its open-source code. The AI never decides what's flagged; it only explains flags the code has
           already found. None of the flags is a diagnosis.
         </p>
 
@@ -41,6 +42,19 @@ export function HowFlagsWork() {
         <p>
           Flagged when the last {TREND_MIN_RESULTS} or more results all rose, or all fell, by at least {formatPercent(TREND_THRESHOLD)} of the range
           width in total, so small wobbles don't count.
+        </p>
+
+        <h2>Outside the range on several tests</h2>
+        <p>
+          When the latest result and at least the {PERSISTENT_MIN_RESULTS - 1} before it are all outside their own labs' ranges, on the same side,
+          the flag says for how many tests in a row ("outside the lab's range on the last 4 tests"), so a single unusual result looks different from
+          one that keeps happening.
+        </p>
+
+        <h2>Not in your latest report</h2>
+        <p>
+          Not a flag on a result: LabTrails lists markers you had measured in the {NOT_REPEATED_MONTHS} months before your latest report that
+          aren't in it, in case you'd like them followed.
         </p>
 
         <h2>What these rules are, and aren't</h2>

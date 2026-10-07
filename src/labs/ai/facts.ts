@@ -3,7 +3,7 @@
 // included: they're "the person", with an age in years and sex if set, because some ranges depend on
 // them.
 
-import { analyse, type MarkerAnalysis } from '../analysis'
+import { analyse, notRepeated, type MarkerAnalysis } from '../analysis'
 import { rangeFlag, type Point } from '../flags/flags'
 import { ageInYears } from '../person'
 import type { Profile, Report, Result, TestContext } from '../types'
@@ -18,6 +18,8 @@ export type MarkerFacts = {
   previous?: FactPoint & { outsideRange?: 'above' | 'below' }
   changedNotably?: { direction: 'up' | 'down' | 'same'; percent: number | null; crossedRange: boolean }
   trend?: { direction: 'rising' | 'falling'; results: number }
+  /** Outside the lab's range on this many tests in a row, ending with the latest. */
+  persistent?: { side: 'above' | 'below'; results: number }
   history: FactPoint[]
   convertedFrom?: string
 }
@@ -30,11 +32,13 @@ export type SummaryFacts = {
   markers: MarkerFacts[]
   flagsAppeared: string[]
   flagsCleared: string[]
+  /** Markers measured in the two years before the latest report but missing from it. */
+  notInLatestReport: { marker: string; lastDate: string }[]
   rules: string
 }
 
 const RULES =
-  'Flags were computed by code: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" means a change of at least 25% of the range width (or of the previous value without a two-sided range), or moving into or out of the range; "trend" means 3 or more results moving the same way by at least 10% of the range width. These are simple heuristics, not clinical thresholds.'
+  'Flags were computed by code: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" means a change of at least 25% of the range width (or of the previous value without a two-sided range), or moving into or out of the range; "trend" means 3 or more results moving the same way by at least 10% of the range width; "persistent" means outside the lab\'s range on that many tests in a row (3 or more). "notInLatestReport" lists markers measured before but not in the latest report. These are simple heuristics, not clinical thresholds.'
 
 function point(p: Point): FactPoint {
   return { date: p.date, value: round(p.value), ...(p.comparator ? { comparator: p.comparator } : {}), ...(p.range ? { range: roundRange(p.range) } : {}) }
@@ -87,6 +91,7 @@ function markerFacts(a: MarkerAnalysis, panel: string, historyLength: number): M
       ? { changedNotably: { direction: a.change.direction, percent: a.change.relative === null ? null : Math.round(a.change.relative * 100), crossedRange: a.change.crossedRange } }
       : {}),
     ...(a.trend ? { trend: { direction: a.trend.direction, results: a.trend.results } } : {}),
+    ...(a.persistent ? { persistent: { side: a.persistent.side, results: a.persistent.results } } : {}),
     history: pts.slice(-historyLength).map(point),
     ...(converted ? { convertedFrom: converted } : {}),
   }
@@ -95,6 +100,8 @@ function markerFacts(a: MarkerAnalysis, panel: string, historyLength: number): M
 function person(profile: Profile, on: string): SummaryFacts['person'] {
   return { ...(profile.dateOfBirth ? { ageYears: ageInYears(profile.dateOfBirth, on) } : {}), ...(profile.sex ? { sex: profile.sex } : {}) }
 }
+
+const missing = (results: Result[], reports: Report[]) => notRepeated(results, reports).map((m) => ({ marker: m.name, lastDate: m.lastDate }))
 
 /** Facts for the "after a new report" summary: every marker in that report, against its history. */
 export function afterReportFacts(profile: Profile, reports: Report[], results: Result[], reportId: string, preferredUnits: Record<string, string> = {}): SummaryFacts {
@@ -122,6 +129,7 @@ export function afterReportFacts(profile: Profile, reports: Report[], results: R
     markers,
     flagsAppeared: appeared,
     flagsCleared: cleared,
+    notInLatestReport: missing(scoped, reports.filter((r) => upTo.has(r.id))),
     rules: RULES,
   }
 }
@@ -135,6 +143,7 @@ export function overallFacts(profile: Profile, reports: Report[], results: Resul
     markers,
     flagsAppeared: [],
     flagsCleared: [],
+    notInLatestReport: missing(results, reports),
     rules: RULES,
   }
 }

@@ -58,13 +58,13 @@ describe('demo flags match the pre-written summaries', () => {
   it('raises exactly these flags', () => {
     const flags = analyse(DEMO_RESULTS, DEMO_REPORTS)
       .flatMap((p) => p.markers)
-      .map((m) => [m.marker.id, [m.latestFlag && `outside:${m.latestFlag.side}`, m.change?.notable && `changed:${m.change.direction}`, m.trend && `${m.trend.direction}:${m.trend.results}`].filter(Boolean).join(' ')])
+      .map((m) => [m.marker.id, [m.latestFlag && `outside:${m.latestFlag.side}`, m.persistent && `persistent:${m.persistent.results}`, m.change?.notable && `changed:${m.change.direction}`, m.trend && `${m.trend.direction}:${m.trend.results}`].filter(Boolean).join(' ')])
       .filter(([, f]) => f)
     expect(Object.fromEntries(flags)).toEqual({
       glucose: 'outside:above changed:up rising:6',
       hba1c: 'rising:4',
-      'cholesterol-total': 'outside:above rising:6',
-      ldl: 'outside:above rising:6',
+      'cholesterol-total': 'outside:above persistent:4 rising:6',
+      ldl: 'outside:above persistent:6 rising:6',
       triglycerides: 'changed:down',
       ferritin: 'falling:6',
       'vitamin-d': 'rising:4',

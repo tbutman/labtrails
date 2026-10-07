@@ -36,6 +36,7 @@ export type AskMarker = {
   results: AskResult[]
   changedNotably?: { direction: 'up' | 'down' | 'same'; percent: number | null; crossedRange: boolean }
   trend?: { direction: 'rising' | 'falling'; results: number }
+  persistent?: { side: 'above' | 'below'; results: number }
 }
 
 export type AskFacts = {
@@ -49,7 +50,7 @@ export type AskFacts = {
 }
 
 const RULES =
-  'Flags were computed by LabTrails: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" is a change of at least 25% of the range width since the previous result, or moving into or out of the range; "trend" is 3 or more results moving the same way. They are simple heuristics, not clinical thresholds. Each result\'s value and range are in the marker\'s unit; "printed" is the value as the lab printed it, in its own unit.'
+  'Flags were computed by LabTrails: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" is a change of at least 25% of the range width since the previous result, or moving into or out of the range; "trend" is 3 or more results moving the same way; "persistent" is outside the lab\'s range on that many tests in a row. They are simple heuristics, not clinical thresholds. Each result\'s value and range are in the marker\'s unit; "printed" is the value as the lab printed it, in its own unit.'
 
 const MAX_RESULTS = 12
 const MAX_FLAGGED = 15
@@ -110,6 +111,7 @@ function markerFacts(a: MarkerAnalysis, panel: string, resultsById: Map<string, 
       ? { changedNotably: { direction: a.change.direction, percent: a.change.relative === null ? null : Math.round(a.change.relative * 100), crossedRange: a.change.crossedRange } }
       : {}),
     ...(a.trend ? { trend: { direction: a.trend.direction, results: a.trend.results } } : {}),
+    ...(a.persistent ? { persistent: { side: a.persistent.side, results: a.persistent.results } } : {}),
   }
 }
 

@@ -2,7 +2,7 @@
 // prints, saves as PDF and exports as PNG. It's a file the user shares, never a link to a server.
 // Plain system fonts and fixed colours, because an SVG drawn into a canvas can't load the app's fonts.
 
-import type { MarkerAnalysis } from '../../labs/analysis'
+import type { MarkerAnalysis, NotRepeated } from '../../labs/analysis'
 import { rangeFlag } from '../../labs/flags/flags'
 import type { Report } from '../../labs/types'
 import { DISCLAIMER } from '../components/Flags'
@@ -56,7 +56,7 @@ function Spark({ a, x, y, w, h }: { a: MarkerAnalysis; x: number; y: number; w: 
   )
 }
 
-export function ReportSheet({ who, markers, latest, notes }: { who: string; markers: MarkerAnalysis[]; latest?: Report; notes: string }) {
+export function ReportSheet({ who, markers, latest, notes, missing = [] }: { who: string; markers: MarkerAnalysis[]; latest?: Report; notes: string; missing?: NotRepeated[] }) {
   const rowH = 58
   const top = 150
   const context = latest?.context
@@ -70,7 +70,10 @@ export function ReportSheet({ who, markers, latest, notes }: { who: string; mark
         .filter(Boolean)
         .join('; ')
     : ''
-  const contextLines = contextText ? wrap(`Latest test: ${contextText}`, 100) : []
+  const contextLines = [
+    ...(contextText ? wrap(`Latest test: ${contextText}`, 100) : []),
+    ...(missing.length ? wrap(`Not in the latest report: ${missing.map((m) => `${m.name} (last ${formatDate(m.lastDate)})`).join(', ')}`, 100) : []),
+  ]
   const noteLines = notes.trim() ? wrap(notes.trim(), 100) : []
   const afterRows = top + Math.max(markers.length, 1) * rowH + 20
   const notesTop = afterRows + contextLines.length * 18 + (contextLines.length ? 16 : 0)
@@ -110,7 +113,7 @@ export function ReportSheet({ who, markers, latest, notes }: { who: string; mark
         const y = top + i * rowH
         const f = a.latestFlag
         const notes = [
-          f?.basis === 'range' ? `! Outside the lab's range (${f.side})` : null,
+          f?.basis === 'range' ? `! Outside the lab's range (${f.side})${a.persistent ? ` on the last ${a.persistent.results} tests` : ''}` : null,
           a.change?.notable ? `Changed since last time` : null,
           a.trend ? `${a.trend.direction === 'rising' ? 'Rising' : 'Falling'} over ${a.trend.results} results` : null,
         ].filter(Boolean)

@@ -30,6 +30,11 @@ up).
   - *Outside the lab's range*: compared with the range printed on that report.
   - *Changed since last time*: a change of at least a quarter of the range's width.
   - *Rising* or *falling*: three or more results moving the same way.
+  - *On several tests in a row*: outside the lab's range on the last three or more tests, so a
+    one-off result looks different from one that keeps happening.
+
+  LabTrails also lists markers you had measured in the two years before your latest report that
+  aren't in it ("not in your latest report: HbA1c, HDL").
 
   These are heuristics, not medical thresholds. The app explains them under **How flags work**.
 - **Notes on each test:** fasting or not, the time of day, medications and supplements ("same as last

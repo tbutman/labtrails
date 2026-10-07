@@ -20,6 +20,8 @@ export type Point = {
 export const CHANGE_THRESHOLD = 0.25
 export const TREND_THRESHOLD = 0.1
 export const TREND_MIN_RESULTS = 3
+/** Rule 4: how many tests in a row outside the range make a result "persistent" (agreed with Thomas, 7 Oct 2026). */
+export const PERSISTENT_MIN_RESULTS = 3
 
 export type RangeFlag = {
   side: 'above' | 'below'
@@ -145,6 +147,22 @@ export function trend(points: Point[]): Trend | null {
   const scale = width(to) ?? Math.abs(from.value)
   if (!(scale > 0) || Math.abs(to.value - from.value) < TREND_THRESHOLD * scale) return null
   return { direction: dir > 0 ? 'rising' : 'falling', results: run, from, to }
+}
+
+export type Persistent = { side: 'above' | 'below'; results: number; since: Point }
+
+/**
+ * Rule 4: outside the range on several tests in a row. The latest result and at least the
+ * PERSISTENT_MIN_RESULTS − 1 before it are all outside their own labs' ranges, on the same side.
+ */
+export function persistent(points: Point[]): Persistent | null {
+  const sorted = sortByDate(points)
+  const latest = sorted.at(-1)
+  const side = latest ? rangeFlag(latest)?.side : undefined
+  if (!side) return null
+  let n = 0
+  for (let i = sorted.length - 1; i >= 0 && rangeFlag(sorted[i])?.side === side; i--) n++
+  return n >= PERSISTENT_MIN_RESULTS ? { side, results: n, since: sorted[sorted.length - n] } : null
 }
 
 export function sortByDate<T extends { date: string }>(points: T[]): T[] {
