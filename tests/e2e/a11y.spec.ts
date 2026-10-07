@@ -68,6 +68,14 @@ async function everyScreen(page: Page, found: Found[]) {
   await expect(page.getByRole('heading', { name: 'Edit report details' })).toBeVisible()
   await check(page, 'edit report details', found)
 
+  await nav(page, 'Timeline')
+  await expect(page.getByText('Vitamin D3 2,000 IU, every day')).toBeVisible()
+  await check(page, 'timeline', found)
+
+  await page.getByRole('link', { name: 'Edit Vitamin D3' }).click()
+  await expect(page.getByRole('heading', { name: 'Edit Vitamin D3' })).toBeVisible()
+  await check(page, 'edit a timeline entry', found)
+
   await nav(page, 'Summaries')
   await expect(page.getByText(/pre-written example/).first()).toBeVisible()
   await check(page, 'summaries', found)

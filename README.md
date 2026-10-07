@@ -37,6 +37,9 @@ up).
   aren't in it ("not in your latest report: HbA1c, HDL").
 
   These are heuristics, not medical thresholds. The app explains them under **How flags work**.
+- **A personal timeline:** medications, supplements and changes like stopping alcohol or starting
+  training, with when they started and ended, shown as bands on every chart and in the table, and on
+  the doctor report if you choose. It never changes a flag.
 - **Notes on each test:** fasting or not, the time of day, medications and supplements ("same as last
   time" is one tap), recent illness, hard exercise, alcohol or poor sleep. They never change a flag,
   but they show on the chart and help explain a result.

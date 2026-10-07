@@ -15,6 +15,10 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- The personal timeline (SPEC.md section 18, step 2): medications, supplements, lifestyle changes
+  and events with start and end dates (or just months), doses and schedules; bands on every chart, a
+  row in the table, an optional block on the doctor report, and "From your timeline" for a test's
+  medications. Encrypted like everything else; not sent to the AI.
 - A fourth flag: outside the lab's range on several tests in a row ("Above lab range · 4 tests").
   And "Not in your latest report": markers measured in the two years before it that it left out, on
   the overview, the doctor report and in the AI's facts. (SPEC.md section 18, steps 1.)

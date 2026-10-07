@@ -1,14 +1,16 @@
+import type { TimelineEntry } from '../labs/timeline'
 import type { Profile, Report, Result, Summary } from '../labs/types'
-import { DEMO_PROFILE, DEMO_REPORTS, DEMO_RESULTS, DEMO_SUMMARIES } from '../app/demo'
+import { DEMO_PROFILE, DEMO_REPORTS, DEMO_RESULTS, DEMO_SUMMARIES, DEMO_TIMELINE } from '../app/demo'
 import type { RecordStore } from '../core'
 
-export type ProfileData = { profile: Profile; reports: Report[]; results: Result[]; summaries: Summary[] }
+export type ProfileData = { profile: Profile; reports: Report[]; results: Result[]; summaries: Summary[]; timeline: TimelineEntry[] }
 
 export async function seedDemo(store: RecordStore): Promise<void> {
   await store.put('profiles', DEMO_PROFILE)
   for (const r of DEMO_REPORTS) await store.put('reports', r)
   for (const r of DEMO_RESULTS) await store.put('results', r)
   for (const s of DEMO_SUMMARIES) await store.put('summaries', s)
+  for (const t of DEMO_TIMELINE) await store.put('timeline', t)
 }
 
 export async function loadProfile(store: RecordStore, profileId: string): Promise<ProfileData | null> {
@@ -20,5 +22,6 @@ export async function loadProfile(store: RecordStore, profileId: string): Promis
     reports: mine(await store.list<Report>('reports')),
     results: mine(await store.list<Result>('results')),
     summaries: mine(await store.list<Summary>('summaries')),
+    timeline: mine(await store.list<TimelineEntry>('timeline')),
   }
 }

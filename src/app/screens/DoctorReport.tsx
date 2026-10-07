@@ -1,9 +1,11 @@
 import { Download, Printer, Share2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Checkbox, ChipGroup, PageHeader, TextAreaField } from '../../core/ui/components'
-import { analyse, notRepeated } from '../../labs/analysis'
+import { analyse, notRepeated, type MarkerAnalysis } from '../../labs/analysis'
+import { activeBetween, entryLabel, sortByStart, type TimelineEntry } from '../../labs/timeline'
 import { useProfileData } from '../profileContext'
 import { ReportSheet, SHEET_WIDTH } from '../report/ReportSheet'
+import { formatPeriod } from '../format'
 import { useSession } from '../sessionContext'
 
 function initials(name: string): string {
@@ -14,13 +16,22 @@ function initials(name: string): string {
     .join(' ')
 }
 
+/** Entries active between the first result shown and the latest test, oldest first. */
+function timelineFor(timeline: TimelineEntry[], markers: MarkerAnalysis[], latest: string | undefined): string[] {
+  const first = markers.flatMap((a) => a.series.points.map((p) => p.date)).sort()[0]
+  if (!first || !latest) return []
+  return sortByStart(activeBetween(timeline, first, latest)).map((e) => `${entryLabel(e)} (${formatPeriod(e.start, e.end)})`)
+}
+
 export function DoctorReport() {
-  const { profile, reports, results } = useProfileData()
+  const { profile, reports, results, timeline } = useProfileData()
   const { app } = useSession()
   const all = analyse(results, reports, app.preferredUnit).flatMap((p) => p.markers)
   const flagged = all.filter((a) => a.latestFlag || a.change?.notable || a.trend).map((a) => a.marker.id)
   const [selected, setSelected] = useState<string[]>(flagged)
   const [useInitials, setUseInitials] = useState(false)
+  // Medications and lifestyle are sensitive: off unless the user ticks it (SPEC.md section 18.8).
+  const [withTimeline, setWithTimeline] = useState(false)
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('')
   const sheet = useRef<HTMLDivElement>(null)
@@ -84,6 +95,11 @@ export function DoctorReport() {
           <Checkbox checked={useInitials} onChange={setUseInitials}>
             Show initials instead of the name
           </Checkbox>
+          {timeline.length > 0 && (
+            <Checkbox checked={withTimeline} onChange={setWithTimeline}>
+              Include the timeline (medications, supplements and changes during these results)
+            </Checkbox>
+          )}
           <TextAreaField label="Your notes and questions (optional, not saved)" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} />
           <div className="row">
             <button className="button primary" onClick={() => window.print()}>
@@ -104,7 +120,7 @@ export function DoctorReport() {
         </div>
       </div>
       <div className="report-sheet" ref={sheet}>
-        <ReportSheet who={who} markers={markers} latest={latest} notes={notes} missing={notRepeated(results, reports)} />
+        <ReportSheet who={who} markers={markers} latest={latest} notes={notes} missing={notRepeated(results, reports)} timeline={withTimeline ? timelineFor(timeline, markers, latest?.date) : []} />
       </div>
     </>
   )

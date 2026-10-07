@@ -1,4 +1,4 @@
-import { FileText, LayoutDashboard, Lock, LogOut, Settings, Sparkles, Stethoscope, Table2 } from 'lucide-react'
+import { CalendarRange, FileText, LayoutDashboard, Lock, LogOut, Settings, Sparkles, Stethoscope, Table2 } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, Navigate, Outlet, ScrollRestoration, useNavigate, useParams } from 'react-router'
 import { loadProfile, type ProfileData } from '../../data/profile'
@@ -113,6 +113,7 @@ export function ProfileLayout() {
     { to: base, label: 'Overview', icon: LayoutDashboard, end: true },
     { to: `${base}/table`, label: 'Table', icon: Table2 },
     { to: `${base}/reports`, label: 'Reports', icon: FileText },
+    { to: `${base}/timeline`, label: 'Timeline', icon: CalendarRange },
     { to: `${base}/summaries`, label: 'Summaries', icon: Sparkles },
     { to: `${base}/doctor`, label: 'Doctor', icon: Stethoscope },
   ]
