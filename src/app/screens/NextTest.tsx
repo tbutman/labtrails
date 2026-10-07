@@ -83,7 +83,7 @@ export function NextTest() {
               {notes.fasting.known > 0 && (
                 <li>
                   {notes.fasting.yes} of your {plural(notes.fasting.known, 'earlier test')} with a note were fasting.
-                  {notes.eating.length > 0 && ` Eating before the test is known to raise ${notes.eating.map((e) => e.name.toLowerCase()).join(' and ')}.`}
+                  {notes.eating.length > 0 && ` Eating before the test can raise ${notes.eating.map((e) => e.name.toLowerCase()).join(' and ')}.`}
                 </li>
               )}
             </ul>

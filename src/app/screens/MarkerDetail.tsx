@@ -194,7 +194,7 @@ function KnownInfluences({ markerId, markerName, tests, timeline }: { markerId: 
   return (
     <>
       <h2 className="section-title">
-        <Info size={14} aria-hidden /> Things known to affect this test
+        <Info size={14} aria-hidden /> Things that can affect this test
       </h2>
       <div className="card">
         {matched.length > 0 && (
@@ -207,14 +207,16 @@ function KnownInfluences({ markerId, markerName, tests, timeline }: { markerId: 
         <ul className="plain-list influences">
           {known.map((k) => (
             <li key={`${k.influence}-${k.effect}`}>
-              {k.effect === 'vary' ? `It varies with ${lowerFirst(INFLUENCE_NAMES[k.influence])}.` : `${INFLUENCE_NAMES[k.influence]} ${effectWords(k.effect)} it.`}{' '}
+              {k.effect === 'vary'
+                ? `It varies with ${lowerFirst(INFLUENCE_NAMES[k.influence])}${k.qualifier ? ` ${k.qualifier}` : ''}.`
+                : `${INFLUENCE_NAMES[k.influence]} ${effectWords(k.effect)} it${k.qualifier ? ` ${k.qualifier}` : ''}.`}{' '}
               <a href={k.source.url} target="_blank" rel="noreferrer noopener">
                 {k.source.title}
               </a>
             </li>
           ))}
         </ul>
-        <p className="hint">Documented influences in general, from public health sources. They don't say why any one result is what it is; your doctor can.</p>
+        <p className="hint">Documented influences in general, from health information sites. They don't say why any one result is what it is; your doctor can.</p>
       </div>
     </>
   )

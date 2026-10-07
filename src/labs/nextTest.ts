@@ -114,7 +114,7 @@ export type HistoryNotes = {
   timed: TimelineEntry[]
   /** How many earlier tests were fasting, of those where it's known. */
   fasting: { yes: number; known: number }
-  /** Markers measured before that eating before the test is known to affect. */
+  /** Markers measured before that eating before the test can affect. */
   eating: { markerId: string; name: string; influence: Influence }[]
 }
 

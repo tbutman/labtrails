@@ -49,7 +49,7 @@ export function personalLineFact(a: MarkerAnalysis, lines: PersonalLine[], name:
 }
 
 /** A documented influence on a marker that LabTrails matched to the timeline or a test's notes. */
-export type InfluenceFact = { influence: string; effect: string; matchedBy: string; source: string }
+export type InfluenceFact = { influence: string; effect: string; qualifier?: string; matchedBy: string; source: string }
 
 export type SummaryFacts = {
   person: { ageYears?: number; sex?: 'female' | 'male' }
@@ -125,7 +125,13 @@ export function influenceFacts(markerId: string, tests: Report[], timeline: Time
       const key = `${m.influence.influence}|${matchedBy}`
       if (seen.has(key)) continue
       seen.add(key)
-      out.push({ influence: INFLUENCE_NAMES[m.influence.influence], effect: effectWords(m.influence.effect), matchedBy, source: m.influence.source.title })
+      out.push({
+        influence: INFLUENCE_NAMES[m.influence.influence],
+        effect: effectWords(m.influence.effect),
+        ...(m.influence.qualifier ? { qualifier: m.influence.qualifier } : {}),
+        matchedBy,
+        source: m.influence.source.title,
+      })
     }
   }
   return out

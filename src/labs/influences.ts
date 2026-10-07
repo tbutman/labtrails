@@ -1,8 +1,8 @@
 // Known influences (SPEC.md section 18.4): documented things that can affect a test's result, each
-// pair cited to a public source (MedlinePlus, the NHS or Lab Tests Online / testing.com) and stating
-// only a direction. Matched against the person's timeline and a test's context, they're shown as
-// "your timeline includes X, which is known to raise Y": a documented influence and the user's own
-// entry, never a cause.
+// pair cited to a public source (MedlinePlus, the NHS, Lab Tests Online UK, or Testing.com, formerly
+// Lab Tests Online) and stating only a direction, with the source's own limits ("in some people").
+// Matched against the person's timeline and a test's context, they're shown as "your timeline includes
+// X; X can raise Y": a documented influence and the user's own entry, never a cause.
 
 import type { TimelineEntry } from './timeline'
 import { activeOn } from './timeline'
@@ -54,7 +54,16 @@ export type Effect = 'raise' | 'lower' | 'affect' | 'vary'
 
 export type InfluenceSource = { title: string; url: string; quote: string; accessed: string }
 
-export type Influence = { markers: string[]; influence: InfluenceId; effect: Effect; source: InfluenceSource }
+export type Influence = {
+  markers: string[]
+  influence: InfluenceId
+  effect: Effect
+  /** The source's own limits, so the sentence is no stronger than the quote: "in some people". */
+  qualifier?: string
+  /** Matched only from a test's own notes ("recent alcohol"), never from the timeline. */
+  onlyFromNotes?: boolean
+  source: InfluenceSource
+}
 
 const EFFECT_WORDS: Record<Effect, string> = { raise: 'can raise', lower: 'can lower', affect: 'can affect', vary: 'varies with' }
 
@@ -74,8 +83,8 @@ const NAMES: [InfluenceId, RegExp][] = [
   ['testosterone', /testost|sustanon|enanthate|enantato|cypionate|cipionato|undecanoate|undecanoato|nebido|androgel|testogel|tostran|anabolic|anabolizante|\btrt\b/i],
   ['glp1', /semaglutid|ozempic|wegovy|rybelsus|tirzepatid|mounjaro|zepbound|liraglutid|saxenda|victoza|dulaglutid|trulicity|\bglp-?1\b/i],
   ['statin', /statin|estatina|atorvastat|rosuvastat|simvastat|pravastat|pitavastat|fluvastat|lipitor|crestor|zocor/i],
-  ['thyroid-hormone', /levothyrox|levotirox|thyroxine|tiroxina|euthyrox|eutirox|synthroid|letrox|liothyronin|liotironina|cytomel/i],
-  ['corticosteroid', /prednis|dexamet|hydrocortis|hidrocortis|methylpred|metilpred|cortico|budeson/i],
+  ['thyroid-hormone', /levothyrox|levotirox|\bthyroxine|\btiroxina|euthyrox|eutirox|synthroid|letrox/i],
+  ['corticosteroid', /prednis|dexamet|hydrocortis|hidrocortis|methylpred|metilpred|cortico/i],
   ['nsaid', /ibuprof|naprox|diclofen|ketoprof|cetoprof|celecox|etoricox|nimesul|\bnsaid|aine\b|anti-?inflamat/i],
   ['iron', /\biron\b|\bferro|ferrous|ferroso|ferric|férrico|ferrico|ferritab/i],
   ['vitamin-d', /vitamin[ae]?\s*d|\bd3\b|colecalcif|cholecalcif|calcifediol/i],
@@ -88,10 +97,14 @@ const NAMES: [InfluenceId, RegExp][] = [
 
 const STOPPED = /^\s*(stopped|quit|no more|parei|deixei|sem)\b/i
 
+// Steroids on the skin, in the nose or eyes, or inhaled: the sources mean steroids taken by mouth or
+// injection ("certain types of … steroids").
+const LOCAL = /cream|creme|ointment|pomada|\bgel\b|lotion|inhal|spray|nasal|puff|bombinha|drops|gotas|eye|topical|tópic|topic/i
+
 /** The influences a timeline entry's name stands for. */
 export function entryInfluences(entry: Pick<TimelineEntry, 'name'>): InfluenceId[] {
   if (STOPPED.test(entry.name)) return []
-  return NAMES.filter(([, re]) => re.test(entry.name)).map(([id]) => id)
+  return NAMES.filter(([id, re]) => re.test(entry.name) && !(id === 'corticosteroid' && LOCAL.test(entry.name))).map(([id]) => id)
 }
 
 /** The influences a test's own notes stand for. */
@@ -113,23 +126,26 @@ export function matchInfluences(markerId: string, timeline: TimelineEntry[], tes
   const known = influencesFor(markerId)
   const out: Matched[] = []
   for (const entry of activeOn(timeline, test.date)) {
-    for (const id of entryInfluences(entry)) for (const influence of known.filter((k) => k.influence === id)) out.push({ influence, from: { kind: 'timeline', entry } })
+    for (const id of entryInfluences(entry)) for (const influence of known.filter((k) => k.influence === id && !k.onlyFromNotes)) out.push({ influence, from: { kind: 'timeline', entry } })
   }
   for (const id of contextInfluences(test.context)) for (const influence of known.filter((k) => k.influence === id)) out.push({ influence, from: { kind: 'test', date: test.date } })
   return out
 }
 
-/** "Your timeline includes Sustanon 250 (from Jun 1, 2026); testosterone therapy can raise hematocrit." */
+/**
+ * "Your timeline includes Atorvastatin (from Jan 2026); statins can raise glucose in some people." An
+ * entry that has ended shows its span: "(Nov 1, 2025 to Mar 1, 2026)".
+ */
 export function matchedSentence(m: Matched, markerName: string, formatWhen: (iso: string) => string): string {
   const what = lowerFirst(INFLUENCE_NAMES[m.influence.influence])
-  const be = PLURAL.has(m.influence.influence) ? 'are' : 'is'
-  const effect = m.influence.effect === 'vary' ? `${markerName} varies with ${what}` : `${what} ${be} known to ${m.influence.effect} ${markerName}`
-  if (m.from.kind === 'timeline') return `Your timeline includes ${m.from.entry.name} (from ${formatWhen(m.from.entry.start)}); ${effect}.`
+  const q = m.influence.qualifier ? ` ${m.influence.qualifier}` : ''
+  const effect = m.influence.effect === 'vary' ? `${markerName} varies with ${what}${q}` : `${what} ${effectWords(m.influence.effect)} ${markerName}${q}`
+  if (m.from.kind === 'timeline') {
+    const { start, end, name } = m.from.entry
+    return `Your timeline includes ${name} (${end ? `${formatWhen(start)} to ${formatWhen(end)}` : `from ${formatWhen(start)}`}); ${effect}.`
+  }
   return `The ${formatWhen(m.from.date)} test ${TEST_NOTES[m.influence.influence] ?? 'has a note about it'}; ${effect}.`
 }
-
-// Influence names that take "are": "statins are known to…".
-const PLURAL = new Set<InfluenceId>(['biotin', 'testosterone', 'glp1', 'statin', 'corticosteroid', 'nsaid', 'iron', 'vitamin-d'])
 
 /** "Vitamin D supplements" → "vitamin D supplements"; "GLP-1 medicines" stays as it is. */
 export const lowerFirst = (s: string) => (/^[A-Z][a-z]/.test(s) ? s[0].toLowerCase() + s.slice(1) : s)
