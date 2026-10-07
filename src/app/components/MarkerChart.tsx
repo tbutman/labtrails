@@ -8,7 +8,7 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { rangeFlag } from '../../labs/flags/flags'
 import type { SeriesPoint } from '../../labs/series'
 import { lineText, type LineBounds } from '../../labs/lines'
-import { formatDate, formatPoint, formatRange, formatValue } from '../format'
+import { formatDate, formatPoint, formatRange, formatValue, unitLabel } from '../format'
 
 const H = 240
 const PAD = { top: 16, right: 16, bottom: 32, left: 48 }
@@ -128,7 +128,7 @@ function ChartSvg({ points, unit, label, contextDates = [], lanes, line, W }: Ch
       className="chart"
       viewBox={`0 0 ${W} ${H}`}
       role="img"
-      aria-label={`${label} in ${unit}: ${points.length} results from ${formatDate(points[0].date)} to ${formatDate(points.at(-1)!.date)}, latest ${formatPoint(points.at(-1)!)}. ${flaggedCount} outside their lab's range.${lanes.length ? ` Timeline: ${lanes.map((e) => `${e.label}, ${e.period}`).join('; ')}.` : ''}${line ? ` Your line (${line.label}): ${lineText(line, formatValue)}.` : ''} The full list follows the chart.`}
+      aria-label={`${label} in ${unitLabel(unit)}: ${points.length} results from ${formatDate(points[0].date)} to ${formatDate(points.at(-1)!.date)}, latest ${formatPoint(points.at(-1)!)}. ${flaggedCount} outside their lab's range.${lanes.length ? ` Timeline: ${lanes.map((e) => `${e.label}, ${e.period}`).join('; ')}.` : ''}${line ? ` Your line (${line.label}): ${lineText(line, formatValue)}.` : ''} The full list follows the chart.`}
     >
       {lanes.map((e) => {
         const x0 = e.from <= points[0].date ? PAD.left : x(e.from)
@@ -218,7 +218,7 @@ export function ResultsList({ points, unit }: { points: SeriesPoint[]; unit: str
               </span>
               {f && <span className="chip flag">! {f.side === 'above' ? 'Above' : 'Below'}</span>}
               <span className="result-value">
-                {formatPoint(p)} <span className="unit">{unit}</span>
+                {formatPoint(p)} <span className="unit">{unitLabel(unit)}</span>
               </span>
             </li>
           )

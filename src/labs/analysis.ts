@@ -3,14 +3,24 @@
 
 import { MARKERS, PANELS, getMarker } from './catalogue/catalogue'
 import type { Marker, PanelId } from './catalogue/types'
-import { changeSincePrevious, critical, persistent, rangeFlag, trend, labFlagWithoutCodeFlag, type Change, type Critical, type Persistent, type RangeFlag, type Trend } from './flags/flags'
+import { changeSincePrevious, critical, persistent, rangeFlag, sortByDate, trend, labFlagWithoutCodeFlag, type Change, type Critical, type Persistent, type Point, type RangeFlag, type Trend } from './flags/flags'
 import { buildSeries, displayUnit, type Series, type SeriesPoint } from './series'
 import type { Report, Result } from './types'
+
+/**
+ * A numeric result in a unit LabTrails can't convert to the one shown (B12 in an unlisted unit, Lp(a)
+ * across units). It isn't charted, but it's flagged against its own printed range, in its own unit.
+ */
+export type Unconverted = Point & { resultId: string; reportId: string; unit: string; flag: RangeFlag | null }
 
 export type MarkerAnalysis = {
   marker: Marker
   series: Series
   latest: SeriesPoint | undefined
+  /** Results that couldn't be converted to the unit shown, oldest first. */
+  unconverted: Unconverted[]
+  /** The newest of those, when it's newer than every charted result: the flags below are about it. */
+  latestUnconverted: Unconverted | undefined
   latestFlag: RangeFlag | null
   /** The latest result was marked critical by the lab, or is far outside the lab's range. */
   latestCritical: Critical | null
@@ -29,16 +39,40 @@ export function analyseMarker(markerId: string, results: Result[], reportsById: 
   if (!unit) return null
   const series = buildSeries(markerId, unit, results, reportsById)
   const latest = series.points.at(-1)
+  const byId = new Map(results.map((r) => [r.id, r]))
+  const unconverted = sortByDate(
+    series.skipped
+      .filter((s) => s.reason !== 'not-numeric')
+      .flatMap((s): Unconverted[] => {
+        const r = byId.get(s.resultId)
+        const report = r && reportsById.get(r.reportId)
+        if (!r || !report || r.value === undefined) return []
+        const p: Point = {
+          date: report.date,
+          value: r.value,
+          ...(r.comparator ? { comparator: r.comparator } : {}),
+          ...(r.range && (r.range.low !== undefined || r.range.high !== undefined) ? { range: { ...(r.range.low !== undefined ? { low: r.range.low } : {}), ...(r.range.high !== undefined ? { high: r.range.high } : {}) } } : {}),
+          ...(r.flagAsPrinted ? { flagAsPrinted: r.flagAsPrinted } : {}),
+        }
+        return [{ ...p, resultId: r.id, reportId: r.reportId, unit: r.unitAsPrinted?.trim() || 'no unit', flag: rangeFlag(p) }]
+      }),
+  )
+  const newest = unconverted.at(-1)
+  const latestUnconverted = newest && (!latest || newest.date > latest.date) ? newest : undefined
+  const shown: Point | undefined = latestUnconverted ?? latest
   return {
     marker,
     series,
     latest,
-    latestFlag: latest ? rangeFlag(latest) : null,
-    latestCritical: latest ? critical(latest) : null,
-    labOnlyFlag: latest ? labFlagWithoutCodeFlag(latest) : null,
-    change: changeSincePrevious(series.points),
-    trend: trend(series.points),
-    persistent: persistent(series.points),
+    unconverted,
+    latestUnconverted,
+    latestFlag: shown ? rangeFlag(shown) : null,
+    latestCritical: shown ? critical(shown) : null,
+    labOnlyFlag: shown ? labFlagWithoutCodeFlag(shown) : null,
+    // With a newer result that isn't charted, rules about the charted results would describe an older one.
+    change: latestUnconverted ? null : changeSincePrevious(series.points),
+    trend: latestUnconverted ? null : trend(series.points),
+    persistent: latestUnconverted ? null : persistent(series.points),
   }
 }
 
@@ -56,7 +90,7 @@ export function analyse(results: Result[], reports: Report[], preferredUnits: Re
     name: panel.name,
     markers: MARKERS.filter((m) => m.panel === panel.id && present.has(m.id))
       .map((m) => analyseMarker(m.id, results, reportsById, preferredUnits[m.id]))
-      .filter((a): a is MarkerAnalysis => a !== null && a.series.points.length > 0),
+      .filter((a): a is MarkerAnalysis => a !== null && (a.series.points.length > 0 || a.unconverted.length > 0)),
   })).filter((p) => p.markers.length > 0)
 }
 

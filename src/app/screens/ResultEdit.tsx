@@ -43,7 +43,7 @@ function EditResult({ report, result, aliases, base }: { report: Report; result?
   const { profile, results } = useProfileData()
   const navigate = useNavigate()
   const siblings = results.filter((r) => r.reportId === report.id)
-  const [decimal, setDecimal] = useState<DecimalHint>(() => reportDecimal(siblings))
+  const [decimal, setDecimal] = useState<DecimalHint | undefined>(() => reportDecimal(siblings))
   const [input, setInput] = useState<ResultInput>(() => (result ? inputFromResult(result, decimal, aliases) : EMPTY))
   const [mapAll, setMapAll] = useState(true)
   const [error, setError] = useState('')

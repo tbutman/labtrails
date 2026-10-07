@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { changeSincePrevious, critical, farOutside, labCritical, labFlagWithoutCodeFlag, persistent, rangeFlag, trend, type Point } from '../../src/labs/flags/flags'
-import { notRepeated } from '../../src/labs/analysis'
+import { analyse, notRepeated } from '../../src/labs/analysis'
 import { buildSeries } from '../../src/labs/series'
 import type { Report, Result } from '../../src/labs/types'
 
@@ -253,5 +253,32 @@ describe('not repeated since', () => {
   it('counts BUN and urea as one, and ignores urine results', () => {
     const results = [result('a', 'bun'), result('b', 'urea'), result('a', 'glucose', { specimen: 'urine' })]
     expect(notRepeated(results, reports)).toEqual([])
+  })
+})
+
+describe('results in a unit LabTrails cannot convert (LAB-04)', () => {
+  const reports = [
+    { id: 'a', date: '2025-01-10' },
+    { id: 'b', date: '2026-01-10' },
+  ].map((r) => ({ ...r, profileId: 'x', source: 'manual', createdAt: '', updatedAt: '' }) as Report)
+  const res = (over: Partial<Result>): Result => ({ id: over.id!, reportId: 'a', profileId: 'x', nameAsPrinted: 'Prolactin', markerId: 'prolactin', createdAt: '', updatedAt: '', ...over })
+
+  it('flags the newest one against its own range, in its own unit, and keeps the marker', () => {
+    const results = [
+      res({ id: '1', reportId: 'a', value: 12, unitAsPrinted: 'ng/mL', range: { low: 4, high: 23, text: '4 - 23' } }),
+      res({ id: '2', reportId: 'b', value: 900, unitAsPrinted: 'mIU/L', range: { low: 86, high: 324, text: '86 - 324' } }),
+    ]
+    const [a] = analyse(results, reports).flatMap((p) => p.markers)
+    expect(a.series.points).toHaveLength(1)
+    expect(a.unconverted).toHaveLength(1)
+    expect(a.latestUnconverted).toMatchObject({ value: 900, unit: 'mIU/L', flag: { side: 'above', basis: 'range' } })
+    expect(a.latestFlag).toEqual({ side: 'above', basis: 'range' })
+    expect(a.change).toBeNull()
+  })
+
+  it('keeps a marker whose only results are unconvertible', () => {
+    const [a] = analyse([res({ id: '2', reportId: 'b', value: 900, unitAsPrinted: 'mIU/L', range: { low: 86, high: 324, text: '86 - 324' } })], reports).flatMap((p) => p.markers)
+    expect(a.latest).toBeUndefined()
+    expect(a.latestUnconverted?.value).toBe(900)
   })
 })

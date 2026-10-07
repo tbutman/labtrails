@@ -63,7 +63,7 @@ export const MARKERS: Marker[] = [
   { id: 'mpv', name: 'MPV', panel: 'blood-count', aliases: ['mpv', 'mean platelet volume', 'vpm', 'volume plaquetario medio'], units: [base('fL')] },
 
   // Glucose
-  { id: 'glucose', name: 'Glucose', panel: 'glucose', aliases: ['glucose', 'fasting glucose', 'glucose fasting', 'glicose', 'glicemia', 'glicemia em jejum', 'glucose serum', 'glucose plasma'], units: [base('mmol/L'), linear('mg/dL', 0.0555, SOURCES.glucose)] },
+  { id: 'glucose', name: 'Glucose', panel: 'glucose', aliases: ['glucose', 'fasting glucose', 'glucose fasting', 'glicose', 'glicemia', 'glicemia em jejum', 'glucose serum', 'glucose plasma'], units: [base('mmol/L'), linear('mg/dL', 0.0555, SOURCES.glucose), linear('g/L', 5.551, SOURCES.glucoseGramsPerLiter)] },
   { id: 'hba1c', name: 'HbA1c', panel: 'glucose', aliases: ['hba1c', 'a1c', 'haemoglobin a1c', 'hemoglobin a1c', 'glycated haemoglobin', 'glycated hemoglobin', 'glycohemoglobin', 'hemoglobina glicada', 'hemoglobina glicosilada', 'hemoglobina a1c'], units: [base('mmol/mol'), hba1cPercent] },
   { id: 'insulin', name: 'Insulin', panel: 'glucose', aliases: ['insulin', 'fasting insulin', 'insulina', 'insulina em jejum'], units: [base('pmol/L'), linear('µIU/mL', 6.0, SOURCES.insulin), linear('mIU/L', 6.0, SOURCES.insulin)] },
 
@@ -126,7 +126,7 @@ export const MARKERS: Marker[] = [
 
   // Vitamins
   { id: 'vitamin-d', name: 'Vitamin D (25-OH)', panel: 'vitamins', aliases: ['vitamin d', '25 oh vitamin d', '25 hydroxyvitamin d', '25 hydroxy vitamin d', 'vitamin d 25 hydroxy', 'vitamin d 25 hydroxy total', 'vitamin d total 25 hydroxy', 'vitamin d 25 oh', '25 oh d', 'vitamina d', '25 oh vitamina d', '25 hidroxivitamina d', 'vitamina d 25 oh'], units: [base('nmol/L'), linear('ng/mL', 2.496, SOURCES.vitaminD)] },
-  { id: 'vitamin-b12', name: 'Vitamin B12', panel: 'vitamins', aliases: ['vitamin b12', 'b12', 'cobalamin', 'vitamina b12', 'cobalamina'], units: [base('pmol/L'), linear('pg/mL', 0.7378, SOURCES.vitaminB12)] },
+  { id: 'vitamin-b12', name: 'Vitamin B12', panel: 'vitamins', aliases: ['vitamin b12', 'b12', 'cobalamin', 'vitamina b12', 'cobalamina'], units: [base('pmol/L'), linear('pg/mL', 0.7378, SOURCES.vitaminB12), linear('ng/L', 0.7378, SOURCES.vitaminB12)] },
   { id: 'folate', name: 'Folate', panel: 'vitamins', aliases: ['folate', 'folic acid', 'serum folate', 'acido folico', 'folato'], units: [base('nmol/L'), linear('ng/mL', 2.266, SOURCES.folate)] },
 
   // Hormones

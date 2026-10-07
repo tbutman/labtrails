@@ -8,19 +8,38 @@ import { personalFlag } from '../personalLine'
 import { sparkPoints } from '../spark'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
-import { formatDate, formatPoint, formatRange, plural } from '../format'
+import { formatDate, formatPoint, formatRange, plural, unitLabel } from '../format'
+
+/** "Glucose" → "glucose", but "HbA1c" and "LDL cholesterol" keep their capitals. */
+const inSentence = (name: string) => (/^[A-Z][a-z]/.test(name) ? name[0].toLowerCase() + name.slice(1) : name)
 
 function Metric({ a, base, lines }: { a: MarkerAnalysis; base: string; lines: PersonalLine[] }) {
-  const latest = a.latest
-  const line = personalFlag(a, lines)
+  // A newer result in a unit LabTrails can't convert is shown as printed, in its own unit (LAB-04).
+  const latest = a.latestUnconverted ?? a.latest
+  const unit = a.latestUnconverted ? a.latestUnconverted.unit : a.series.unit
+  const line = a.latestUnconverted ? null : personalFlag(a, lines)
   return (
     <MetricCard
       to={`${base}/marker/${a.marker.id}`}
       label={a.marker.name}
-      value={latest ? formatPoint(latest) : '—'}
-      unit={latest ? a.series.unit : undefined}
+      // A non-breaking space only screen readers get, so the name reads "Platelets 240 × 10⁹/L" (LAB-17).
+      value={
+        latest ? (
+          <>
+            {formatPoint(latest)}
+            <span className="sr-only">{'\u00a0'}</span>
+          </>
+        ) : (
+          '—'
+        )
+      }
+      unit={latest ? unitLabel(unit) : undefined}
       chips={<MarkerFlags a={a} compact line={line} />}
-      foot={latest ? [`Lab's range ${formatRange(latest.range)}`, labMarkText(latest.flagAsPrinted), formatDate(latest.date)].filter(Boolean).join(' · ') : undefined}
+      foot={
+        latest
+          ? [`Lab's range ${formatRange(latest.range)}`, labMarkText(latest.flagAsPrinted), formatDate(latest.date), a.latestUnconverted ? 'not converted' : null].filter(Boolean).join(' · ')
+          : undefined
+      }
     >
       <Sparkline points={sparkPoints(a)} />
     </MetricCard>
@@ -38,6 +57,13 @@ export function Overview() {
   const outside = flagged.filter((m) => m.latestFlag)
   const inside = flagged.filter((m) => !m.latestFlag)
   const critical = all.filter((m) => m.latestCritical)
+  // Results in a unit LabTrails can't convert, by marker and unit (LAB-04).
+  const unconverted = all.flatMap((a) =>
+    [...new Set(a.unconverted.map((u) => u.unit))].map((unit) => {
+      const these = a.unconverted.filter((u) => u.unit === unit)
+      return { a, unit, count: these.length, last: these.at(-1)! }
+    }),
+  )
   const missing = notRepeated(results, reports)
   const unknown = [...new Set(unmapped(results).map((r) => r.nameAsPrinted))]
 
@@ -129,6 +155,18 @@ export function Overview() {
             ))}
           </div>
         </>
+      )}
+
+      {unconverted.length > 0 && (
+        <Callout icon={HelpCircle}>
+          {unconverted.map(({ a, unit, count, last }) => (
+            <p key={`${a.marker.id}-${unit}`}>
+              {plural(count, `${inSentence(a.marker.name)} result`)} {count === 1 ? 'is' : 'are'} in a unit LabTrails can't convert ({unit}).{' '}
+              {count === 1 ? "It's" : "They're"} flagged against {count === 1 ? 'its' : 'their'} own range but not drawn on the chart.{' '}
+              <Link to={`${base}/reports/${last.reportId}/results/${last.resultId}`}>Correct the unit</Link>
+            </p>
+          ))}
+        </Callout>
       )}
 
       {missing.length > 0 && (

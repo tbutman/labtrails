@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatPoint, formatValue } from '../../src/app/format'
+import { formatPoint, formatValue, unitLabel } from '../../src/app/format'
 
 describe('formatValue: never rounds a small value to a different number', () => {
   it('keeps three significant digits under 1', () => {
@@ -25,5 +25,13 @@ describe('formatValue: never rounds a small value to a different number', () => 
   it('keeps a comparator', () => {
     expect(formatPoint({ value: 0.005, comparator: '<' })).toBe('<0.005')
     expect(formatPoint({ value: 0.003 })).toBe('0.003')
+  })
+})
+
+describe('unitLabel', () => {
+  it('writes counts with a times sign', () => {
+    expect(unitLabel('10⁹/L')).toBe('× 10⁹/L')
+    expect(unitLabel('10¹²/L')).toBe('× 10¹²/L')
+    expect(unitLabel('mmol/L')).toBe('mmol/L')
   })
 })

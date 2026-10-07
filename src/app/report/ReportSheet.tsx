@@ -7,10 +7,10 @@ import { lineFlag, lineText, type PersonalLine } from '../../labs/lines'
 import { shownLine } from '../personalLine'
 import { describeTiming } from '../../labs/timeline'
 import type { MarkerAnalysis, NotRepeated } from '../../labs/analysis'
-import { rangeFlag } from '../../labs/flags/flags'
+import { rangeFlag, type Point } from '../../labs/flags/flags'
 import type { Report } from '../../labs/types'
 import { labMarkText } from '../components/Flags'
-import { formatDate, formatPoint, formatRange, formatValue, plural } from '../format'
+import { formatDate, formatPoint, formatRange, formatValue, plural, unitLabel } from '../format'
 
 export const SHEET_WIDTH = 800
 const INK = '#1D2340'
@@ -79,12 +79,13 @@ const clip = (s: string, max: number) => (s.length > max ? `${s.slice(0, max - 1
 export function reportRows(markers: MarkerAnalysis[], reports: Report[], lines: PersonalLine[]): ReportRow[] {
   const byId = new Map(reports.map((r) => [r.id, r]))
   return markers.map((a) => {
-    const unit = a.series.unit
-    const latest = a.latest
-    const previous = a.series.points.at(-2)
+    // A newer result in a unit LabTrails can't convert is shown as printed, in its own unit (LAB-04).
+    const unit = a.latestUnconverted ? a.latestUnconverted.unit : a.series.unit
+    const latest: (Point & { reportId: string; printedUnit?: string; convertedFrom?: string }) | undefined = a.latestUnconverted ?? a.latest
+    const previous = a.latestUnconverted ? a.latest : a.series.points.at(-2)
     const f = a.latestFlag
     const line = shownLine(a, lines)
-    const lineSide = latest ? lineFlag(latest, line) : null
+    const lineSide = latest && !a.latestUnconverted ? lineFlag(latest, line) : null
     const latestLab = latest ? byId.get(latest.reportId)?.lab : undefined
     const previousLab = previous ? byId.get(previous.reportId)?.lab : undefined
     const notes = [
@@ -94,6 +95,7 @@ export function reportRows(markers: MarkerAnalysis[], reports: Report[], lines: 
       a.labOnlyFlag ? `Lab marked it ${a.labOnlyFlag === 'above' ? 'high' : 'low'}` : null,
       f?.labNormal ? 'Lab marked it normal' : null,
       latest ? labMarkText(latest.flagAsPrinted) : null,
+      a.latestUnconverted ? `in ${unit}, which LabTrails can't convert; not on the chart` : null,
       latest?.printedUnit ? `converted from ${latest.printedUnit}` : null,
       latest?.convertedFrom ? `from ${latest.convertedFrom}` : null,
       a.change?.notable ? (a.change.crossedRange && !f ? "Back inside the lab's range" : 'Changed since the previous result') : null,
@@ -104,13 +106,13 @@ export function reportRows(markers: MarkerAnalysis[], reports: Report[], lines: 
     return {
       id: a.marker.id,
       name: a.marker.name,
-      latest: latest ? `${formatPoint(latest)} ${unit}` : '—',
+      latest: latest ? `${formatPoint(latest)} ${unitLabel(unit)}` : '—',
       date: latest ? [formatDate(latest.date), latestLab ? clip(latestLab, 28) : null].filter(Boolean).join(' · ') : '',
-      range: latest?.range ? `${range} ${unit}` : range,
+      range: latest?.range ? `${range} ${unitLabel(unit)}` : range,
       notes,
       outside: f?.basis === 'range',
       previous: previous
-        ? [`Previous: ${formatPoint(previous)} (${formatDate(previous.date)})`, previousLab && previousLab !== latestLab ? previousLab : null].filter(Boolean).join(' · ')
+        ? [`Previous: ${formatPoint(previous)}${a.latestUnconverted ? ` ${a.series.unit}` : ''} (${formatDate(previous.date)})`, previousLab && previousLab !== latestLab ? previousLab : null].filter(Boolean).join(' · ')
         : '',
     }
   })

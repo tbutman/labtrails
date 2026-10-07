@@ -13,7 +13,7 @@ export type ResultInput = { name: string; value: string; unit: string; range: st
  * The form's starting values for a saved result. A marker the code would find by itself is left blank,
  * so the form shows "Understood as …"; a marker chosen earlier (by the user or the AI) is kept.
  */
-export function inputFromResult(r: Result, decimal: DecimalHint, aliases: UserAlias[] = []): ResultInput {
+export function inputFromResult(r: Result, decimal: DecimalHint | undefined, aliases: UserAlias[] = []): ResultInput {
   const unit = r.unitAsPrinted ? normaliseUnit(r.unitAsPrinted) : undefined
   const match = matchMarker(r.nameAsPrinted, unit, aliases)
   const automatic = match.status === 'matched' && match.markerId === r.markerId
@@ -28,7 +28,7 @@ export function inputFromResult(r: Result, decimal: DecimalHint, aliases: UserAl
 }
 
 /** A stored number written with the report's decimal mark, as it was printed ("0,82"). */
-export function printedNumber(value: number, decimal: DecimalHint): string {
+export function printedNumber(value: number, decimal: DecimalHint | undefined): string {
   const text = String(value)
   return decimal === ',' ? text.replace('.', ',') : text
 }
@@ -46,7 +46,7 @@ export function reportDecimal(results: Result[]): DecimalHint {
 }
 
 /** What the code understands from the input: the marker (typed, or matched by name) and the parsed value. */
-export function understandInput(input: ResultInput, decimal: DecimalHint, aliases: UserAlias[] = [], person?: Person) {
+export function understandInput(input: ResultInput, decimal: DecimalHint | undefined, aliases: UserAlias[] = [], person?: Person) {
   const unit = input.unit.trim() ? normaliseUnit(input.unit) : undefined
   const match = input.name.trim() ? matchMarker(input.name, unit, aliases) : ({ status: 'unknown' } as const)
   const markerId = input.markerId || (match.status === 'matched' ? match.markerId : undefined)
@@ -61,7 +61,7 @@ export function understandInput(input: ResultInput, decimal: DecimalHint, aliase
 export function resultFromInput(
   input: ResultInput,
   base: { id: string; reportId: string; profileId: string; createdAt: string; specimen?: Result['specimen'] },
-  decimal: DecimalHint,
+  decimal: DecimalHint | undefined,
   now: string,
   aliases: UserAlias[] = [],
   person?: Person,

@@ -51,3 +51,8 @@ export function formatPercent(fraction: number): string {
 export function plural(n: number, one: string, many = `${one}s`): string {
   return `${n} ${n === 1 ? one : many}`
 }
+
+/** A unit as shown next to a value: counts read "× 10⁹/L" rather than "10⁹/L" (LAB-17). */
+export function unitLabel(unit: string): string {
+  return /^10[⁰¹²³⁴⁵⁶⁷⁸⁹]+\//.test(unit) ? `× ${unit}` : unit
+}

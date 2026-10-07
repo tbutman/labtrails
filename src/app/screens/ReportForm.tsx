@@ -38,7 +38,8 @@ export function ReportForm() {
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
   const [lab, setLab] = useState('')
-  const [decimal, setDecimal] = useState<DecimalHint>(',')
+  // No decimal mark until the person chooses one, so "6,500" gets "check the decimal mark" (LAB-03).
+  const [decimal, setDecimal] = useState<DecimalHint | undefined>()
   const [fasting, setFasting] = useState<TestContext['fasting']>()
   const [medications, setMedications] = useState('')
   const [recently, setRecently] = useState<Recently[]>([])

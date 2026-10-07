@@ -29,6 +29,8 @@ export type MarkerFacts = {
   personalLine?: PersonalLineFact
   history: FactPoint[]
   convertedFrom?: string
+  /** Results in a unit LabTrails can't convert to "unit": each in its own printed unit and range, not in history. */
+  notConverted?: (FactPoint & { unit: string; outsideRange?: 'above' | 'below' })[]
 }
 
 export type ContextFacts = { fasting?: string; medications?: string; recently?: string[]; notes?: string; doseTiming?: string[] }
@@ -65,7 +67,7 @@ export type SummaryFacts = {
 }
 
 const RULES =
-  'Flags were computed by code: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" means a change of at least 25% of the range width (of its one limit for a one-sided range, or of the previous value without a range), or moving into or out of the range; "trend" means 3 or more results moving the same way by at least 10% of the range width; "persistent" means outside the lab\'s range on that many tests in a row (3 or more); "farOutside" means the lab marked the result critical (for example HH, LL or "critical") or it is at least one range width outside the lab\'s range. "notInLatestReport" lists markers measured before but not in the latest report. These are simple heuristics, not clinical thresholds. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events, with dates and doses; "doseTiming" says when a test was drawn relative to a dose; "knownInfluences" are documented influences on a marker from health information sites that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result. "personalLine" is a value the person or their doctor chose for a marker, not a lab or clinical range.'
+  'Flags were computed by code: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" means a change of at least 25% of the range width (of its one limit for a one-sided range, or of the previous value without a range), or moving into or out of the range; "trend" means 3 or more results moving the same way by at least 10% of the range width; "persistent" means outside the lab\'s range on that many tests in a row (3 or more); "farOutside" means the lab marked the result critical (for example HH, LL or "critical") or it is at least one range width outside the lab\'s range. "notConverted" are results in a unit LabTrails cannot convert, each compared with its own printed range. "notInLatestReport" lists markers measured before but not in the latest report. These are simple heuristics, not clinical thresholds. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events, with dates and doses; "doseTiming" says when a test was drawn relative to a dose; "knownInfluences" are documented influences on a marker from health information sites that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result. "personalLine" is a value the person or their doctor chose for a marker, not a lab or clinical range.'
 
 function point(p: Point): FactPoint {
   return { date: p.date, value: round(p.value), ...(p.comparator ? { comparator: p.comparator } : {}), ...(p.range ? { range: roundRange(p.range) } : {}) }
@@ -141,6 +143,7 @@ function markerFacts(a: MarkerAnalysis, panel: string, historyLength: number): M
   const pts = a.series.points
   const latest = pts.at(-1)
   if (!latest) return null
+  const notConverted = a.unconverted.slice(-historyLength).map((u) => ({ ...withFlag(u), unit: u.unit }))
   const previous = pts.at(-2)
   const converted = pts.find((p) => p.convertedFrom)?.convertedFrom
   return {
@@ -156,6 +159,7 @@ function markerFacts(a: MarkerAnalysis, panel: string, historyLength: number): M
     ...(a.persistent ? { persistent: { side: a.persistent.side, results: a.persistent.results } } : {}),
     history: pts.slice(-historyLength).map(point),
     ...(converted ? { convertedFrom: converted } : {}),
+    ...(notConverted.length ? { notConverted } : {}),
   }
 }
 

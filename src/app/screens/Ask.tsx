@@ -150,6 +150,14 @@ export function Ask() {
         }
       />
 
+      {mode === 'unlocked' && !core.ai.apiKey && error !== 'NO_KEY' && (
+        <div className="callout">
+          <span>
+            Ask uses AI with your own Anthropic API key. <Link to="/app/settings#ai">Add one in Settings</Link> to ask questions.
+          </span>
+        </div>
+      )}
+
       {thread && <AskThreadView turns={thread.turns} outOfScope={OUT_OF_SCOPE} preparedNote={PREPARED_NOTE} />}
 
       {pending && pendingFacts ? (
@@ -209,9 +217,11 @@ export function Ask() {
 
       {error &&
         (error === 'NO_KEY' ? (
-          <p className="callout" role="alert">
-            Answers use AI with your own Anthropic API key. <Link to="/app/settings#ai">Add one in Settings</Link>.
-          </p>
+          <div className="callout" role="alert">
+            <span>
+              Ask uses AI with your own Anthropic API key. <Link to="/app/settings#ai">Add one in Settings</Link> to ask questions.
+            </span>
+          </div>
         ) : (
           <p className="error" role="alert">
             {error}

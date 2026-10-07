@@ -66,7 +66,8 @@ const pwa = VitePWA({
     ],
   },
   workbox: {
-    globPatterns: ['**/*.{js,css,html,svg,png,woff2,wasm}'],
+    // mjs: pdf.js's worker, so stored PDFs open offline (LAB-15).
+    globPatterns: ['**/*.{js,mjs,css,html,svg,png,woff2,wasm}'],
     // Not up front: pdf.js's support files (cached on first use, below), the landing page's images
     // and link preview, and Inter's non-Latin subsets (the UI is English).
     globIgnores: ['vendor/**', 'landing/**', 'og.png', 'assets/inter-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*'],
@@ -83,7 +84,16 @@ const pwa = VitePWA({
 
 export default defineConfig({
   plugins: [react(), cspMeta(), preloadFont(), pwa],
-  build: { assetsInlineLimit: 0 },
+  build: {
+    assetsInlineLimit: 0,
+    rollupOptions: {
+      output: {
+        // As in BabyTrails: the PDF viewer's worker gets a new name, so installed apps that cached an
+        // older copy fetch it again. Bump the suffix if a published asset ever needs the same treatment.
+        assetFileNames: (info) => (info.names?.some((n) => n.endsWith('.mjs')) ? 'assets/[name]-[hash]-r2[extname]' : 'assets/[name]-[hash][extname]'),
+      },
+    },
+  },
   test: {
     // The live extraction check calls Anthropic, so it runs only on request (npm run test:live).
     include: process.env.LIVE ? ['tests/live/**/*.test.ts'] : ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx', 'src/**/*.test.ts'],

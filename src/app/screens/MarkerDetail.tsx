@@ -16,7 +16,7 @@ import { personalFlag, shownLine } from '../personalLine'
 import { MarkerChart, ResultsList } from '../components/MarkerChart'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
-import { formatDate, formatPercent, formatPoint, formatRange, formatValue, formatWhen } from '../format'
+import { formatDate, formatPercent, formatPoint, formatRange, formatValue, formatWhen, unitLabel } from '../format'
 
 const BASIS_WORDS = { width: "the lab's range width", limit: "the lab's limit", previous: 'the previous value' } as const
 
@@ -50,19 +50,21 @@ export function MarkerDetail() {
     <>
       <PageHeader
         title={marker.name}
-        subtitle={
-          a.latest
-            ? [`${formatPoint(a.latest)} ${a.series.unit} on ${formatDate(a.latest.date)}`, `lab's range ${formatRange(a.latest.range)}`, labMarkText(a.latest.flagAsPrinted)?.replace(/^L/, 'l')].filter(Boolean).join(' · ')
+        subtitle={(() => {
+          const shown = a.latestUnconverted ?? a.latest
+          const unit = a.latestUnconverted ? a.latestUnconverted.unit : a.series.unit
+          return shown
+            ? [`${formatPoint(shown)} ${unitLabel(unit)} on ${formatDate(shown.date)}`, `lab's range ${formatRange(shown.range)}`, labMarkText(shown.flagAsPrinted)?.replace(/^L/, 'l')].filter(Boolean).join(' · ')
             : undefined
-        }
+        })()}
         back={{ to: base, label: 'Overview' }}
       />
       <div className="row chips-row">
         <MarkerFlags a={a} line={personalFlag(a, lines)} />
       </div>
-      {a.latestFlag?.labNormal && a.latest && (
+      {a.latestFlag?.labNormal && (a.latestUnconverted ?? a.latest) && (
         <p className="hint">
-          The lab marked this normal; the printed range is {formatRange(a.latest.range)}.
+          The lab marked this normal; the printed range is {formatRange((a.latestUnconverted ?? a.latest)!.range)}.
         </p>
       )}
       <CriticalNotice a={a} />
@@ -102,11 +104,22 @@ export function MarkerDetail() {
           </li>
         </ul>
         {marker.noConversion && <p className="hint">{marker.noConversion.reason}</p>}
-        {a.series.skipped.length > 0 && (
-          <p className="hint">
-            {a.series.skipped.length} result{a.series.skipped.length > 1 ? 's' : ''} can't be shown in {a.series.unit}.
-          </p>
+        {a.unconverted.length > 0 && (
+          <div className="hint">
+            {a.unconverted.length === 1 ? "1 result is in a unit LabTrails can't convert" : `${a.unconverted.length} results are in units LabTrails can't convert`} to{' '}
+            {a.series.unit}, so {a.unconverted.length === 1 ? "it isn't" : "they aren't"} on the chart. Each is compared with its own range:
+            <ul className="plain-list">
+              {a.unconverted.map((u) => (
+                <li key={u.resultId}>
+                  {formatDate(u.date)}: {formatPoint(u)} {u.unit}, lab's range {formatRange(u.range)}
+                  {u.flag ? ` · outside the lab's range (${u.flag.side})` : ''}.{' '}
+                  <Link to={`${base}/reports/${u.reportId}/results/${u.resultId}`}>Correct the unit</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
+        {a.series.skipped.some((x) => x.reason === 'not-numeric') && <p className="hint">Results written as text aren't on the chart.</p>}
       </div>
 
       {(a.change?.notable || a.trend) && (

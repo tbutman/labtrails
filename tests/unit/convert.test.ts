@@ -88,8 +88,13 @@ describe('special cases', () => {
     expect(convert('creatinine', 1, 'MG/DL', 'umol/L')).toBeCloseTo(88.4, 6)
   })
 
+  it('converts glucose in g/L and B12 in ng/L (LAB-04)', () => {
+    expect(convert('glucose', 1.2, 'g/L', 'mg/dL')).toBeCloseTo(120, 0)
+    expect(convert('vitamin-b12', 470, 'ng/L', 'pg/mL')).toBeCloseTo(470, 6)
+  })
+
   it('refuses units the marker does not use, and Lp(a) across units', () => {
-    expect(convert('glucose', 90, 'g/L', 'mmol/L')).toBeNull()
+    expect(convert('glucose', 90, 'mmol/mol', 'mmol/L')).toBeNull()
     expect(convert('lpa', 30, 'mg/dL', 'nmol/L')).toBeNull()
     expect(convert('lpa', 30, 'mg/dL', 'mg/dL')).toBe(30)
     expect(convertibleUnits(getMarker('lpa')!, 'nmol/L')).toEqual(['nmol/L'])
