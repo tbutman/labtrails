@@ -1,5 +1,6 @@
-// How flags appear everywhere in the app. Wording follows SPEC.md section 9: "outside the lab's
-// range", "changed since last time", "rising", never "abnormal" or a verdict. Each flag has an icon and
+// How flags appear everywhere in the app. Wording follows SPEC.md sections 9 and 18.2: "outside the
+// lab's range" (and for how many tests in a row), "changed since last time", "rising", never
+// "abnormal" or a verdict. Each flag has an icon and
 // words, so it never depends on colour.
 
 import { CircleAlert, MoveDownRight, MoveUpRight, TrendingDown, TrendingUp } from 'lucide-react'
@@ -15,8 +16,8 @@ export function MarkerFlags({ a, compact = false }: { a: MarkerAnalysis; compact
           {a.latestFlag.basis === 'lab'
             ? `Lab marked it ${a.latestFlag.side === 'above' ? 'high' : 'low'}`
             : compact
-              ? `${a.latestFlag.side === 'above' ? 'Above' : 'Below'} lab range`
-              : `Outside the lab's range (${a.latestFlag.side})`}
+              ? `${a.latestFlag.side === 'above' ? 'Above' : 'Below'} lab range${a.persistent ? ` · ${a.persistent.results} tests` : ''}`
+              : `Outside the lab's range (${a.latestFlag.side})${a.persistent ? ` on the last ${a.persistent.results} tests` : ''}`}
         </Chip>
       )}
       {a.labOnlyFlag && (

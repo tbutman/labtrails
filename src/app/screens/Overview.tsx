@@ -1,6 +1,6 @@
-import { CircleAlert, FilePlus2, FileSearch, HelpCircle, ScanText } from 'lucide-react'
+import { CircleAlert, FilePlus2, FileSearch, HelpCircle, ListX, ScanText } from 'lucide-react'
 import { Link } from 'react-router'
-import { analyse, unmapped, type MarkerAnalysis } from '../../labs/analysis'
+import { analyse, notRepeated, unmapped, type MarkerAnalysis } from '../../labs/analysis'
 import { Callout, EmptyState, MetricCard, PageHeader, Sparkline } from '../../core/ui/components'
 import { DISCLAIMER, MarkerFlags } from '../components/Flags'
 import { sparkPoints } from '../spark'
@@ -32,6 +32,7 @@ export function Overview() {
   const all = panels.flatMap((p) => p.markers)
   const latest = [...reports].sort((a, b) => a.date.localeCompare(b.date)).at(-1)
   const flagged = all.filter((m) => m.latestFlag || m.change?.notable || m.trend)
+  const missing = notRepeated(results, reports)
   const unknown = [...new Set(unmapped(results).map((r) => r.nameAsPrinted))]
 
   const actions = (
@@ -91,6 +92,19 @@ export function Overview() {
             ))}
           </div>
         </>
+      )}
+
+      {missing.length > 0 && (
+        <Callout icon={ListX}>
+          <strong>Not in your latest report:</strong>{' '}
+          {missing.map((m, i) => (
+            <span key={m.markerId}>
+              {i > 0 && ', '}
+              <Link to={`${base}/marker/${m.markerId}`}>{m.name}</Link> <span className="faint">(last {formatDate(m.lastDate)})</span>
+            </span>
+          ))}
+          . Worth asking about if you'd like them followed.
+        </Callout>
       )}
 
       {panels.map((panel) => (

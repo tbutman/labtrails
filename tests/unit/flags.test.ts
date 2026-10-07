@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { changeSincePrevious, labFlagWithoutCodeFlag, rangeFlag, trend, type Point } from '../../src/labs/flags/flags'
+import { changeSincePrevious, labFlagWithoutCodeFlag, persistent, rangeFlag, trend, type Point } from '../../src/labs/flags/flags'
+import { notRepeated } from '../../src/labs/analysis'
 import { buildSeries } from '../../src/labs/series'
 import type { Report, Result } from '../../src/labs/types'
 
@@ -157,5 +158,44 @@ describe('series: mixed units from different labs', () => {
     const s = buildSeries('lpa', 'nmol/L', results, reports)
     expect(s.points.map((x) => x.resultId)).toEqual(['b'])
     expect(s.skipped).toEqual([{ resultId: 'a', reason: 'no-conversion' }])
+  })
+})
+
+describe('rule 4: outside the range on several tests in a row', () => {
+  const p = (date: string, value: number, low = 40, high = 50): Point => ({ date, value, range: { low, high } })
+
+  it('counts the tests in a row outside, on the same side, ending with the latest', () => {
+    expect(persistent([p('2026-01-01', 45), p('2026-02-01', 51), p('2026-03-01', 52), p('2026-04-01', 51.5)])).toMatchObject({ side: 'above', results: 3 })
+    expect(persistent([p('2026-02-01', 51), p('2026-03-01', 52), p('2026-04-01', 51.5), p('2026-05-01', 53)])?.results).toBe(4)
+  })
+
+  it('needs three, on the same side, with the latest outside', () => {
+    expect(persistent([p('2026-01-01', 45), p('2026-02-01', 51), p('2026-03-01', 52)])).toBeNull()
+    expect(persistent([p('2026-01-01', 38), p('2026-02-01', 51), p('2026-03-01', 52)])).toBeNull()
+    expect(persistent([p('2026-01-01', 51), p('2026-02-01', 52), p('2026-03-01', 48)])).toBeNull()
+  })
+
+  it("compares each result with its own lab's range", () => {
+    // 52 is outside 40–50 but inside 40–54; the run ends there.
+    expect(persistent([p('2026-01-01', 52, 40, 54), p('2026-02-01', 51), p('2026-03-01', 52), p('2026-04-01', 53)])?.results).toBe(3)
+  })
+})
+
+describe('not repeated since', () => {
+  const report = (id: string, date: string): Report => ({ id, profileId: 'p', date, source: 'manual', createdAt: date, updatedAt: date })
+  const result = (reportId: string, markerId: string, extra: Partial<Result> = {}): Result => ({ id: `${reportId}-${markerId}`, reportId, profileId: 'p', markerId, nameAsPrinted: markerId, value: 1, createdAt: 'x', updatedAt: 'x', ...extra })
+  const reports = [report('old', '2023-01-10'), report('a', '2025-09-18'), report('b', '2026-04-14')]
+
+  it('lists markers from the two years before the newest report that it left out, with the last date', () => {
+    const results = [result('old', 'ferritin'), result('a', 'hba1c'), result('a', 'hdl'), result('a', 'glucose'), result('b', 'glucose')]
+    expect(notRepeated(results, reports).map((m) => [m.markerId, m.lastDate])).toEqual([
+      ['hba1c', '2025-09-18'],
+      ['hdl', '2025-09-18'],
+    ])
+  })
+
+  it('counts BUN and urea as one, and ignores urine results', () => {
+    const results = [result('a', 'bun'), result('b', 'urea'), result('a', 'glucose', { specimen: 'urine' })]
+    expect(notRepeated(results, reports)).toEqual([])
   })
 })

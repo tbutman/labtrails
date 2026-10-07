@@ -15,6 +15,9 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- A fourth flag: outside the lab's range on several tests in a row ("Above lab range · 4 tests").
+  And "Not in your latest report": markers measured in the two years before it that it left out, on
+  the overview, the doctor report and in the AI's facts. (SPEC.md section 18, steps 1.)
 - The demo is in English: a fictional person with results from a US lab (mg/dL) and a UK lab
   (mmol/L and other SI units) on one chart, and an English sample report with a urinalysis row.
 - Fictional test reports (a multi-page PDF with a previous-results column and a urinalysis page, and a
