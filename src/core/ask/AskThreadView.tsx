@@ -9,7 +9,7 @@ export function AskThreadView({ turns, outOfScope, preparedNote }: { turns: AskT
   return (
     <div className="ask-thread">
       {turns.map((t, i) =>
-        t.role === 'parent' ? (
+        t.role === 'question' ? (
           <p key={i} className="ask-question">
             {t.text}
           </p>
