@@ -6,6 +6,7 @@
 import { analyse, notRepeated, type MarkerAnalysis } from '../analysis'
 import { rangeFlag, type Point } from '../flags/flags'
 import { INFLUENCE_NAMES, effectWords, matchInfluences } from '../influences'
+import { lineFlag, lineIn, type PersonalLine } from '../lines'
 import { ageInYears } from '../person'
 import { activeBetween, describeTiming, everyLabel, sortByStart, type TimelineEntry } from '../timeline'
 import type { Profile, Report, Result, TestContext } from '../types'
@@ -24,6 +25,8 @@ export type MarkerFacts = {
   persistent?: { side: 'above' | 'below'; results: number }
   /** Documented influences on this marker that the timeline or a test's notes include. */
   knownInfluences?: InfluenceFact[]
+  /** A line the person or their doctor set for this marker, in its unit, and whether the latest result is beyond it. */
+  personalLine?: PersonalLineFact
   history: FactPoint[]
   convertedFrom?: string
 }
@@ -32,6 +35,18 @@ export type ContextFacts = { fasting?: string; medications?: string; recently?: 
 
 /** A timeline entry as the AI sees it (SPEC.md 18.7). */
 export type TimelineFact = { kind: string; name: string; start: string; end?: string; dose?: string; every?: string }
+
+export type PersonalLineFact = { label: string; low?: number; high?: number; latestBeyond?: 'above' | 'below' }
+
+/** The person's own line for a marker, as the AI sees it. */
+export function personalLineFact(a: MarkerAnalysis, lines: PersonalLine[], name: string): PersonalLineFact | undefined {
+  const line = lines.find((l) => l.markerId === a.marker.id)
+  const shown = line ? lineIn(line, a.series.unit) : null
+  if (!shown) return undefined
+  const beyond = a.latest ? lineFlag(a.latest, shown) : null
+  const round = (v: number) => Number(v.toPrecision(4))
+  return { label: redactName(shown.label, name), ...(shown.low !== undefined ? { low: round(shown.low) } : {}), ...(shown.high !== undefined ? { high: round(shown.high) } : {}), ...(beyond ? { latestBeyond: beyond } : {}) }
+}
 
 /** A documented influence on a marker that LabTrails matched to the timeline or a test's notes. */
 export type InfluenceFact = { influence: string; effect: string; matchedBy: string; source: string }
@@ -50,7 +65,7 @@ export type SummaryFacts = {
 }
 
 const RULES =
-  'Flags were computed by code: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" means a change of at least 25% of the range width (or of the previous value without a two-sided range), or moving into or out of the range; "trend" means 3 or more results moving the same way by at least 10% of the range width; "persistent" means outside the lab\'s range on that many tests in a row (3 or more). "notInLatestReport" lists markers measured before but not in the latest report. These are simple heuristics, not clinical thresholds. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events, with dates and doses; "doseTiming" says when a test was drawn relative to a dose; "knownInfluences" are documented influences on a marker from public health sources that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result.'
+  'Flags were computed by code: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" means a change of at least 25% of the range width (or of the previous value without a two-sided range), or moving into or out of the range; "trend" means 3 or more results moving the same way by at least 10% of the range width; "persistent" means outside the lab\'s range on that many tests in a row (3 or more). "notInLatestReport" lists markers measured before but not in the latest report. These are simple heuristics, not clinical thresholds. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events, with dates and doses; "doseTiming" says when a test was drawn relative to a dose; "knownInfluences" are documented influences on a marker from public health sources that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result. "personalLine" is a value the person or their doctor chose for a marker, not a lab or clinical range.'
 
 function point(p: Point): FactPoint {
   return { date: p.date, value: round(p.value), ...(p.comparator ? { comparator: p.comparator } : {}), ...(p.range ? { range: roundRange(p.range) } : {}) }
@@ -151,7 +166,7 @@ const testsOf = (a: MarkerAnalysis, reports: Report[]) => {
 const missing = (results: Result[], reports: Report[]) => notRepeated(results, reports).map((m) => ({ marker: m.name, lastDate: m.lastDate }))
 
 /** Facts for the "after a new report" summary: every marker in that report, against its history. */
-export function afterReportFacts(profile: Profile, reports: Report[], results: Result[], reportId: string, preferredUnits: Record<string, string> = {}, timeline: TimelineEntry[] = []): SummaryFacts {
+export function afterReportFacts(profile: Profile, reports: Report[], results: Result[], reportId: string, preferredUnits: Record<string, string> = {}, timeline: TimelineEntry[] = [], lines: PersonalLine[] = []): SummaryFacts {
   const report = reports.find((r) => r.id === reportId)
   if (!report) throw new Error('No such report')
   // Only results up to and including this report, so a later report can't leak into an older summary.
@@ -165,7 +180,8 @@ export function afterReportFacts(profile: Profile, reports: Report[], results: R
       if (!shown) continue
       const f = markerFacts(a, panel.name, 4)
       const influences = influenceFacts(a.marker.id, testsOf(a, reports), timeline, profile.name)
-      if (f) markers.push(influences.length ? { ...f, knownInfluences: influences } : f)
+      const line = personalLineFact(a, lines, profile.name)
+      if (f) markers.push({ ...f, ...(influences.length ? { knownInfluences: influences } : {}), ...(line ? { personalLine: line } : {}) })
     }
   }
   const appeared = markers.filter((m) => m.latest.outsideRange && !m.previous?.outsideRange).map((m) => m.marker)
@@ -186,7 +202,7 @@ export function afterReportFacts(profile: Profile, reports: Report[], results: R
 }
 
 /** Facts for the overall summary: every marker's recent history and flags. */
-export function overallFacts(profile: Profile, reports: Report[], results: Result[], preferredUnits: Record<string, string> = {}, timeline: TimelineEntry[] = []): SummaryFacts {
+export function overallFacts(profile: Profile, reports: Report[], results: Result[], preferredUnits: Record<string, string> = {}, timeline: TimelineEntry[] = [], lines: PersonalLine[] = []): SummaryFacts {
   const sorted = [...reports].sort((a, b) => a.date.localeCompare(b.date))
   const latest = sorted.at(-1)
   const markers = analyse(results, reports, preferredUnits).flatMap((panel) =>
@@ -194,7 +210,8 @@ export function overallFacts(profile: Profile, reports: Report[], results: Resul
       .map((a) => {
         const f = markerFacts(a, panel.name, 6)
         const influences = influenceFacts(a.marker.id, testsOf(a, reports), timeline, profile.name)
-        return f && influences.length ? { ...f, knownInfluences: influences } : f
+        const line = personalLineFact(a, lines, profile.name)
+        return f ? { ...f, ...(influences.length ? { knownInfluences: influences } : {}), ...(line ? { personalLine: line } : {}) } : f
       })
       .filter((m): m is MarkerFacts => m !== null),
   )

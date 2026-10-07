@@ -20,7 +20,7 @@ import { formatDate } from '../format'
 type Request = { kind: Summary['kind']; reportId?: string; facts: SummaryFacts }
 
 export function Summaries() {
-  const { profile, reports, results, summaries, timeline } = useProfileData()
+  const { profile, reports, results, summaries, timeline, lines } = useProfileData()
   const base = useBase()
   const { mode, store, core, app, changed } = useSession()
   const [params] = useSearchParams()
@@ -31,7 +31,7 @@ export function Summaries() {
   const sorted = [...reports].sort((a, b) => b.date.localeCompare(a.date))
   const latest = sorted.find((r) => r.id === params.get('report')) ?? sorted[0]
   const factsFor = (kind: Summary['kind'], reportId?: string) =>
-    kind === 'after-report' && reportId ? afterReportFacts(profile, reports, results, reportId, app.preferredUnit, timeline) : overallFacts(profile, reports, results, app.preferredUnit, timeline)
+    kind === 'after-report' && reportId ? afterReportFacts(profile, reports, results, reportId, app.preferredUnit, timeline, lines) : overallFacts(profile, reports, results, app.preferredUnit, timeline, lines)
   const current = (s: Summary) => digest(summaryMessage(factsFor(s.kind, s.reportId))) === s.inputsDigest
   const ordered = [...summaries].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   const canAsk = mode === 'unlocked' && !!core.ai.apiKey && reports.length > 0

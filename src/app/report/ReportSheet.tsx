@@ -1,3 +1,5 @@
+import { lineFlag, lineText, type PersonalLine } from '../../labs/lines'
+import { shownLine } from '../personalLine'
 import { describeTiming } from '../../labs/timeline'
 // The one-page doctor-visit report (SPEC.md section 12), drawn as a single SVG so the same drawing
 // prints, saves as PDF and exports as PNG. It's a file the user shares, never a link to a server.
@@ -7,7 +9,7 @@ import type { MarkerAnalysis, NotRepeated } from '../../labs/analysis'
 import { rangeFlag } from '../../labs/flags/flags'
 import type { Report } from '../../labs/types'
 import { DISCLAIMER } from '../components/Flags'
-import { formatDate, formatPoint, formatRange } from '../format'
+import { formatDate, formatPoint, formatRange, formatValue } from '../format'
 
 export const SHEET_WIDTH = 800
 const INK = '#1D2340'
@@ -57,7 +59,7 @@ function Spark({ a, x, y, w, h }: { a: MarkerAnalysis; x: number; y: number; w: 
   )
 }
 
-export function ReportSheet({ who, markers, latest, notes, missing = [], timeline = [] }: { who: string; markers: MarkerAnalysis[]; latest?: Report; notes: string; missing?: NotRepeated[]; timeline?: string[] }) {
+export function ReportSheet({ who, markers, latest, notes, missing = [], timeline = [], lines = [] }: { who: string; markers: MarkerAnalysis[]; latest?: Report; notes: string; missing?: NotRepeated[]; timeline?: string[]; lines?: PersonalLine[] }) {
   const rowH = 58
   const top = 150
   const context = latest?.context
@@ -119,6 +121,11 @@ export function ReportSheet({ who, markers, latest, notes, missing = [], timelin
           f?.basis === 'range' ? `! Outside the lab's range (${f.side})${a.persistent ? ` on the last ${a.persistent.results} tests` : ''}` : null,
           a.change?.notable ? `Changed since last time` : null,
           a.trend ? `${a.trend.direction === 'rising' ? 'Rising' : 'Falling'} over ${a.trend.results} results` : null,
+          ...(() => {
+            const line = shownLine(a, lines)
+            const side = a.latest ? lineFlag(a.latest, line) : null
+            return side && line ? [`${side === 'above' ? 'Above' : 'Below'} your line (${line.label}: ${lineText(line, formatValue)})`] : []
+          })(),
         ].filter(Boolean)
         return (
           <g key={a.marker.id}>

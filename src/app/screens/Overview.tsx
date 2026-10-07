@@ -3,20 +3,23 @@ import { Link } from 'react-router'
 import { analyse, notRepeated, unmapped, type MarkerAnalysis } from '../../labs/analysis'
 import { Callout, EmptyState, MetricCard, PageHeader, Sparkline } from '../../core/ui/components'
 import { DISCLAIMER, MarkerFlags } from '../components/Flags'
+import type { PersonalLine } from '../../labs/lines'
+import { personalFlag } from '../personalLine'
 import { sparkPoints } from '../spark'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 import { formatDate, formatPoint, formatRange, plural } from '../format'
 
-function Metric({ a, base }: { a: MarkerAnalysis; base: string }) {
+function Metric({ a, base, lines }: { a: MarkerAnalysis; base: string; lines: PersonalLine[] }) {
   const latest = a.latest
+  const line = personalFlag(a, lines)
   return (
     <MetricCard
       to={`${base}/marker/${a.marker.id}`}
       label={a.marker.name}
       value={latest ? formatPoint(latest) : '—'}
       unit={latest ? a.series.unit : undefined}
-      chips={<MarkerFlags a={a} compact />}
+      chips={<MarkerFlags a={a} compact line={line} />}
       foot={latest ? `Lab's range ${formatRange(latest.range)} · ${formatDate(latest.date)}` : undefined}
     >
       <Sparkline points={sparkPoints(a)} />
@@ -25,7 +28,7 @@ function Metric({ a, base }: { a: MarkerAnalysis; base: string }) {
 }
 
 export function Overview() {
-  const { profile, reports, results } = useProfileData()
+  const { profile, reports, results, lines } = useProfileData()
   const base = useBase()
   const { app, mode } = useSession()
   const panels = analyse(results, reports, app.preferredUnit)
@@ -88,7 +91,7 @@ export function Overview() {
           </h2>
           <div className="metric-grid">
             {flagged.map((a) => (
-              <Metric key={a.marker.id} a={a} base={base} />
+              <Metric key={a.marker.id} a={a} base={base} lines={lines} />
             ))}
           </div>
         </>
@@ -114,7 +117,7 @@ export function Overview() {
           </h2>
           <div className="metric-grid">
             {panel.markers.map((a) => (
-              <Metric key={a.marker.id} a={a} base={base} />
+              <Metric key={a.marker.id} a={a} base={base} lines={lines} />
             ))}
           </div>
         </section>

@@ -14,7 +14,8 @@ import { rangeFlag } from '../flags/flags'
 import { normaliseName } from '../match/match'
 import type { Profile, Report, Result } from '../types'
 import { normaliseUnit } from '../units/normalise'
-import { ageInYears, influenceFacts, timelineFacts, type InfluenceFact, type TimelineFact } from './facts'
+import { ageInYears, influenceFacts, personalLineFact, timelineFacts, type InfluenceFact, type PersonalLineFact, type TimelineFact } from './facts'
+import type { PersonalLine } from '../lines'
 import { describeTiming, type TimelineEntry } from '../timeline'
 
 export type AskResult = {
@@ -41,6 +42,7 @@ export type AskMarker = {
   trend?: { direction: 'rising' | 'falling'; results: number }
   persistent?: { side: 'above' | 'below'; results: number }
   knownInfluences?: InfluenceFact[]
+  personalLine?: PersonalLineFact
 }
 
 export type AskFacts = {
@@ -56,7 +58,7 @@ export type AskFacts = {
 }
 
 const RULES =
-  'Flags were computed by LabTrails: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" is a change of at least 25% of the range width since the previous result, or moving into or out of the range; "trend" is 3 or more results moving the same way; "persistent" is outside the lab\'s range on that many tests in a row. They are simple heuristics, not clinical thresholds. Each result\'s value and range are in the marker\'s unit; "printed" is the value as the lab printed it, in its own unit. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events with dates and doses; "drawn" says when a test was drawn relative to a dose; "knownInfluences" are documented influences from public health sources that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result.'
+  'Flags were computed by LabTrails: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" is a change of at least 25% of the range width since the previous result, or moving into or out of the range; "trend" is 3 or more results moving the same way; "persistent" is outside the lab\'s range on that many tests in a row. They are simple heuristics, not clinical thresholds. Each result\'s value and range are in the marker\'s unit; "printed" is the value as the lab printed it, in its own unit. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events with dates and doses; "drawn" says when a test was drawn relative to a dose; "knownInfluences" are documented influences from public health sources that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result. "personalLine" is a value the person or their doctor chose for a marker, not a lab or clinical range.'
 
 const MAX_RESULTS = 12
 const MAX_FLAGGED = 15
@@ -121,7 +123,7 @@ function markerFacts(a: MarkerAnalysis, panel: string, resultsById: Map<string, 
   }
 }
 
-function withContext(m: AskMarker, a: MarkerAnalysis, reportsById: Map<string, Report>, timeline: TimelineEntry[], name: string): AskMarker {
+function withContext(m: AskMarker, a: MarkerAnalysis, reportsById: Map<string, Report>, timeline: TimelineEntry[], lines: PersonalLine[], name: string): AskMarker {
   const points = a.series.points.slice(-MAX_RESULTS)
   const results = m.results.map((r, i) => {
     const report = reportsById.get(points[i].reportId)
@@ -130,7 +132,8 @@ function withContext(m: AskMarker, a: MarkerAnalysis, reportsById: Map<string, R
   })
   const tests = [...new Set(points.map((p) => reportsById.get(p.reportId)).filter((r): r is Report => !!r))]
   const influences = influenceFacts(a.marker.id, tests, timeline, name)
-  return { ...m, results, ...(influences.length ? { knownInfluences: influences } : {}) }
+  const line = personalLineFact(a, lines, name)
+  return { ...m, results, ...(influences.length ? { knownInfluences: influences } : {}), ...(line ? { personalLine: line } : {}) }
 }
 
 const flagged = (a: MarkerAnalysis) => !!a.latestFlag || !!a.change?.notable || !!a.trend
@@ -148,6 +151,7 @@ export function askFacts(
   preferredUnits: Record<string, string> = {},
   today = new Date().toISOString().slice(0, 10),
   timeline: TimelineEntry[] = [],
+  lines: PersonalLine[] = [],
 ): AskFacts {
   const panels = analyse(results, reports, preferredUnits)
   const all = panels.flatMap((p) => p.markers.map((a) => ({ a, panel: p.name })))
@@ -160,7 +164,7 @@ export function askFacts(
   const markers = chosen
     .map(({ a, panel }) => {
       const m = markerFacts(a, panel, resultsById, reportsById)
-      return m ? withContext(m, a, reportsById, timeline, profile.name) : null
+      return m ? withContext(m, a, reportsById, timeline, lines, profile.name) : null
     })
     .filter((m): m is AskMarker => m !== null)
   const dates = markers.flatMap((m) => m.results.map((r) => r.date)).sort()
