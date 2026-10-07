@@ -15,6 +15,11 @@ The first version, not yet released.
   per vault.
 - Reading reports with AI (optional, your own Anthropic key): every row is checked by you next to the
   original page before it's saved.
+- The demo is in English: a fictional person with results from a US lab (mg/dL) and a UK lab
+  (mmol/L and other SI units) on one chart, and an English sample report with a urinalysis row.
+- Fictional test reports (a multi-page PDF with a previous-results column and a urinalysis page, and a
+  two-photo US report) and a live extraction check against them. Text results such as "Negative" on
+  a urinalysis are now recognised as already saved when a report is imported again.
 - Reading real reports better (found by testing with four real Portuguese reports, October 2026):
   urinalysis rows are recognised as urine and never matched to blood markers (a "Sample" field in the
   review); ranges printed by age, sex or category use the right band (vitamin D's sufficient band, PSA

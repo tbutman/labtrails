@@ -24,6 +24,8 @@ const CANONICAL: Record<string, string> = {
   'iu/l': 'U/L',
   'ui/l': 'U/L',
   'miu/l': 'mIU/L',
+  'mu/l': 'mIU/L', // milli-units, as UK labs print TSH
+  'µu/ml': 'µIU/mL',
   'mui/l': 'mIU/L',
   'µiu/ml': 'µIU/mL',
   'µui/ml': 'µIU/mL',

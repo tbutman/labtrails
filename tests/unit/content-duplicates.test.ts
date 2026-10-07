@@ -28,15 +28,15 @@ describe('content-level duplicates', () => {
 
   it('leaves out only the rows that match, so a report with new rows still adds them', () => {
     const saved = saveAll()
-    const results = [...DEMO_RESULTS, ...saved.results.filter((r) => r.nameAsPrinted !== 'Glicose')]
+    const results = [...DEMO_RESULTS, ...saved.results.filter((r) => r.nameAsPrinted !== 'Glucose (fasting)')]
     const already = alreadySavedRows(rows, [...DEMO_REPORTS, ...saved.reports], results)
-    expect(already.map((r) => r.values.name)).not.toContain('Glicose')
+    expect(already.map((r) => r.values.name)).not.toContain('Glucose (fasting)')
     expect(already).toHaveLength(rows.length - 1)
   })
 
   it("doesn't call a different value on the same date a duplicate", () => {
     const saved = saveAll()
-    const changed = saved.results.map((r) => (r.value !== undefined ? { ...r, value: r.value + 1 } : r))
+    const changed = saved.results.map((r) => (r.value !== undefined ? { ...r, value: r.value + 1 } : { ...r, textValue: 'Trace' }))
     expect(alreadySavedRows(rows, saved.reports, changed)).toEqual([])
     expect(similarReport(rows, saved.reports, changed)).toBeNull()
   })
@@ -48,5 +48,15 @@ describe('content-level duplicates', () => {
     expect(parseFasting('No')).toBe('no')
     expect(parseFasting('12 horas')).toBeUndefined()
     expect(parseFasting(null)).toBeUndefined()
+  })
+})
+
+describe('text results', () => {
+  it('recognises a urinalysis "Negative" already saved, by name, sample type and text', () => {
+    const saved = saveAll()
+    const urine = rows.filter((r) => r.values.specimen === 'urine')
+    expect(alreadySavedRows(urine, saved.reports, saved.results)).toHaveLength(urine.length)
+    const asBlood = saved.results.map((r) => ({ ...r, specimen: undefined }))
+    expect(alreadySavedRows(urine, saved.reports, asBlood)).toEqual([])
   })
 })

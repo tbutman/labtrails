@@ -117,7 +117,7 @@ function splitBand(band: string): Band {
  * fits (so no range is stored, rather than a wrong one).
  */
 function parseBands(text: string, decimal: DecimalHint | undefined, person: Person | undefined): ParsedRange | null | undefined {
-  const bands = text.split(/\s*(?:;|\n|\|)\s*/).filter(Boolean).map(splitBand)
+  const bands = text.split(/\s*(?:;|\n|\||·|•)\s*/).filter(Boolean).map(splitBand)
   const labelled = bands.filter((b) => AGE_LABEL.test(b.label) || MALE_LABEL.test(b.label) || FEMALE_LABEL.test(b.label) || NORMAL_LABEL.test(b.label) || OTHER_LABEL.test(b.label))
   if (!labelled.length) return undefined
   const fits = labelled.filter((b) => {

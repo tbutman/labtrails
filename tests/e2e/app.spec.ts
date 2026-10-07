@@ -17,9 +17,10 @@ test('the demo works without a passphrase or key', async ({ page }) => {
   await expect(page.getByText('Above lab range').first()).toBeVisible()
 
   await page.getByRole('link', { name: /^Glucose/ }).first().click()
-  await expect(page.getByRole('img', { name: /Glucose in mg\/dL: 6 results/ })).toBeVisible()
-  await page.getByLabel('Show in').selectOption('mmol/L')
-  await expect(page.getByRole('img', { name: /Glucose in mmol\/L/ })).toBeVisible()
+  // Results from a US lab (mg/dL) and a UK lab (mmol/L) on one chart, in the latest test's unit.
+  await expect(page.getByRole('img', { name: /Glucose in mmol\/L: 6 results/ })).toBeVisible()
+  await page.getByLabel('Show in').selectOption('mg/dL')
+  await expect(page.getByRole('img', { name: /Glucose in mg\/dL/ })).toBeVisible()
 
   await page.getByRole('link', { name: 'Summaries' }).click()
   await expect(page.getByText(/pre-written example/).first()).toBeVisible()

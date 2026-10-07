@@ -21,6 +21,7 @@ describe('ranges printed in bands', () => {
   it('takes the sufficient band of a vitamin D range, in Portuguese or English', () => {
     expect(parseRange('Deficiência: <10; Insuficiência: 10 - 30; Suficiência: 30 - 100; Toxicidade: >100', '.')).toMatchObject({ low: 30, high: 100 })
     expect(parseRange('Deficiency: <20; Insufficiency: 20 - 29; Sufficiency: 30 - 100', '.')).toMatchObject({ low: 30, high: 100 })
+    expect(parseRange('Deficient < 25 · Insufficient 25 - 74 · Sufficient 75 - 200', '.')).toMatchObject({ low: 75, high: 200 })
   })
 
   it("takes the person's age band, and stores nothing rather than a wrong range when the age isn't known", () => {
@@ -77,6 +78,9 @@ describe('units and names as labs print them', () => {
       ['Testosterona Livre (TL)', 'free-testosterone'],
       ['TGO - Aspartato Aminotransferase', 'ast'],
       ['Colesterol LDL Directo', 'ldl'],
+      // Caught by the live extraction check on the fictional reports.
+      ['Red cell count', 'rbc'],
+      ['LDL Chol Calc (NIH)', 'ldl'],
     ]
     for (const [name, id] of cases) expect(matchMarker(name, undefined), name).toMatchObject({ status: 'matched', markerId: id })
     // Direct bilirubin stays direct.

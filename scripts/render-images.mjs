@@ -58,31 +58,36 @@ p{font-family:Q,system-ui;font-size:24px;color:#A9ACC2;margin:0;max-width:560px;
 // Matches DEMO_EXTRACTION in src/app/demo.ts.
 function sampleReport() {
   const rows = [
-    ['Glicose', '108', 'mg/dL', '70 - 110', ''],
-    ['Glic. hemoglobina A1c', '5,7', '%', '4,0 - 6,0', ''],
-    ['Colesterol total', '214', 'mg/dL', '&lt; 190', 'H'],
-    ['Colesterol HDL', '55', 'mg/dL', '&gt; 40', ''],
-    ['Colesterol LDL', '133', 'mg/dL', '&lt; 116', 'H'],
-    ['Triglicéridos', '112', 'mg/dL', '&lt; 150', ''],
-    ['TGP/ALT', '24', 'U/L', '&lt; 41', ''],
-    ['Creatinina', '0,98', 'mg/dL', '0,70 - 1,20', ''],
-    ['Ferritina', '41', 'ng/mL', '30 - 400', ''],
-    ['25-OH Vitamina D', '36', 'ng/mL', '30 - 100', ''],
-    ['Proteína C reactiva', '&lt;0,5', 'mg/L', '&lt; 5,0', ''],
-    ['Cistatina C', '0,80', 'mg/L', '0,61 - 0,95', ''],
+    ['Glucose (fasting)', '6.0', 'mmol/L', '3.6 - 6.0', ''],
+    ['Glyc. haemoglobin (IFCC)', '39', 'mmol/mol', '20 - 41', ''],
+    ['Total cholesterol', '5.5', 'mmol/L', '&lt; 5.0', 'H'],
+    ['HDL cholesterol', '1.42', 'mmol/L', '&gt; 1.0', ''],
+    ['LDL cholesterol', '3.4', 'mmol/L', '&lt; 3.0', 'H'],
+    ['Triglycerides', '1.26', 'mmol/L', '&lt; 1.7', ''],
+    ['ALT', '24', 'U/L', '&lt; 41', ''],
+    ['Creatinine', '87', 'µmol/L', '64 - 104', ''],
+    ['Ferritin', '41', 'µg/L', '30 - 400', ''],
+    ['Vitamin D (25-OH)', '90', 'nmol/L', 'Deficient &lt; 25 · Insufficient 25 - 74 · Sufficient 75 - 200', ''],
+    ['CRP', '&lt;0.5', 'mg/L', '&lt; 5', ''],
+    ['Cystatin C', '0.80', 'mg/L', '0.61 - 0.95', ''],
   ]
+  const urine = [['Glucose', 'Negative', '', '', '']]
+  const table = (title, list) =>
+    `<h2>${title}</h2><table><thead><tr><th>Test</th><th>Result</th><th>Units</th><th>Reference range</th><th></th></tr></thead><tbody>
+${list.map(([a, v, u, r, f]) => `<tr><td>${a}</td><td class="v">${v}</td><td>${u}</td><td>${r}</td><td class="f">${f}</td></tr>`).join('')}
+</tbody></table>`
   return page0(
-    `<div class="page"><div class="wm">EXEMPLO · FICTÍCIO</div>
-<h1>Laboratório Exemplo</h1><div class="sub">Análises Clínicas · Lisboa · documento fictício para demonstração</div>
-<div class="meta"><span><b>Utente:</b> Sam (demo)</span><span><b>Data da colheita:</b> 15/09/2026</span><span><b>N.º de processo:</b> 000000</span><span><b>Jejum:</b> sim</span></div>
-<table><thead><tr><th>Análise</th><th>Resultado</th><th>Unidade</th><th>Valores de referência</th><th></th></tr></thead><tbody>
-${rows.map(([a, v, u, r, f]) => `<tr><td>${a}</td><td class="v">${v}</td><td>${u}</td><td>${r}</td><td class="f">${f}</td></tr>`).join('')}
-</tbody></table>
-<div class="foot">Todos os nomes e valores deste documento são fictícios. Gerado para a demonstração do LabTrails.</div></div>`,
+    `<div class="page"><div class="wm">SAMPLE · FICTIONAL</div>
+<h1>Northfield Laboratory</h1><div class="sub">Clinical Chemistry · London · a fictional document for the LabTrails demo</div>
+<div class="meta"><span><b>Patient:</b> Sam (demo)</span><span><b>Collected:</b> 15/09/2026 08:20</span><span><b>Lab no.:</b> 000000</span><span><b>Fasting:</b> Yes</span></div>
+${table('Blood', rows)}
+${table('Urinalysis', urine)}
+<div class="foot">Every name and value in this document is made up. Generated for the LabTrails demo.</div></div>`,
     `body{font-family:Georgia,serif;color:#222;background:#fff}
 .page{width:794px;padding:48px 56px;box-sizing:border-box;position:relative;background:#fff}
 h1{font-size:22px;margin:0}.sub{font-size:12px;color:#555;margin:4px 0 20px}
-.meta{display:grid;grid-template-columns:1fr 1fr;font-size:13px;border:1px solid #bbb;padding:10px 14px;margin-bottom:20px;gap:4px}
+h2{font-size:14px;margin:18px 0 6px;text-transform:uppercase;letter-spacing:.06em;color:#444}
+.meta{display:grid;grid-template-columns:1fr 1fr;font-size:13px;border:1px solid #bbb;padding:10px 14px;margin-bottom:8px;gap:4px}
 table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;border-bottom:2px solid #333;padding:6px 4px}
 td{padding:6px 4px;border-bottom:1px solid #ddd}td.v{font-weight:bold}td.f{font-weight:bold}
 .wm{position:absolute;top:360px;left:80px;transform:rotate(-24deg);font:bold 64px Arial,sans-serif;color:rgba(200,0,0,.13);letter-spacing:4px}

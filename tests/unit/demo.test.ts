@@ -8,7 +8,7 @@ describe('demo data', () => {
   const get = (id: string) => panels.flatMap((p) => p.markers).find((m) => m.marker.id === id)!
 
   it('maps every printed name except the deliberately unknown one', () => {
-    expect(unmapped(DEMO_RESULTS).map((r) => r.nameAsPrinted)).toEqual(['Cistatina C', 'Cistatina C', 'Cistatina C', 'Cistatina C'])
+    expect(unmapped(DEMO_RESULTS).map((r) => r.nameAsPrinted)).toEqual(['Cystatin C', 'Cystatin C', 'Cystatin C', 'Cystatin C'])
   })
 
   it('flags the latest glucose as above the range, with a rising trend', () => {
@@ -34,7 +34,7 @@ describe('demo data', () => {
     expect(panels.flatMap((p) => p.markers).some((m) => m.marker.id === 'bun')).toBe(false)
   })
 
-  it('reads the "<0,5" CRP result as a comparator, not a value', () => {
+  it('reads the "<0.5" CRP result as a comparator, not a value', () => {
     const crp = get('crp').series.points.find((p) => p.date === '2024-10-08')!
     expect(crp).toMatchObject({ value: 0.5, comparator: '<' })
     expect(get('crp').latestFlag).toBeNull()
@@ -43,6 +43,13 @@ describe('demo data', () => {
   it('shows TSH from both labs in one unit', () => {
     expect(get('tsh').series.points).toHaveLength(6)
     expect(get('tsh').series.skipped).toEqual([])
+  })
+
+  it('charts US and UK results together, in the UK unit of the latest test', () => {
+    expect(get('glucose').series.unit).toBe('mmol/L')
+    expect(get('glucose').series.points).toHaveLength(6)
+    expect(get('glucose').series.points[0].value).toBeCloseTo(88 / 18.016, 2)
+    expect(get('vitamin-d').latest?.range).toMatchObject({ low: 75, high: 200 })
   })
 })
 

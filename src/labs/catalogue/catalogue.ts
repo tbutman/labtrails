@@ -48,12 +48,12 @@ export const MARKERS: Marker[] = [
   // Blood count
   { id: 'haemoglobin', name: 'Haemoglobin', panel: 'blood-count', aliases: ['haemoglobin', 'hemoglobin', 'hemoglobina', 'hgb', 'hb'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes)] },
   { id: 'haematocrit', name: 'Haematocrit', panel: 'blood-count', aliases: ['haematocrit', 'hematocrit', 'hematocrito', 'hct', 'ht'], units: [base('%'), linear('L/L', 100, SOURCES.siPrefixes)] },
-  { id: 'rbc', name: 'Red blood cells', panel: 'blood-count', aliases: ['red blood cells', 'red cells', 'rbc', 'erythrocytes', 'eritrocitos', 'globulos vermelhos', 'hemacias'], units: [base('10¹²/L'), same('10⁶/µL')] },
+  { id: 'rbc', name: 'Red blood cells', panel: 'blood-count', aliases: ['red blood cells', 'red cells', 'rbc', 'erythrocytes', 'eritrocitos', 'globulos vermelhos', 'hemacias', 'red cell count', 'red blood cell count', 'rbc count', 'rcc'], units: [base('10¹²/L'), same('10⁶/µL')] },
   { id: 'mcv', name: 'MCV', panel: 'blood-count', aliases: ['mcv', 'mean corpuscular volume', 'vgm', 'volume globular medio', 'vcm', 'volume corpuscular medio'], units: [base('fL')] },
   { id: 'mch', name: 'MCH', panel: 'blood-count', aliases: ['mch', 'mean corpuscular haemoglobin', 'mean corpuscular hemoglobin', 'hgm', 'hemoglobina globular media', 'hcm', 'hemoglobina corpuscular media'], units: [base('pg')] },
   { id: 'mchc', name: 'MCHC', panel: 'blood-count', aliases: ['mchc', 'mean corpuscular haemoglobin concentration', 'mean corpuscular hemoglobin concentration', 'chgm', 'concentracao de hemoglobina globular media', 'chcm', 'concentracao de hemoglobina corpuscular media', 'cmhg'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes)] },
   { id: 'rdw', name: 'RDW', panel: 'blood-count', aliases: ['rdw', 'rdw cv', 'red cell distribution width', 'amplitude de distribuicao eritrocitaria', 'indice de anisocitose'], units: [base('%')] },
-  { id: 'wbc', name: 'White blood cells', panel: 'blood-count', aliases: ['white blood cells', 'white cells', 'wbc', 'leukocytes', 'leucocitos', 'globulos brancos'], units: cells() },
+  { id: 'wbc', name: 'White blood cells', panel: 'blood-count', aliases: ['white blood cells', 'white cells', 'wbc', 'leukocytes', 'leucocitos', 'globulos brancos', 'white cell count', 'white blood cell count', 'wcc', 'wbc count'], units: cells() },
   ...differential('neutrophils', 'Neutrophils', ['neutrophils', 'neutrofilos', 'neut', 'neutrofilos segmentados']),
   ...differential('lymphocytes', 'Lymphocytes', ['lymphocytes', 'linfocitos', 'lymph', 'lymphs']),
   ...differential('monocytes', 'Monocytes', ['monocytes', 'monocitos', 'mono']),
@@ -69,8 +69,8 @@ export const MARKERS: Marker[] = [
 
   // Lipids
   { id: 'cholesterol-total', name: 'Total cholesterol', panel: 'lipids', aliases: ['total cholesterol', 'cholesterol total', 'cholesterol', 'colesterol total', 'colesterol'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
-  { id: 'hdl', name: 'HDL cholesterol', panel: 'lipids', aliases: ['hdl', 'hdl cholesterol', 'cholesterol hdl', 'hdl c', 'colesterol hdl', 'hdl colesterol', 'colesterol das hdl'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
-  { id: 'ldl', name: 'LDL cholesterol', panel: 'lipids', aliases: ['ldl', 'ldl cholesterol', 'cholesterol ldl', 'ldl c', 'ldl calculated', 'colesterol ldl', 'ldl colesterol', 'colesterol das ldl', 'colesterol ldl directo', 'colesterol ldl direto', 'ldl directo', 'ldl direto', 'direct ldl', 'ldl direct', 'ldl cholesterol direct'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
+  { id: 'hdl', name: 'HDL cholesterol', panel: 'lipids', aliases: ['hdl', 'hdl cholesterol', 'cholesterol hdl', 'hdl c', 'colesterol hdl', 'hdl colesterol', 'colesterol das hdl', 'hdl chol', 'hdl c'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
+  { id: 'ldl', name: 'LDL cholesterol', panel: 'lipids', aliases: ['ldl', 'ldl cholesterol', 'cholesterol ldl', 'ldl c', 'ldl calculated', 'colesterol ldl', 'ldl colesterol', 'colesterol das ldl', 'colesterol ldl directo', 'colesterol ldl direto', 'ldl directo', 'ldl direto', 'direct ldl', 'ldl direct', 'ldl cholesterol direct', 'ldl chol', 'ldl chol calc nih', 'ldl c'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
   { id: 'non-hdl', name: 'Non-HDL cholesterol', panel: 'lipids', aliases: ['non hdl cholesterol', 'non hdl', 'colesterol nao hdl', 'colesterol nao-hdl'], units: [base('mmol/L'), linear('mg/dL', 0.02586, SOURCES.cholesterol)] },
   { id: 'triglycerides', name: 'Triglycerides', panel: 'lipids', aliases: ['triglycerides', 'triglyceride', 'trigliceridos', 'triglicerideos', 'triglicerides', 'tg'], units: [base('mmol/L'), linear('mg/dL', 0.01129, SOURCES.triglycerides)] },
   { id: 'apob', name: 'ApoB', panel: 'lipids', aliases: ['apob', 'apo b', 'apolipoprotein b', 'apolipoproteina b'], units: [base('g/L'), linear('mg/dL', 0.01, SOURCES.siPrefixes)] },

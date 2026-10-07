@@ -85,7 +85,8 @@ export default defineConfig({
   plugins: [react(), cspMeta(), preloadFont(), pwa],
   build: { assetsInlineLimit: 0 },
   test: {
-    include: ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx', 'src/**/*.test.ts'],
+    // The live extraction check calls Anthropic, so it runs only on request (npm run test:live).
+    include: process.env.LIVE ? ['tests/live/**/*.test.ts'] : ['tests/unit/**/*.test.ts', 'tests/unit/**/*.test.tsx', 'src/**/*.test.ts'],
     environment: 'node',
   },
 })
