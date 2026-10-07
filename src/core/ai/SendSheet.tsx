@@ -4,8 +4,12 @@
 import type { ReactNode } from 'react'
 import { estimateCents, modelInfo } from './models'
 
+// When the terms line was last checked against Anthropic's terms (CORE-12). Recheck and update both.
+export const TERMS_CHECKED = 'October 6, 2026'
+export const TERMS_URL = 'https://www.anthropic.com/legal/commercial-terms'
+
 export type SendSheetProps = {
-  // The app's name, for "it doesn't go through <app>'s server".
+  // The app's name, for "it doesn't go through the <app> server".
   appName: string
   // What's being sent, in plain words, e.g. "1 PDF, 2 pages (340 kB)".
   sending: string[]
@@ -27,7 +31,7 @@ export function SendSheet({ appName, sending, notSending = [], notes = [], model
       <h2 id="send-sheet-title">Send to Anthropic?</h2>
       <p>
         Your browser will send this straight to Anthropic, the AI provider, using your API key. It doesn't go
-        through {appName}'s server.
+        through the {appName} server.
       </p>
       <p className="legend">Sent</p>
       <ul>
@@ -53,8 +57,11 @@ export function SendSheet({ appName, sending, notSending = [], notes = [], model
       <p className="hint">
         Model: {modelInfo(model).label.replace(/ \(.*\)$/, '')}.
         {cents !== undefined && ` Rough cost: ${cents < 1 ? 'under 1 US cent' : `about ${Math.round(cents)} US cents`}, billed by Anthropic to you.`}{' '}
-        Anthropic's terms say API content isn't used for training, and it's deleted within 30 days (kept up to 2 years if its safety
-        systems flag it).
+        As of {TERMS_CHECKED}, Anthropic's terms say it doesn't train on API content and deletes it within 30 days (up to 2 years if flagged
+        by its safety systems).{' '}
+        <a href={TERMS_URL} target="_blank" rel="noreferrer">
+          Anthropic's terms
+        </a>
       </p>
       <div className="row">
         <button type="button" className="button primary" onClick={onSend} disabled={busy}>
@@ -68,7 +75,7 @@ export function SendSheet({ appName, sending, notSending = [], notes = [], model
   )
 }
 
-// Wraps anything the AI wrote: labelled, with the short disclaimer.
+// Wraps anything the AI wrote: labeled, with the short disclaimer.
 export function AiOutput({
   label,
   children,

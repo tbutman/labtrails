@@ -1,4 +1,4 @@
-// A thread of questions and answers. AI answers are labelled, and rendered by the core's Markdown
+// A thread of questions and answers. AI answers are labeled, and rendered by the core's Markdown
 // subset, never as HTML. Answers that couldn't be checked aren't shown.
 
 import { Markdown } from '../ai/Markdown'

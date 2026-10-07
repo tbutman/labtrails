@@ -34,7 +34,7 @@ type Props = {
 }
 
 const CONFIDENCE_LABEL = { high: 'Clear in the document', medium: 'Check this', low: 'Unsure: check carefully' }
-// Told apart by words and outline, not colour.
+// Told apart by words and outline, not color.
 const CHIP_TONE = { high: '', medium: ' outline', low: ' strong' }
 
 export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, confirmLabel, context = [] }: Props) {

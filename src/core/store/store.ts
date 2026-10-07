@@ -3,6 +3,7 @@
 // copied into another slot fails to decrypt instead of showing the wrong data.
 
 import { openJson, open, seal, sealJson } from '../vault/crypto'
+import type { VaultChannel } from '../vault/channel'
 import type { Vault } from '../vault/vault'
 import type { BlobRow, Db } from './db'
 import type { RecordStore, StoredRecord } from './types'
@@ -23,12 +24,15 @@ export class EncryptedStore implements RecordStore {
   readonly kind = 'encrypted'
   readonly #vault: Vault
   readonly #db: Db
+  readonly #channel?: VaultChannel
   readonly collections: ReadonlySet<string>
 
-  constructor(vault: Vault, db: Db, appCollections: readonly string[]) {
+  // With a channel, the app's other tabs hear that something changed (never what).
+  constructor(vault: Vault, db: Db, appCollections: readonly string[], channel?: VaultChannel) {
     this.#vault = vault
     this.#db = db
     this.collections = new Set([...CORE_COLLECTIONS, ...appCollections])
+    this.#channel = channel
   }
 
   #check(collection: string) {
@@ -47,6 +51,7 @@ export class EncryptedStore implements RecordStore {
     this.#check(collection)
     const sealed = await sealJson(this.#vault.key, record, this.#recordAad(collection, record.id))
     await this.#db.put('records', { key: `${collection}/${record.id}`, collection, id: record.id, sealed })
+    this.#channel?.post({ type: 'changed' })
     return record
   }
 
@@ -67,6 +72,7 @@ export class EncryptedStore implements RecordStore {
   async delete(collection: string, id: string): Promise<void> {
     this.#check(collection)
     await this.#db.delete('records', `${collection}/${id}`)
+    this.#channel?.post({ type: 'changed' })
   }
 
   // Stores bytes encrypted in 1 MiB chunks and returns the new blob's ID.

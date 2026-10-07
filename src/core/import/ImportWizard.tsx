@@ -7,8 +7,11 @@
 
 import { ArrowDown, ArrowUp, CircleAlert, Copy, Files, FileText, FileUp, Image, Loader2, RotateCcw, Trash2, Ungroup, X } from 'lucide-react'
 import { useEffect, useReducer, useRef, useState, type ReactNode } from 'react'
+import { Link } from 'react-router'
 import type { RecordStore } from '../store/types'
+import { PHOTO_NOTE } from '../ai/client'
 import { SendSheet } from '../ai/SendSheet'
+import { formatDate } from '../format'
 import { addDocument, documentBytes } from '../documents/documents'
 import { DocumentPages } from '../documents/DocumentPages'
 import { DocumentViewer } from '../documents/DocumentViewer'
@@ -200,7 +203,11 @@ export function ImportWizard<M>({
           appName={adapter.appName}
           sending={[`${parts} (${mb(size)} in total), one request per ${adapter.noun.one}`, `Instructions to copy what's printed in them`]}
           notSending={adapter.sendSheet.notSending}
-          notes={[...adapter.sendSheet.notes, ...(toStore.length ? [`${toStore.length} file${toStore.length > 1 ? 's' : ''} marked "keep without reading" won't be sent.`] : [])]}
+          notes={[
+            ...adapter.sendSheet.notes,
+            ...(images ? [PHOTO_NOTE] : []),
+            ...(toStore.length ? [`${toStore.length} file${toStore.length > 1 ? 's' : ''} marked "keep without reading" won't be sent.`] : []),
+          ]}
           model={model}
           estimate={{ inputTokens: per.inputTokens * pdfs + perImage.inputTokens * images, outputTokens: per.outputTokens * pdfs + perImage.outputTokens * images }}
           busy={busy}
@@ -364,7 +371,12 @@ export function ImportWizard<M>({
       )}
       {units.length > 0 && (
         <div className="import-actions">
-          {!adapter.canRead && toRead.length > 0 && <p className="hint">Reading uses AI with your own API key; add one in Settings. You can keep the files now and read them later.</p>}
+          {!adapter.canRead && toRead.length > 0 && (
+            <p className="hint">
+              Reading uses AI with your own API key; {adapter.settingsPath ? <Link to={adapter.settingsPath}>add one in Settings</Link> : 'add one in Settings'}. You
+              can keep the files now and read them later.
+            </p>
+          )}
           <div className="row">
             {toRead.length > 0 && adapter.canRead && (
               <button className="button primary large" onClick={() => (demo ? void begin() : setPhase('consent'))} disabled={busy}>
@@ -480,7 +492,7 @@ function QueueList<M>({
                   <span className="list-row-sub">
                     {n > 1 && `${n} pages of one ${pages ?? 'document'} · `}
                     {mb(unitBytes(u))}
-                    {u.duplicateOf && ` · same file as ${u.duplicateOf.inBatch ? `${u.duplicateOf.title}, above` : `"${u.duplicateOf.title}"${u.duplicateOf.date ? `, added ${u.duplicateOf.date}` : ''}`}`}
+                    {u.duplicateOf && ` · same file as ${u.duplicateOf.inBatch ? `${u.duplicateOf.title}, above` : `"${u.duplicateOf.title}"${u.duplicateOf.date ? `, added ${formatDate(u.duplicateOf.date)}` : ''}`}`}
                     {u.error && ` · ${u.error}`}
                     {u.outcome && ` · ${u.outcome}`}
                   </span>

@@ -1,7 +1,8 @@
 // Trails UI v2: small React components on top of components.css, shared by BabyTrails and LabTrails.
 // They're thin wrappers: the styling lives in CSS so the core's other components look the same.
-// Icons are Lucide (ISC licence), bundled with the app; pass any lucide-react icon component.
+// Icons are Lucide (ISC license), bundled with the app; pass any lucide-react icon component.
 
+import { Check } from 'lucide-react'
 import { useId, type ComponentType, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react'
 import { Link, NavLink } from 'react-router'
 
@@ -217,7 +218,11 @@ export function ChipGroup<T extends string>({ legend, options, value, onChange }
         {options.map((o) => (
           <label key={o.value} className="toggle-chip">
             <input type="checkbox" checked={value.includes(o.value)} onChange={(e) => onChange(e.target.checked ? [...value, o.value] : value.filter((x) => x !== o.value))} />
-            <span>{o.label}</span>
+            {/* A check mark on selected chips, so "selected" isn't shown by the tint alone. */}
+            <span>
+              {value.includes(o.value) && <Check size={14} strokeWidth={2.6} aria-hidden />}
+              {o.label}
+            </span>
           </label>
         ))}
       </div>

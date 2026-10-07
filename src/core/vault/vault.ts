@@ -3,16 +3,18 @@
 
 import type { Db, VaultHeader } from '../store/db'
 import { VAULT_FORMAT } from '../store/db'
+import type { VaultChannel } from './channel'
 import {
+  bestKdfParams,
   deriveWrappingKey,
   generateDataKey,
-  newKdfParams,
   unwrapDataKey,
   wrapDataKey,
   type KdfParams,
 } from './crypto'
+import { checkPassphrase, MIN_PASSPHRASE_LENGTH } from './passphrase'
 
-export const MIN_PASSPHRASE_LENGTH = 12
+export { MIN_PASSPHRASE_LENGTH }
 
 export class WrongPassphraseError extends Error {
   constructor() {
@@ -36,8 +38,8 @@ export class VaultExistsError extends Error {
 }
 
 export class WeakPassphraseError extends Error {
-  constructor() {
-    super(`Use at least ${MIN_PASSPHRASE_LENGTH} characters.`)
+  constructor(message = `Use at least ${MIN_PASSPHRASE_LENGTH} characters.`) {
+    super(message)
     this.name = 'WeakPassphraseError'
   }
 }
@@ -45,8 +47,11 @@ export class WeakPassphraseError extends Error {
 type Listener = (unlocked: boolean) => void
 
 export type VaultOptions = {
-  // Only tests pass this, to keep key derivation fast.
-  kdf?: () => KdfParams
+  // Only tests pass this, to keep key derivation fast. Otherwise Argon2id, or PBKDF2 where
+  // WebAssembly can't run.
+  kdf?: () => KdfParams | Promise<KdfParams>
+  // Tells the app's other tabs when this one locks (openTrails sets it up).
+  channel?: VaultChannel
 }
 
 export class Vault {
@@ -54,12 +59,18 @@ export class Vault {
   #listeners = new Set<Listener>()
   readonly db: Db
   readonly appId: string
-  readonly #newKdf: () => KdfParams
+  readonly #newKdf: () => KdfParams | Promise<KdfParams>
+  readonly #channel?: VaultChannel
 
   constructor(db: Db, appId: string, options: VaultOptions = {}) {
     this.db = db
     this.appId = appId
-    this.#newKdf = options.kdf ?? (() => newKdfParams('argon2id'))
+    this.#newKdf = options.kdf ?? bestKdfParams
+    this.#channel = options.channel
+    // Another tab locked (by hand, by auto-lock or before a restore): lock this one too.
+    this.#channel?.subscribe((message) => {
+      if (message.type === 'lock') this.#setKey(null)
+    })
   }
 
   get #wrapAad() {
@@ -85,9 +96,9 @@ export class Vault {
   }
 
   async create(passphrase: string): Promise<void> {
-    if (passphrase.length < MIN_PASSPHRASE_LENGTH) throw new WeakPassphraseError()
+    this.#checkNew(passphrase)
     if (await this.exists()) throw new VaultExistsError()
-    const kdf = this.#newKdf()
+    const kdf = await this.#newKdf()
     const dataKey = await generateDataKey()
     const wrappedKey = await wrapDataKey(dataKey, await deriveWrappingKey(passphrase, kdf), this.#wrapAad)
     await this.db.put('meta', {
@@ -108,17 +119,20 @@ export class Vault {
     this.#setKey(await this.#unwrap(header, passphrase, false))
   }
 
+  // Locks this tab and the app's other tabs.
   lock(): void {
     this.#setKey(null)
+    this.#channel?.post({ type: 'lock' })
   }
 
-  // Re-wraps the same data key under a new passphrase. The data itself isn't re-encrypted.
+  // Re-wraps the same data key under a new passphrase. The data itself isn't re-encrypted. The new
+  // wrapping uses the best key derivation this browser runs, so a PBKDF2 vault moves to Argon2id.
   async changePassphrase(current: string, next: string): Promise<void> {
-    if (next.length < MIN_PASSPHRASE_LENGTH) throw new WeakPassphraseError()
+    this.#checkNew(next)
     const header = await this.header()
     if (!header) throw new Error('There is no vault on this device yet.')
     const extractable = await this.#unwrap(header, current, true)
-    const kdf = this.#newKdf()
+    const kdf = await this.#newKdf()
     const wrappedKey = await wrapDataKey(extractable, await deriveWrappingKey(next, kdf), this.#wrapAad)
     await this.db.put('meta', { ...header, kdf, wrappedKey })
     await this.unlock(next)
@@ -129,10 +143,15 @@ export class Vault {
     return () => this.#listeners.delete(listener)
   }
 
+  #checkNew(passphrase: string) {
+    const { problem } = checkPassphrase(passphrase, this.appId)
+    if (problem) throw new WeakPassphraseError(problem)
+  }
+
   async #unwrap(header: VaultHeader, passphrase: string, extractable: boolean): Promise<CryptoKey> {
     if (header.appId !== this.appId) throw new Error('This vault belongs to a different app.')
     if (header.format > VAULT_FORMAT) throw new Error('This vault was made by a newer version of the app.')
-    const wrappingKey = await deriveWrappingKey(passphrase, header.kdf)
+    const wrappingKey = await deriveWrappingKey(passphrase, header.kdf) // KdfUnavailableError without WebAssembly
     try {
       return await unwrapDataKey(header.wrappedKey, wrappingKey, this.#wrapAad, extractable)
     } catch {

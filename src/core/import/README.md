@@ -7,7 +7,7 @@ LabTrails first (`src/trails-import/`); it now lives in the shared core (owned b
 `ImportAdapter`. It contains no app-specific code. Changes are logged in the Trails coordination notes
 so LabTrails can re-sync.
 
-**Pages of one document** (coordination request 17, 6 October 2026). Optional and backward
+**Pages of one document** (coordination request 17, October 6, 2026). Optional and backward
 compatible: an adapter without `readPages` sees no change.
 - **Queue:** `group` (ready photos, in the order given, become one unit with `pages: IntakeFile[]`;
   PDFs, files kept without reading and duplicates can't be pages), `ungroup` (each page becomes its
@@ -26,7 +26,7 @@ compatible: an adapter without `readPages` sees no change.
   buttons and the rows' "Show page" move the same page. Before, a multi-page PDF's buttons didn't move
   the review's page.
 
-**Changed in the core** (6 October 2026, after the move from LabTrails' `3755a1b`):
+**Changed in the core** (October 6, 2026, after the move from LabTrails' `3755a1b`):
 - **Document kinds per file.** An adapter can pass `kinds` (each `{ value, label, read }`) and
   `kindFor(file)`. The queue then shows a type picker on each file; kinds with `read: false` are kept
   without reading, and documents are stored with the chosen kind. BabyTrails uses it for growth

@@ -1,4 +1,4 @@
-// Recognising files that are already in the vault, by their SHA-256 fingerprint, before anything is
+// Recognizing files that are already in the vault, by their SHA-256 fingerprint, before anything is
 // sent to the AI (which also saves the cost of reading them again).
 
 import type { RecordStore } from '../store/types'

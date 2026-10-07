@@ -56,7 +56,27 @@ describe('AI client', () => {
       expect(String((err as Error).message) + String((err as Error).stack)).not.toContain(KEY)
     }
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
-    await expect(askText({ apiKey: KEY, model: DEFAULT_MODEL, system: '', content: [] })).rejects.toMatchObject({ kind: 'network' })
+    await expect(askText({ apiKey: KEY, model: DEFAULT_MODEL, system: '', content: [] })).rejects.toMatchObject({
+      kind: 'network',
+      message: "Couldn't reach Anthropic. Check your connection and try again.",
+    })
+  })
+
+  it('says when the device is offline (CORE-06)', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+    vi.stubGlobal('navigator', { onLine: false })
+    await expect(askText({ apiKey: KEY, model: DEFAULT_MODEL, system: '', content: [] })).rejects.toMatchObject({
+      kind: 'offline',
+      message: "You're offline. AI features need a connection; everything else works offline.",
+    })
+  })
+
+  it('treats a refusal as an error, never as an answer (CORE-06)', async () => {
+    const refusal = () => reply({ content: [{ type: 'text', text: '{"n": 1, "partial' }], usage: { input_tokens: 10, output_tokens: 5 }, stop_reason: 'refusal' })
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => refusal()))
+    const expected = { kind: 'refused', message: 'Anthropic declined to answer this request. Nothing was saved.' }
+    await expect(askText({ apiKey: KEY, model: DEFAULT_MODEL, system: '', content: [] })).rejects.toMatchObject(expected)
+    await expect(askJson({ apiKey: KEY, model: DEFAULT_MODEL, system: '', content: [] }, {}, (v) => v)).rejects.toMatchObject(expected)
   })
 
   it('estimates cost from the model price', () => {
