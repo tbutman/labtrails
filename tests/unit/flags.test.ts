@@ -266,18 +266,18 @@ describe('results in a unit LabTrails cannot convert (LAB-04)', () => {
   it('flags the newest one against its own range, in its own unit, and keeps the marker', () => {
     const results = [
       res({ id: '1', reportId: 'a', value: 12, unitAsPrinted: 'ng/mL', range: { low: 4, high: 23, text: '4 - 23' } }),
-      res({ id: '2', reportId: 'b', value: 900, unitAsPrinted: 'mIU/L', range: { low: 86, high: 324, text: '86 - 324' } }),
+      res({ id: '2', reportId: 'b', value: 900, unitAsPrinted: 'pmol/L', range: { low: 86, high: 324, text: '86 - 324' } }),
     ]
     const [a] = analyse(results, reports).flatMap((p) => p.markers)
     expect(a.series.points).toHaveLength(1)
     expect(a.unconverted).toHaveLength(1)
-    expect(a.latestUnconverted).toMatchObject({ value: 900, unit: 'mIU/L', flag: { side: 'above', basis: 'range' } })
+    expect(a.latestUnconverted).toMatchObject({ value: 900, unit: 'pmol/L', flag: { side: 'above', basis: 'range' } })
     expect(a.latestFlag).toEqual({ side: 'above', basis: 'range' })
     expect(a.change).toBeNull()
   })
 
   it('keeps a marker whose only results are unconvertible', () => {
-    const [a] = analyse([res({ id: '2', reportId: 'b', value: 900, unitAsPrinted: 'mIU/L', range: { low: 86, high: 324, text: '86 - 324' } })], reports).flatMap((p) => p.markers)
+    const [a] = analyse([res({ id: '2', reportId: 'b', value: 900, unitAsPrinted: 'pmol/L', range: { low: 86, high: 324, text: '86 - 324' } })], reports).flatMap((p) => p.markers)
     expect(a.latest).toBeUndefined()
     expect(a.latestUnconverted?.value).toBe(900)
   })

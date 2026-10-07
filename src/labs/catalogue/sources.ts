@@ -49,6 +49,16 @@ export const SOURCES = {
   oestradiol: pubchem('estradiol', 5757, '272.4', '1,000 / 272.4 = 3.671'),
   cortisol: pubchem('cortisol (hydrocortisone)', 5754, '362.5', '10,000 / 362.5 = 27.59'),
   dheas: pubchem('DHEA sulfate', 12594, '368.5', '10 / 368.5 = 0.02714'),
+  prolactin: {
+    title: 'NIBSC: WHO International Standard, Prolactin, Human, 84/500 (3rd IS), instructions for use, version 4.0',
+    url: 'https://nibsc.org/documents/ifu/84-500.pdf',
+    note: 'Each ampoule holds 53 mIU (by definition) and approximately 2.5 µg of human prolactin: 53 / 2.5 = 21.2 mIU per µg, so 1 ng/mL = 21.2 mIU/L and 1 mIU/L = 0.0472 ng/mL. Its replacement, the 4th IS (83/573, https://nibsc.org/documents/ifu/83-573.pdf), calibrated against it, holds 67 mIU in approximately 3.2 µg (20.9 per µg), so assays can differ by a few percent. Checked October 7, 2026.',
+  },
+  hemoglobinMonomer: {
+    title: 'BIPM: CCQM-P201 final report, Quantification of Total Haemoglobin in Blood (2023), Measurand',
+    url: 'https://www.bipm.org/documents/d/guest/ccqm-p201',
+    note: 'Haemoglobin monomer average (141 amino acids): molecular weight 16,115 g/mol (16,114.5 in the ICSH reference method a participant used). 1 mmol/L = 16.115 g/L, so g/dL → mmol/L = 10 / 16.115 = 0.6206. Converted on this monomer basis; the tetramer (64,458 g/mol, same report) would give a quarter of the value. Checked October 7, 2026.',
+  },
   insulin: {
     title: 'Knopp JL, Holder-Pearson L, Chase JG. Insulin units and conversion factors: a story of truth, boots, and faster half-truths. J Diabetes Sci Technol 2019;13(3):597-600',
     url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6501531/',

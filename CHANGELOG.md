@@ -21,7 +21,7 @@ Changes from an independent product review (October 7, 2026):
 - Add results starts with no decimal mark; a value ten times beyond its range asks before saving; a
   personal line's unit is a menu.
 - Units LabTrails can't convert are flagged against their own range and shown, not dropped; B12 in
-  ng/L and glucose in g/L convert.
+  ng/L, glucose in g/L, prolactin in mIU/L and hemoglobin in mmol/L convert, each factor cited.
 - A person can be deleted with everything kept about them; summary facts redact accented names.
 - Files not read yet can be viewed and typed in by hand; PDFs open offline.
 - Locking or reloading returns to the same screen after unlocking; a reloaded demo says it ended;

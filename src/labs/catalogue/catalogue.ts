@@ -46,7 +46,7 @@ const differential = (id: string, name: string, aliases: string[]): Marker[] => 
 
 export const MARKERS: Marker[] = [
   // Blood count
-  { id: 'haemoglobin', name: 'Hemoglobin', panel: 'blood-count', aliases: ['haemoglobin', 'hemoglobin', 'hemoglobina', 'hgb', 'hb'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes)] },
+  { id: 'haemoglobin', name: 'Hemoglobin', panel: 'blood-count', aliases: ['haemoglobin', 'hemoglobin', 'hemoglobina', 'hgb', 'hb'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes), linear('mmol/L', 16.115, SOURCES.hemoglobinMonomer)] },
   { id: 'haematocrit', name: 'Hematocrit', panel: 'blood-count', aliases: ['haematocrit', 'hematocrit', 'hematocrito', 'hct', 'ht'], units: [base('%'), linear('L/L', 100, SOURCES.siPrefixes)] },
   { id: 'rbc', name: 'Red blood cells', panel: 'blood-count', aliases: ['red blood cells', 'red cells', 'rbc', 'erythrocytes', 'eritrocitos', 'globulos vermelhos', 'hemacias', 'red cell count', 'red blood cell count', 'rbc count', 'rcc'], units: [base('10¹²/L'), same('10⁶/µL')] },
   { id: 'mcv', name: 'MCV', panel: 'blood-count', aliases: ['mcv', 'mean corpuscular volume', 'vgm', 'volume globular medio', 'vcm', 'volume corpuscular medio'], units: [base('fL')] },
@@ -142,7 +142,7 @@ export const MARKERS: Marker[] = [
   { id: 'oestradiol', name: 'Estradiol', panel: 'hormones', aliases: ['oestradiol', 'estradiol', 'e2', '17 beta estradiol'], units: [base('pmol/L'), linear('pg/mL', 3.671, SOURCES.oestradiol)] },
   { id: 'lh', name: 'LH', panel: 'hormones', aliases: ['lh', 'luteinising hormone', 'luteinizing hormone', 'hormona luteinizante', 'hormonio luteinizante'], units: [base('U/L'), same('mIU/mL')] },
   { id: 'fsh', name: 'FSH', panel: 'hormones', aliases: ['fsh', 'follicle stimulating hormone', 'hormona folículo estimulante', 'hormona foliculo estimulante', 'hormonio foliculo estimulante'], units: [base('U/L'), same('mIU/mL')] },
-  { id: 'prolactin', name: 'Prolactin', panel: 'hormones', aliases: ['prolactin', 'prolactina', 'prl'], units: [base('ng/mL'), same('µg/L')] },
+  { id: 'prolactin', name: 'Prolactin', panel: 'hormones', aliases: ['prolactin', 'prolactina', 'prl'], units: [base('ng/mL'), same('µg/L'), linear('mIU/L', 1 / 21.2, SOURCES.prolactin), linear('µIU/mL', 1 / 21.2, SOURCES.prolactin)] },
   { id: 'cortisol', name: 'Cortisol', panel: 'hormones', aliases: ['cortisol', 'cortisol am', 'morning cortisol', 'cortisol serico', 'cortisol matinal'], units: [base('nmol/L'), linear('µg/dL', 27.59, SOURCES.cortisol)] },
   { id: 'dhea-s', name: 'DHEA-S', panel: 'hormones', aliases: ['dhea s', 'dheas', 'dhea sulfate', 'dhea sulphate', 'sulfato de dhea', 'dhea so4'], units: [base('µmol/L'), linear('µg/dL', 0.02714, SOURCES.dheas)] },
   { id: 'psa', name: 'PSA', panel: 'hormones', aliases: ['psa', 'total psa', 'psa total', 'prostate specific antigen', 'antigenio especifico da prostata'], units: [base('µg/L'), same('ng/mL')] },

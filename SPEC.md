@@ -263,8 +263,10 @@ and every factor has a test. Creatinine was corrected from 88.42 to 88.4.
 
 Units that are equal and only spelled differently are aliases, not conversions: mIU/L and µIU/mL
 (TSH), ng/mL and µg/L (ferritin), U/L and IU/L (enzymes), 10³/µL and 10⁹/L (white cells and
-platelets), 10⁶/µL and 10¹²/L (red cells). Prolactin, SHBG, DHEA-S, LH, FSH and PSA are charted in
-their printed unit; conversions are added only where a source gives one clearly.
+platelets), 10⁶/µL and 10¹²/L (red cells). SHBG, DHEA-S, LH, FSH and PSA are charted in their
+printed unit; conversions are added only where a source gives one clearly. Added October 7, 2026
+(section 19): prolactin in mIU/L (21.2 mIU/L per ng/mL, from the WHO 3rd International Standard's
+instructions) and hemoglobin in mmol/L (monomer, 16,115 g/mol, from BIPM's CCQM-P201 report).
 
 **Parsing printed values** (pure functions, tested): decimal commas ("5,4"), thousands separators,
 comparators ("<0.5", "inferior a 0,5"), one-sided ranges ("< 200", "> 40", "até 200"), two-sided

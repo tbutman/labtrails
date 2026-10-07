@@ -93,6 +93,15 @@ describe('special cases', () => {
     expect(convert('vitamin-b12', 470, 'ng/L', 'pg/mL')).toBeCloseTo(470, 6)
   })
 
+  it('converts prolactin in mIU/L and hemoglobin in mmol/L, with cited factors', () => {
+    // WHO 3rd IS 84/500: 53 mIU in about 2.5 µg, so 21.2 mIU/L per ng/mL
+    expect(convert('prolactin', 212, 'mIU/L', 'ng/mL')).toBeCloseTo(10, 6)
+    expect(convert('prolactin', 10, 'ng/mL', 'µIU/mL')).toBeCloseTo(212, 6)
+    // Monomer 16,115 g/mol: 14 g/dL is 8.69 mmol/L
+    expect(convert('haemoglobin', 14, 'g/dL', 'mmol/L')).toBeCloseTo(8.688, 3)
+    expect(convert('haemoglobin', 8.7, 'mmol/L', 'g/L')).toBeCloseTo(140.2, 1)
+  })
+
   it('refuses units the marker does not use, and Lp(a) across units', () => {
     expect(convert('glucose', 90, 'mmol/mol', 'mmol/L')).toBeNull()
     expect(convert('lpa', 30, 'mg/dL', 'nmol/L')).toBeNull()
