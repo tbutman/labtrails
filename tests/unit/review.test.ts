@@ -1,4 +1,7 @@
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
+import { ReviewPanel } from '../../src/core/review/ReviewPanel'
 import { blankRow, confirmedRows, detectDateOrder, initRows, needsDateOrder, normaliseNumber, parseDate, rowErrors, type Column } from '../../src/core/review/model'
 
 const columns: Column[] = [
@@ -67,5 +70,13 @@ describe('review', () => {
     expect(detectDateOrder(['03/04/2026', '04/25/2026'])).toBe('mdy')
     expect(needsDateOrder(['03/04/2026'])).toBe(true)
     expect(needsDateOrder(['2026-04-03', '05/05/2026'])).toBe(false)
+  })
+
+  it('shows each date as printed next to how it was read (Q1)', () => {
+    const html = renderToStaticMarkup(
+      createElement(ReviewPanel, { columns, proposed: [{ values: { date: '02.10.26', weightKg: '5.1' }, confidence: 'high' }, { values: { date: '25.10.26' }, confidence: 'high' }], onConfirm: () => {}, onCancel: () => {} }),
+    )
+    expect(html).toContain('02.10.26 → Oct 2, 2026')
+    expect(html).toContain('25.10.26 → Oct 25, 2026')
   })
 })

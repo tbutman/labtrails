@@ -42,7 +42,8 @@ export function ApiKeySettings({ appName = 'this app', apiKey, model, onSave }: 
       </p>
       <p>
         Anthropic bills you directly, and nothing goes through {appName === 'this app' ? "this app's" : `the ${appName}`} server. Create a{' '}
-        <strong>separate key just for {appName}</strong> and set a monthly spending limit in the Anthropic Console.
+        <strong>separate key just for {appName}</strong> and set a monthly spending limit in the Anthropic Console. The key is kept only in
+        this encrypted vault and sent only to Anthropic.
       </p>
       <p className="hint">
         If your Anthropic organization has zero data retention, browser requests aren't allowed for it; use a key from another organization.

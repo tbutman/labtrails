@@ -63,6 +63,8 @@ export type ImportAdapter<M> = {
   kinds?: DocumentKindOption[]
   /** The kind a new file starts as, e.g. guessed from its name. Defaults to `documentKind`. */
   kindFor?: (file: IntakeFile) => string
+  /** Whether saving dates a document by what was read from it (unless the person gave a date). */
+  datesFromContents?: boolean
   /** Where the AI key is added, e.g. "/app/settings#ai", for the "add one in Settings" link. */
   settingsPath?: string
   /** For the demo: a made-up sample document to try the flow with. */

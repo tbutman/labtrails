@@ -132,6 +132,14 @@ describe('the queue', () => {
     q = queueReducer(q, { type: 'retry', id: 'a' })
     expect(q.find((u) => u.id === 'a')).toMatchObject({ status: 'ready', error: undefined })
   })
+
+  it('takes a title and date for a file before it is stored, not after (BABY-20)', () => {
+    let q = [unit('a')]
+    q = queueReducer(q, { type: 'details', id: 'a', title: 'Check-up at 2 months', date: '2026-08-01' })
+    expect(q[0]).toMatchObject({ title: 'Check-up at 2 months', date: '2026-08-01' })
+    q = queueReducer(q, { type: 'reading', id: 'a' })
+    expect(queueReducer(q, { type: 'details', id: 'a', title: 'Later' })).toBe(q)
+  })
 })
 
 describe('document kinds (added in the core for BabyTrails)', () => {

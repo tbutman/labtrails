@@ -3,12 +3,14 @@
 // to the app, through onConfirm. The app never sees anything else.
 
 import { useMemo, useState, type ReactNode } from 'react'
+import { formatDate } from '../format'
 import {
   blankRow,
   confirmedRows,
   detectDateOrder,
   initRows,
   needsDateOrder,
+  parseDate,
   rawDates,
   rowErrors,
   rowWarnings,
@@ -18,6 +20,8 @@ import {
   type ProposedRow,
   type ReviewRow,
 } from './model'
+
+const parsedDate = (raw: string | undefined, order: DateOrder | undefined) => (raw?.trim() ? parseDate(raw, order) : undefined)
 
 type Props = {
   columns: Column[]
@@ -127,6 +131,12 @@ export function ReviewPanel({ columns, proposed, source, onConfirm, onCancel, co
                           disabled={row.status === 'rejected'}
                           onChange={(e) => setValue(row, c.key, e.target.value)}
                         />
+                      )}
+                      {/* A date as printed, and how the app reads it, so nobody reads it the wrong way round (Q1). */}
+                      {c.type === 'date' && !errors[c.key] && row.status !== 'rejected' && parsedDate(row.values[c.key], order) && (
+                        <p className="hint review-date">
+                          {row.values[c.key]!.trim()} → {formatDate(parsedDate(row.values[c.key], order)!)}
+                        </p>
                       )}
                       {errors[c.key] && row.status !== 'rejected' && <p className="error">{errors[c.key]}</p>}
                       {!errors[c.key] && warnings[c.key] && row.status !== 'rejected' && <p className="field-warning">{warnings[c.key]}</p>}

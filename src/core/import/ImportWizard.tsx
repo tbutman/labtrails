@@ -104,10 +104,11 @@ export function ImportWizard<M>({
       docs.push(
         (await addDocument(store, new Blob([f.bytes], { type: f.mimeType }), {
           profileId,
-          date: today(),
+          date: u.date || today(),
           kind: u.kind ?? adapter.documentKind,
-          title: f.name.split('/').pop() ?? f.name,
-          meta: { sha256: f.sha256, importStatus } satisfies ImportMeta,
+          // A title given in the queue names the document (its first page); otherwise, the file name.
+          title: (i === 0 && u.title?.trim()) || (f.name.split('/').pop() ?? f.name),
+          meta: { sha256: f.sha256, importStatus, ...(u.date ? { datedByUser: true as const } : {}) } satisfies ImportMeta,
           ...(group ? { group: { id: group, page: i + 1 } } : {}),
         })) as StoredDoc,
       )
@@ -321,7 +322,7 @@ export function ImportWizard<M>({
             .{(c.skipped > 0 || c.failed > 0) && ' Skipped and failed files stay listed as "Not read yet".'}
           </Callout>
         )}
-        <QueueList units={units} dispatch={dispatch} kinds={adapter.kinds} working />
+        <QueueList units={units} dispatch={dispatch} kinds={adapter.kinds} noun={adapter.noun.one} working />
         {finished && (
           <div className="row import-actions">
             <button className="button primary" onClick={onFinish}>
@@ -352,7 +353,7 @@ export function ImportWizard<M>({
           {error}
         </p>
       )}
-      {units.length > 0 && <QueueList units={units} dispatch={dispatch} kinds={adapter.kinds} pages={adapter.readPages ? adapter.noun.one : undefined} />}
+      {units.length > 0 && <QueueList units={units} dispatch={dispatch} kinds={adapter.kinds} noun={adapter.noun.one} pages={adapter.readPages ? adapter.noun.one : undefined} datedBy={adapter.datesFromContents ? adapter.noun.one : undefined} />}
       {skipped.length > 0 && (
         <details className="disclosure import-skipped">
           <summary>
@@ -458,12 +459,18 @@ function QueueList<M>({
   dispatch,
   kinds,
   working = false,
+  noun,
   pages,
+  datedBy,
 }: {
   units: Unit<M>[]
   dispatch: (a: Parameters<typeof queueReducer<M>>[1]) => void
   kinds?: DocumentKindOption[]
   working?: boolean
+  /** The adapter's noun ("report", "document"), for "2 pages of one report" (LAB-20). */
+  noun: string
+  /** When the app dates documents by what's read from them: its noun ("document"). */
+  datedBy?: string
   /** The adapter's noun when it can read pages of one document together; grouping is offered then. */
   pages?: string
 }) {
@@ -490,12 +497,28 @@ function QueueList<M>({
                     {n > 1 && ` and ${n - 1} more page${n > 2 ? 's' : ''}`}
                   </span>
                   <span className="list-row-sub">
-                    {n > 1 && `${n} pages of one ${pages ?? 'document'} · `}
+                    {n > 1 && `${n} pages of one ${noun} · `}
                     {mb(unitBytes(u))}
                     {u.duplicateOf && ` · same file as ${u.duplicateOf.inBatch ? `${u.duplicateOf.title}, above` : `"${u.duplicateOf.title}"${u.duplicateOf.date ? `, added ${formatDate(u.duplicateOf.date)}` : ''}`}`}
                     {u.error && ` · ${u.error}`}
                     {u.outcome && ` · ${u.outcome}`}
                   </span>
+                  {!working && u.file && ['ready', 'duplicate'].includes(u.status) && (
+                    <details className="import-details">
+                      <summary>Title and date</summary>
+                      <div className="import-details-fields">
+                        <label>
+                          Title
+                          <input value={u.title ?? ''} placeholder={u.file.name.split('/').pop()} onChange={(e) => dispatch({ type: 'details', id: u.id, title: e.target.value, date: u.date })} />
+                        </label>
+                        <label>
+                          Date of the document
+                          <input type="date" max={today()} value={u.date ?? ''} onChange={(e) => dispatch({ type: 'details', id: u.id, title: u.title, date: e.target.value || undefined })} />
+                        </label>
+                      </div>
+                      <p className="hint">Leave them empty to use the file name and today's date{datedBy ? `, or the latest date read from the ${datedBy}` : ''}.</p>
+                    </details>
+                  )}
                   {u.pages && !working && u.status === 'ready' && (
                     <ol className="import-pages" aria-label={`Pages of ${unitName(u)}`}>
                       {u.pages.map((f, i) => (

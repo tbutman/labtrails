@@ -229,3 +229,8 @@ see its `src/app/` for working examples.
   in Settings" is a link.
 - **BABY-05.** Give the router's root route `errorElement: <RouteError home="/app" />`.
 - **X-10.** `scripts/sync-core.sh` should copy the test files listed in `src/core/TESTS`.
+- **Q1, dates on the review screen.** Nothing to change: each date field shows the date as printed
+  and as read ("02.10.26 → Oct 2, 2026").
+- **BABY-20, title and date at import.** The queue offers "Title and date" for each new file. If your
+  adapter's `save` re-dates the document from what was read, set `datesFromContents: true` and leave
+  the date alone when `doc.meta.datedByUser` is set.
