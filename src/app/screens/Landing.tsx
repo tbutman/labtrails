@@ -182,7 +182,7 @@ export function Landing() {
               { q: 'What does it cost?', a: 'LabTrails is free. The AI features use your own Anthropic account: roughly 3 to 4 US cents to read a three-page report and 1 to 2 cents for a summary, at current prices. Everything else works without a key.' },
               { q: 'Which labs does it understand?', a: 'Reports from any lab. More than 70 common markers are built in with English and Portuguese names; anything else is kept exactly as printed, and you can map it to a marker.' },
               { q: 'Does it work on my phone?', a: 'Yes. It installs like an app and works offline. On iPhone, add it to your Home Screen so Safari keeps its data.' },
-              { q: 'Who made it?', a: <>Thomas Butman, as an open-source project alongside its sister app, <a href={BRAND.sister.url}>{BRAND.sister.name}</a>. The code is on <a href={BRAND.repo}>GitHub</a>. Live and in active development; more markers are next.</> },
+              { q: 'Who made it?', a: <><a href="https://tbutman.com/work/trails">Thomas Butman</a>, as an open-source project alongside its sister app, <a href={BRAND.sister.url}>{BRAND.sister.name}</a>. The code is on <a href={BRAND.repo}>GitHub</a>. Live and in active development; more markers are next.</> },
             ]}
           />
         </Section>

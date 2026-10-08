@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- The landing page's "Who made it?" links Thomas Butman to the combined story at
+  [tbutman.com/work/trails](https://tbutman.com/work/trails), and the case study links it too.
+- The shared core is synced from BabyTrails `ec65855` (comment spelling only).
+
 ## 0.2.0 (October 8, 2026)
 
 Changes from an independent product review (October 7, 2026). Tagged `v0.2.0`:

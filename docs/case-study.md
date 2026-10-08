@@ -108,7 +108,7 @@ the encrypted vault, storage, backup, documents, the review screen, the AI clien
 now the import flow. Ownership was explicit: BabyTrails owned the core, and LabTrails wrote some shared
 pieces first (the design system and the import), which then moved into the core. The agents
 coordinated through a shared notes file of proposals, requests and a log, with me deciding anything
-that affected both apps.
+that affected both apps. The combined story is at [tbutman.com/work/trails](https://tbutman.com/work/trails).
 
 **A design system, not a theme.** After the first versions worked, both apps were rebuilt on one kit:
 Inter throughout with tabular figures, a shared palette with one accent per app, and components from
