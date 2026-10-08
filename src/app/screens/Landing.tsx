@@ -11,7 +11,7 @@ import { APP, BRAND } from '../brand'
 import { MarkerFlags } from '../components/Flags'
 import { MarkerChart } from '../components/MarkerChart'
 import { DEMO_PROFILE, DEMO_REPORTS, DEMO_RESULTS } from '../demo'
-import { formatDate, formatPoint, formatRange } from '../format'
+import { formatDate, formatPoint, labRange } from '../format'
 import { useSession } from '../sessionContext'
 import { sparkPoints } from '../spark'
 
@@ -38,7 +38,7 @@ function HeroPreview() {
         <div className="metric-foot">Each result against its own lab's range · made-up data</div>
       </div>
       <div className="preview-float">
-        <MetricCard label={ferritin.marker.name} value={formatPoint(ferritin.latest!)} unit={ferritin.series.unit} chips={<MarkerFlags a={ferritin} compact />} foot={`Lab's range ${formatRange(ferritin.latest!.range)} · ${formatDate(ferritin.latest!.date)}`}>
+        <MetricCard label={ferritin.marker.name} value={formatPoint(ferritin.latest!)} unit={ferritin.series.unit} chips={<MarkerFlags a={ferritin} compact />} foot={`${labRange(ferritin.latest!.range)} · ${formatDate(ferritin.latest!.date)}`}>
           <Sparkline points={sparkPoints(ferritin)} />
         </MetricCard>
       </div>
@@ -72,7 +72,7 @@ export function Landing() {
         ]}
         actions={
           <Link className="button small" to={APP}>
-            Open app
+            Open the app
           </Link>
         }
       />
@@ -100,7 +100,7 @@ export function Landing() {
           }
           proof={[
             { value: 'No', label: 'account or server database' },
-            { value: '70', label: 'markers built in' },
+            { value: '70+', label: 'markers built in' },
             { value: 'MIT', label: 'open source' },
           ]}
           visual={<HeroPreview />}
@@ -114,7 +114,7 @@ export function Landing() {
               { icon: ShieldCheck, title: 'Flags decided by code', text: "Outside the lab's range, changed since last time, rising or falling: simple published rules, never an AI's opinion." },
               { icon: NotebookPen, title: 'Notes on each test', text: 'Fasting, the time of day, medications, a recent cold or a hard workout. They show on the chart and help explain a result.' },
               { icon: ScanText, title: 'Read reports with AI', text: 'Optional, with your own key. The AI copies the results from a PDF or photo; you check every row before anything is saved.' },
-              { icon: Stethoscope, title: 'A page for your doctor', text: 'The markers worth discussing, their trends and your questions, on one page to print or share.' },
+              { icon: Stethoscope, title: 'A doctor report', text: 'The markers worth discussing, their trends and your questions, on one page to print or share at your next appointment.' },
             ]}
           />
         </Section>
@@ -123,7 +123,7 @@ export function Landing() {
           <Steps
             items={[
               { title: 'Add a report', text: 'Read a PDF or photo with AI, or type the results in as printed. Any lab, any country.' },
-              { title: 'Check every row', text: "LabTrails matches each name to its catalogue and shows what it understood. Nothing is saved until you've checked it." },
+              { title: 'Check every row', text: "LabTrails matches each name to its catalog and shows what it understood. Nothing is saved until you've checked it." },
               { title: 'See the trends', text: "Each marker over time, flagged when it's outside its lab's range or moving steadily, with notes on each test." },
             ]}
           />
@@ -158,7 +158,7 @@ export function Landing() {
           <PrivacyPanel
             checkIcon={Check}
             title="Your results never reach our server"
-            text="LabTrails is a website that runs entirely in your browser. Everything you enter or upload is encrypted with a key made from your passphrase, and stays on your device."
+            text="LabTrails is a website that runs entirely in your browser. Everything you enter or upload is encrypted with a key made from your passphrase, and kept encrypted on this device, in this browser."
             points={[
               'Encrypted at rest with AES-256-GCM; the key comes from your passphrase with Argon2id',
               'No account, no server database, no analytics, no cookies',
@@ -180,9 +180,9 @@ export function Landing() {
               { q: 'Where are my results stored?', a: "Only in your browser, encrypted. There's no account and no copy on our server. To move them to another device, or keep them safe, download an encrypted backup." },
               { q: 'What if I forget my passphrase?', a: "Nobody can reset it, including us, so your results can't be recovered without a backup. Keep a backup somewhere other than your device." },
               { q: 'What does it cost?', a: 'LabTrails is free. The AI features use your own Anthropic account: roughly 3 to 4 US cents to read a three-page report and 1 to 2 cents for a summary, at current prices. Everything else works without a key.' },
-              { q: 'Which labs does it understand?', a: 'Reports from any lab. About 70 common markers are built in with English and Portuguese names; anything else is kept exactly as printed, and you can map it to a marker.' },
+              { q: 'Which labs does it understand?', a: 'Reports from any lab. More than 70 common markers are built in with English and Portuguese names; anything else is kept exactly as printed, and you can map it to a marker.' },
               { q: 'Does it work on my phone?', a: 'Yes. It installs like an app and works offline. On iPhone, add it to your Home Screen so Safari keeps its data.' },
-              { q: 'Who made it?', a: <>Thomas Butman, as an open-source project alongside its sister app, <a href={BRAND.sister.url}>{BRAND.sister.name}</a>. The code is on <a href={BRAND.repo}>GitHub</a>.</> },
+              { q: 'Who made it?', a: <>Thomas Butman, as an open-source project alongside its sister app, <a href={BRAND.sister.url}>{BRAND.sister.name}</a>. The code is on <a href={BRAND.repo}>GitHub</a>. Live and in active development; more markers are next.</> },
             ]}
           />
         </Section>

@@ -26,9 +26,9 @@ test('the demo works without a passphrase or key', async ({ page }) => {
   await expect(page.getByText(/pre-written example/).first()).toBeVisible()
 
   await page.getByRole('link', { name: 'Doctor' }).click()
-  await expect(page.getByRole('img', { name: 'Lab results report for Sam (demo)' })).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Lab results to discuss with your doctor, for Sam (demo)' })).toBeVisible()
   await page.getByLabel('Show initials instead of the name').check()
-  await expect(page.getByRole('img', { name: 'Lab results report for S. (.' })).toBeVisible()
+  await expect(page.getByRole('img', { name: 'Lab results to discuss with your doctor, for S. (.' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Leave demo' }).click()
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Every blood test')
@@ -75,11 +75,12 @@ test('a vault: create, add a person and a report, lock, unlock', async ({ page }
   await page.getByRole('button', { name: 'Unlock' }).click()
   await expect(page.getByRole('alert')).toContainText("doesn't open this vault")
 
-  // After a reload the vault is locked; the right passphrase brings everything back.
+  // After a reload the vault is locked; the right passphrase brings everything back, on the same screen.
   await page.reload()
+  await expect(page.getByText('You were on the overview. Unlock to continue.')).toBeVisible()
   await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
   await page.getByRole('button', { name: 'Unlock' }).click()
-  await page.getByRole('link', { name: /Alex Example/ }).click()
+  await expect(page.getByRole('heading', { name: 'Alex Example' })).toBeVisible()
   await expect(page.getByText('118').first()).toBeVisible()
 
   // Nothing readable is stored in IndexedDB.

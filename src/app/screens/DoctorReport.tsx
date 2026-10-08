@@ -4,9 +4,11 @@ import { Checkbox, ChipGroup, PageHeader, TextAreaField } from '../../core/ui/co
 import { analyse, notRepeated, type MarkerAnalysis } from '../../labs/analysis'
 import { activeBetween, entryLabel, sortByStart, type TimelineEntry } from '../../labs/timeline'
 import { useProfileData } from '../profileContext'
-import { ReportSheet, SHEET_WIDTH } from '../report/ReportSheet'
+import { ReportSheet, ReportTable, SHEET_WIDTH, defaultReportMarkers, reportHeader, reportRows } from '../report/ReportSheet'
+import { ageInYears } from '../../labs/person'
 import { formatPeriod } from '../format'
 import { useSession } from '../sessionContext'
+import { useLeaveWarning } from '../returnTo'
 
 function initials(name: string): string {
   return name
@@ -27,18 +29,27 @@ export function DoctorReport() {
   const { profile, reports, results, timeline, lines } = useProfileData()
   const { app } = useSession()
   const all = analyse(results, reports, app.preferredUnit).flatMap((p) => p.markers)
-  const flagged = all.filter((a) => a.latestFlag || a.change?.notable || a.trend).map((a) => a.marker.id)
+  const flagged = defaultReportMarkers(all)
   const [selected, setSelected] = useState<string[]>(flagged)
   const [useInitials, setUseInitials] = useState(false)
+  const [withAgeSex, setWithAgeSex] = useState(true)
   // Medications and lifestyle are sensitive: off unless the user ticks it (SPEC.md section 18.8).
   const [withTimeline, setWithTimeline] = useState(false)
   const [notes, setNotes] = useState('')
+  // The notes aren't saved, so closing the page with some typed asks first (X-05).
+  useLeaveWarning(!!notes.trim())
   const [status, setStatus] = useState('')
   const sheet = useRef<HTMLDivElement>(null)
   const latest = [...reports].sort((a, b) => a.date.localeCompare(b.date)).at(-1)
   const markers = all.filter((a) => selected.includes(a.marker.id))
   const who = useInitials ? initials(profile.name) : profile.name
-  const fileName = `labtrails-report-${latest?.date ?? 'results'}.png`
+  const today = new Date().toISOString().slice(0, 10)
+  // Age and sex help a doctor read the ranges; optional, and never with initials (LAB-16).
+  const person =
+    withAgeSex && !useInitials && (profile.dateOfBirth || profile.sex)
+      ? { ...(profile.dateOfBirth ? { age: ageInYears(profile.dateOfBirth, today) } : {}), ...(profile.sex ? { sex: profile.sex } : {}) }
+      : undefined
+  const fileName = `labtrails-doctor-report-${latest?.date ?? 'results'}.png`
 
   async function png(): Promise<Blob> {
     const svg = sheet.current?.querySelector('svg')
@@ -76,7 +87,7 @@ export function DoctorReport() {
     const file = new File([await png()], fileName, { type: 'image/png' })
     if (navigator.canShare?.({ files: [file] })) {
       try {
-        await navigator.share({ files: [file], title: 'Lab results' })
+        await navigator.share({ files: [file], title: 'Doctor report' })
       } catch {
         // The user closed the share sheet.
       }
@@ -89,12 +100,17 @@ export function DoctorReport() {
   return (
     <>
       <div className="no-print">
-        <PageHeader title="Report for your doctor" subtitle="One page to print or share. It's a file you share yourself; nothing is uploaded." />
+        <PageHeader title="Doctor report" subtitle="One page to print or share. It's a file you share yourself; nothing is uploaded." />
         <div className="card">
           <ChipGroup legend="Markers to include" options={all.map((a) => ({ value: a.marker.id, label: a.marker.name }))} value={selected} onChange={setSelected} />
           <Checkbox checked={useInitials} onChange={setUseInitials}>
             Show initials instead of the name
           </Checkbox>
+          {(profile.dateOfBirth || profile.sex) && !useInitials && (
+            <Checkbox checked={withAgeSex} onChange={setWithAgeSex}>
+              Show age and sex
+            </Checkbox>
+          )}
           {timeline.length > 0 && (
             <Checkbox checked={withTimeline} onChange={setWithTimeline}>
               Include the timeline (medications, supplements and changes during these results)
@@ -120,8 +136,21 @@ export function DoctorReport() {
         </div>
       </div>
       <div className="report-sheet" ref={sheet}>
-        <ReportSheet who={who} markers={markers} latest={latest} notes={notes} missing={notRepeated(results, reports)} timeline={withTimeline ? timelineFor(timeline, markers, latest?.date) : []} lines={lines} />
+        <ReportSheet
+          who={who}
+          markers={markers}
+          reports={reports}
+          latest={latest}
+          notes={notes}
+          missing={notRepeated(results, reports)}
+          timeline={withTimeline ? timelineFor(timeline, markers, latest?.date) : []}
+          lines={lines}
+          preparedOn={today}
+          person={person}
+          describedBy="report-table"
+        />
       </div>
+      <ReportTable id="report-table" who={who} header={reportHeader(reports, today, person)} rows={reportRows(markers, reports, lines)} />
     </>
   )
 }

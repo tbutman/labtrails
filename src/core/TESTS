@@ -1,0 +1,12 @@
+tests/unit/vault.test.ts
+tests/unit/passphrase.test.ts
+tests/unit/kdfFallback.test.ts
+tests/unit/channel.test.ts
+tests/unit/backup.test.ts
+tests/unit/settings.test.ts
+tests/unit/documents.test.ts
+tests/unit/review.test.ts
+tests/unit/ai.test.ts
+tests/unit/askCore.test.ts
+tests/unit/import.test.ts
+tests/unit/importPages.test.ts

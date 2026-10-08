@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { changeSincePrevious, labFlagWithoutCodeFlag, persistent, rangeFlag, trend, type Point } from '../../src/labs/flags/flags'
-import { notRepeated } from '../../src/labs/analysis'
+import { changeSincePrevious, critical, farOutside, labCritical, labFlagWithoutCodeFlag, persistent, rangeFlag, trend, type Point } from '../../src/labs/flags/flags'
+import { analyse, notRepeated } from '../../src/labs/analysis'
 import { buildSeries } from '../../src/labs/series'
 import type { Report, Result } from '../../src/labs/types'
 
@@ -52,6 +52,52 @@ describe('rule 1: outside the lab range', () => {
   })
 })
 
+describe('critical: marked by the lab, or far outside the range', () => {
+  it("recognizes the lab's critical marks", () => {
+    for (const f of ['HH', 'LL', 'Critical', 'CRÍTICO', 'critico', 'Panic', '!!', '*HH']) expect(labCritical(f)).toBe(true)
+    for (const f of ['H', 'L', 'N', 'High', '', undefined]) expect(labCritical(f)).toBe(false)
+  })
+
+  it('keeps HH and LL on their side of the range', () => {
+    expect(rangeFlag(p('2025-01-01', 612, 70, 99, { flagAsPrinted: 'HH' }))).toEqual({ side: 'above', basis: 'range' })
+    expect(rangeFlag(p('2025-01-01', 9, undefined, undefined, { flagAsPrinted: 'LL' }))).toEqual({ side: 'below', basis: 'lab' })
+  })
+
+  it('flags a result at least one range width outside a two-sided range', () => {
+    expect(farOutside(p('2025-01-01', 7.2, 3.5, 5.1))).toBe('above') // width 1.6: 6.7 or more
+    expect(farOutside(p('2025-01-01', 6.6, 3.5, 5.1))).toBeNull()
+    expect(farOutside(p('2025-01-01', 5.2, 0.4, 4))).toBeNull() // TSH just above
+    expect(farOutside(p('2025-01-01', 15, 30, 40))).toBe('below') // width 10: 20 or less
+    expect(farOutside(p('2025-01-01', 2, 4, 11))).toBeNull() // a wide range can't be a width below
+  })
+
+  it('uses twice an upper limit, or half a lower one, for a one-sided range', () => {
+    expect(farOutside(p('2025-01-01', 10, undefined, 5))).toBe('above')
+    expect(farOutside(p('2025-01-01', 9.9, undefined, 5))).toBeNull()
+    expect(farOutside(p('2025-01-01', 15, 30))).toBe('below')
+    expect(farOutside(p('2025-01-01', 16, 30))).toBeNull()
+  })
+
+  it('needs every possible value of a "<" or ">" result to be far outside', () => {
+    expect(farOutside(p('2025-01-01', 100, 1, 5, { comparator: '>' }))).toBe('above')
+    expect(farOutside(p('2025-01-01', 6, 1, 5, { comparator: '>' }))).toBeNull()
+  })
+
+  it('combines both into one flag', () => {
+    expect(critical(p('2025-01-01', 7.2, 3.5, 5.1, { flagAsPrinted: 'Critical' }))).toEqual({ labMarked: true, far: 'above' })
+    expect(critical(p('2025-01-01', 5.4, 3.5, 5.1, { flagAsPrinted: 'HH' }))).toEqual({ labMarked: true, far: null })
+    expect(critical(p('2025-01-01', 5.2, 0.4, 4, { flagAsPrinted: 'H' }))).toBeNull()
+  })
+})
+
+describe("the lab's N mark", () => {
+  it('notes when the lab marked normal a result outside the printed range', () => {
+    expect(rangeFlag(p('2025-01-01', 5.2, 0.4, 4, { flagAsPrinted: 'N' }))).toEqual({ side: 'above', basis: 'range', labNormal: true })
+    expect(rangeFlag(p('2025-01-01', 5.2, 0.4, 4, { flagAsPrinted: '-' }))?.labNormal).toBe(true)
+    expect(rangeFlag(p('2025-01-01', 2, 0.4, 4, { flagAsPrinted: 'Normal' }))).toBeNull()
+  })
+})
+
 describe('rule 2: changed notably since the previous result', () => {
   it('measures change against the newer range width', () => {
     // width 40: 25% is 10
@@ -66,9 +112,19 @@ describe('rule 2: changed notably since the previous result', () => {
     expect(c?.relative).toBeCloseTo(0.25)
   })
 
-  it('falls back to the previous value without a two-sided range', () => {
-    expect(changeSincePrevious([p('2024-01-01', 100, undefined, 200), p('2025-01-01', 126, undefined, 200)])?.notable).toBe(true)
-    expect(changeSincePrevious([p('2024-01-01', 100, undefined, 200), p('2025-01-01', 120, undefined, 200)])?.notable).toBe(false)
+  it('scales by the one limit of a one-sided range', () => {
+    // up to 200: 25% is 50
+    expect(changeSincePrevious([p('2024-01-01', 100, undefined, 200), p('2025-01-01', 150, undefined, 200)])?.notable).toBe(true)
+    expect(changeSincePrevious([p('2024-01-01', 100, undefined, 200), p('2025-01-01', 140, undefined, 200)])?.notable).toBe(false)
+    // CRP 0.5 → 1.5 with a range under 5 is +200%, but only 1 of 5
+    const crp = changeSincePrevious([p('2024-01-01', 0.5, undefined, 5), p('2025-01-01', 1.5, undefined, 5)])
+    expect(crp).toMatchObject({ notable: false, direction: 'up' })
+    expect(crp?.delta).toBeCloseTo(1)
+  })
+
+  it('falls back to the previous value without a range', () => {
+    expect(changeSincePrevious([p('2024-01-01', 100), p('2025-01-01', 126)])?.notable).toBe(true)
+    expect(changeSincePrevious([p('2024-01-01', 100), p('2025-01-01', 120)])?.notable).toBe(false)
   })
 
   it('always counts moving into or out of the range', () => {
@@ -197,5 +253,32 @@ describe('not repeated since', () => {
   it('counts BUN and urea as one, and ignores urine results', () => {
     const results = [result('a', 'bun'), result('b', 'urea'), result('a', 'glucose', { specimen: 'urine' })]
     expect(notRepeated(results, reports)).toEqual([])
+  })
+})
+
+describe('results in a unit LabTrails cannot convert (LAB-04)', () => {
+  const reports = [
+    { id: 'a', date: '2025-01-10' },
+    { id: 'b', date: '2026-01-10' },
+  ].map((r) => ({ ...r, profileId: 'x', source: 'manual', createdAt: '', updatedAt: '' }) as Report)
+  const res = (over: Partial<Result>): Result => ({ id: over.id!, reportId: 'a', profileId: 'x', nameAsPrinted: 'Prolactin', markerId: 'prolactin', createdAt: '', updatedAt: '', ...over })
+
+  it('flags the newest one against its own range, in its own unit, and keeps the marker', () => {
+    const results = [
+      res({ id: '1', reportId: 'a', value: 12, unitAsPrinted: 'ng/mL', range: { low: 4, high: 23, text: '4 - 23' } }),
+      res({ id: '2', reportId: 'b', value: 900, unitAsPrinted: 'pmol/L', range: { low: 86, high: 324, text: '86 - 324' } }),
+    ]
+    const [a] = analyse(results, reports).flatMap((p) => p.markers)
+    expect(a.series.points).toHaveLength(1)
+    expect(a.unconverted).toHaveLength(1)
+    expect(a.latestUnconverted).toMatchObject({ value: 900, unit: 'pmol/L', flag: { side: 'above', basis: 'range' } })
+    expect(a.latestFlag).toEqual({ side: 'above', basis: 'range' })
+    expect(a.change).toBeNull()
+  })
+
+  it('keeps a marker whose only results are unconvertible', () => {
+    const [a] = analyse([res({ id: '2', reportId: 'b', value: 900, unitAsPrinted: 'pmol/L', range: { low: 86, high: 324, text: '86 - 324' } })], reports).flatMap((p) => p.markers)
+    expect(a.latest).toBeUndefined()
+    expect(a.latestUnconverted?.value).toBe(900)
   })
 })

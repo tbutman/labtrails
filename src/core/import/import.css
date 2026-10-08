@@ -115,3 +115,32 @@
   font-size: var(--text-sm);
   white-space: nowrap;
 }
+
+/* A title and date for a file in the queue (BABY-20) */
+.import-details {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+}
+.import-details summary {
+  cursor: pointer;
+  color: var(--accent-text);
+  font-weight: 550;
+}
+.import-details-fields {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+@media (min-width: 560px) {
+  .import-details-fields {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+.import-details-fields label {
+  display: grid;
+  gap: 4px;
+  font-weight: 550;
+}
+.import-details-fields input {
+  min-height: 40px;
+}

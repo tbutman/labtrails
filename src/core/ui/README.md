@@ -9,17 +9,24 @@ logged in the Trails coordination notes so LabTrails can re-sync.
 
 | File | What it holds |
 | --- | --- |
-| `tokens.css` | Type (Inter, self-hosted, OFL), spacing, radii, shadows, the "Honey and ink" neutrals in light and dark mode, chart colours, and the per-app colour slots. |
+| `tokens.css` | Type (Inter, self-hosted, OFL), spacing, radii, shadows, the "Honey and ink" neutrals in light and dark mode, chart colors, and the per-app color slots. |
 | `components.css` | Base styles and every component: app bar and phone tab bar, page header, buttons, form fields, segmented controls, toggle chips, switches, file drop zone, cards, callouts, lists, chips, metric cards and sparklines, stats, empty states, skeletons, tables, disclosures, landing-page sections, auth screens. It also styles the core's existing components (ReviewPanel, SendSheet, AiOutput, DocumentViewer, ApiKeySettings) by their class names. |
 | `components.tsx` | React wrappers: `TrailMark`, `Wordmark`, `AppIcon`, `AppBar`, `PageHeader`, `Callout`, `EmptyState`, `Field`, `TextField`, `SelectField`, `TextAreaField`, `Segmented`, `ChipGroup`, `Switch`, `Checkbox`, `FileDrop`, `Chip`, `Sparkline`, `MetricCard`. |
 | `landing.tsx` | Landing-page sections: `LandingNav`, `Hero`, `Section`, `FeatureGrid`, `Steps`, `Showcase`, `PrivacyPanel`, `Faq`, `CtaBand`, `SiteFooter` (with the sister-app link). |
 | `UpdatePrompt.tsx` | The "a new version is ready, Reload" banner (see the core README). |
+| `RouteError.tsx` | The router's error screen: "Something went wrong on this screen. Your records are safe." |
+| `copy.ts` | Shared wording: `possessive`, `disclaimer`, `demoNote`. |
 
-**Added in the core** (6 October 2026, after the move), at the end of `components.css`: the auth
+**Added for the Trails review** (October 7, 2026), at the end of `components.css`: the footer's
+second title (`.footer-title-next`), the passphrase strength hint (`.passphrase-strength`,
+`.passphrase-meter`), `.button.danger-fill` and `.forgot-passphrase` (erasing the vault), the check
+mark on selected toggle chips, and 44 px touch targets under `@media (pointer: coarse)`.
+
+**Added in the core** (October 6, 2026, after the move), at the end of `components.css`: the auth
 helpers (`.auth-links`, `.form-error`, `.form-footnote`), `.disclaimer`, loading shapes
 (`.loading-title`, `.loading-card`), `.avatar`, the landing preview (`.preview`, `.preview-main`,
 `.preview-head`, `.preview-float`) and `.showcases` (moved from LabTrails' `app.css`, so both landing
-pages share them), `.chip.strong` (a chip that stands out without colour, used for low-confidence
+pages share them), `.chip.strong` (a chip that stands out without color, used for low-confidence
 review rows), `.ai-text` and `.update-banner`. The tokens' header comment now says 4 px steps, as the
 values are.
 
@@ -31,11 +38,11 @@ components, so each app bundles only the icons it uses), plus `react-router` for
 ```ts
 import './core/ui/tokens.css'
 import './core/ui/components.css'
-import './app/accent.css' // the app's colours, below
+import './app/accent.css' // the app's colors, below
 import './app/app.css' // anything only this app needs
 ```
 
-Each app sets its colours for both modes, and nothing else (BabyTrails' honey is in
+Each app sets its colors for both modes, and nothing else (BabyTrails' honey is in
 `src/app/accent.css`, with its contrast ratios; `tests/unit/contrast.test.ts` checks the rules below
 against the CSS files):
 
@@ -67,7 +74,7 @@ export const BRAND: Brand = {
 
 - **One typeface:** Inter for everything, wordmark included. Numbers use tabular figures (`.num`,
   tables, metric values) so they line up.
-- **Colour is never the only signal.** Flags carry an icon and words; the accent marks actions and
+- **Color is never the only signal.** Flags carry an icon and words; the accent marks actions and
   data, not meaning.
 - **Contrast** (WCAG 2.1): text and muted text ≥ 4.5:1 on every surface in both modes; control
   borders 3.4:1 (light) and 3.3:1 (dark), because WCAG 1.4.11 asks 3:1 for the edge that identifies a

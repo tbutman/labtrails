@@ -35,6 +35,12 @@ await p.getByRole('link', { name: /^Ferritin/ }).first().click()
 await p.getByRole('img', { name: /Ferritin/ }).waitFor()
 await p.screenshot({ path: out('marker-dark') })
 
+// A marker with the personal timeline's bands above the chart (vitamin D3 and marathon training).
+p = await demo({ ...phone, colorScheme: 'dark' })
+await p.getByRole('link', { name: /^Vitamin D/ }).first().click()
+await p.getByRole('list', { name: 'Timeline on this chart' }).waitFor()
+await p.screenshot({ path: out('marker-timeline-dark') })
+
 p = await demo(desk)
 await p.getByRole('link', { name: 'Reports', exact: true }).first().click()
 await p.getByRole('link', { name: 'Import reports' }).first().click()
@@ -53,6 +59,8 @@ await p.screenshot({ path: 'public/landing/review.png' })
 
 p = await demo(desk)
 await p.getByRole('link', { name: 'Doctor' }).first().click()
+// The sticky app bar would cover the top of the sheet when it scrolls into view.
+await p.addStyleTag({ content: '.app-bar { display: none !important; }' })
 await p.locator('.report-sheet svg').screenshot({ path: out('doctor-report') })
 await p.locator('.report-sheet svg').screenshot({ path: 'public/landing/doctor-report.png' })
 

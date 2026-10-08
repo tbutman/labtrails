@@ -4,6 +4,9 @@
 import { askJson, type AiUsage } from '../ai/client'
 import { ANSWER_SCHEMA, checkAnswer, historyText, parseAnswer, type Answer, type AskTurn } from './model'
 
+/** For the send sheet of a follow-up question (CORE-12). */
+export const FOLLOW_UP_NOTE = 'Follow-ups send the same facts again, with this conversation.'
+
 export type AskOutcome = { answer: Answer; usage: AiUsage } | { withheld: string[]; usage: AiUsage }
 
 export async function askQuestion(o: {
@@ -15,6 +18,7 @@ export async function askQuestion(o: {
   facts: unknown
   history: AskTurn[]
   question: string
+  /** Phrases to withhold beyond the core's BANNED_PHRASES, which always apply. */
   banned?: RegExp[]
   /** The units whose numbers must be declared (GROWTH_UNITS by default). */
   units?: string[]

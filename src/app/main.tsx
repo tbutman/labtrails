@@ -9,8 +9,9 @@ import { createBrowserRouter, Navigate, RouterProvider, type LazyRouteFunction, 
 import { LegacyProfile, ProfileLayout, Root } from './components/Layout'
 import { SessionProvider } from './session'
 import { Landing } from './screens/Landing'
+import { RouteError } from '../core/ui/RouteError'
 
-// The landing page loads first and alone; each screen of the app of the app is fetched when it's first opened
+// The landing page loads first and alone; each screen of the app is fetched when it's first opened
 // (and precached by the service worker, so it works offline once the app has been visited).
 const screen =
   <M extends Record<string, unknown>>(load: () => Promise<M>, name: keyof M): LazyRouteFunction<RouteObject> =>
@@ -19,37 +20,45 @@ const screen =
 const router = createBrowserRouter([
   {
     element: <Root />,
+    errorElement: <RouteError home="/app" />,
     children: [
-      { path: '/', element: <Landing /> },
-      { path: '/how-flags-work', lazy: screen(() => import('./screens/HowFlagsWork'), 'HowFlagsWork') },
-      { path: '/app', lazy: screen(() => import('./screens/Home'), 'Home') },
-      { path: '/app/settings', lazy: screen(() => import('./screens/Settings'), 'Settings') },
-      { path: '/app/profiles/new', lazy: screen(() => import('./screens/ProfileForm'), 'ProfileForm') },
       {
-        path: '/app/p/:profileId',
-        element: <ProfileLayout />,
+        // A failing screen shows the message inside the app's frame.
+        errorElement: <RouteError home="/app" />,
         children: [
-          { index: true, lazy: screen(() => import('./screens/Overview'), 'Overview') },
-          { path: 'marker/:id', lazy: screen(() => import('./screens/MarkerDetail'), 'MarkerDetail') },
-          { path: 'table', lazy: screen(() => import('./screens/TableView'), 'TableView') },
-          { path: 'reports', lazy: screen(() => import('./screens/Reports'), 'Reports') },
-          { path: 'reports/new', lazy: screen(() => import('./screens/ReportForm'), 'ReportForm') },
-          { path: 'reports/read', lazy: screen(() => import('./screens/ImportReports'), 'ImportReports') },
-          { path: 'reports/:reportId/edit', lazy: screen(() => import('./screens/ReportEdit'), 'ReportEdit') },
-          { path: 'reports/:reportId/results/new', lazy: screen(() => import('./screens/ResultEdit'), 'ResultEdit') },
-          { path: 'reports/:reportId/results/:resultId', lazy: screen(() => import('./screens/ResultEdit'), 'ResultEdit') },
-          { path: 'next-test', lazy: screen(() => import('./screens/NextTest'), 'NextTest') },
-          { path: 'timeline', lazy: screen(() => import('./screens/Timeline'), 'Timeline') },
-          { path: 'timeline/new', lazy: screen(() => import('./screens/Timeline'), 'TimelineEdit') },
-          { path: 'timeline/:entryId', lazy: screen(() => import('./screens/Timeline'), 'TimelineEdit') },
-          { path: 'summaries', lazy: screen(() => import('./screens/Summaries'), 'Summaries') },
-          { path: 'ask', lazy: screen(() => import('./screens/Ask'), 'Ask') },
-          { path: 'doctor', lazy: screen(() => import('./screens/DoctorReport'), 'DoctorReport') },
+          { path: '/', element: <Landing /> },
+          { path: '/how-flags-work', lazy: screen(() => import('./screens/HowFlagsWork'), 'HowFlagsWork') },
+          { path: '/app', lazy: screen(() => import('./screens/Home'), 'Home') },
+          { path: '/app/settings', lazy: screen(() => import('./screens/Settings'), 'Settings') },
+          { path: '/app/profiles/new', lazy: screen(() => import('./screens/ProfileForm'), 'ProfileForm') },
+          { path: '/app/profiles/:profileId', lazy: screen(() => import('./screens/ProfileForm'), 'ProfileForm') },
+          {
+            path: '/app/p/:profileId',
+            element: <ProfileLayout />,
+            children: [
+              { index: true, lazy: screen(() => import('./screens/Overview'), 'Overview') },
+              { path: 'marker/:id', lazy: screen(() => import('./screens/MarkerDetail'), 'MarkerDetail') },
+              { path: 'table', lazy: screen(() => import('./screens/TableView'), 'TableView') },
+              { path: 'reports', lazy: screen(() => import('./screens/Reports'), 'Reports') },
+              { path: 'reports/new', lazy: screen(() => import('./screens/ReportForm'), 'ReportForm') },
+              { path: 'reports/read', lazy: screen(() => import('./screens/ImportReports'), 'ImportReports') },
+              { path: 'reports/:reportId/edit', lazy: screen(() => import('./screens/ReportEdit'), 'ReportEdit') },
+              { path: 'reports/:reportId/results/new', lazy: screen(() => import('./screens/ResultEdit'), 'ResultEdit') },
+              { path: 'reports/:reportId/results/:resultId', lazy: screen(() => import('./screens/ResultEdit'), 'ResultEdit') },
+              { path: 'next-test', lazy: screen(() => import('./screens/NextTest'), 'NextTest') },
+              { path: 'timeline', lazy: screen(() => import('./screens/Timeline'), 'Timeline') },
+              { path: 'timeline/new', lazy: screen(() => import('./screens/Timeline'), 'TimelineEdit') },
+              { path: 'timeline/:entryId', lazy: screen(() => import('./screens/Timeline'), 'TimelineEdit') },
+              { path: 'summaries', lazy: screen(() => import('./screens/Summaries'), 'Summaries') },
+              { path: 'ask', lazy: screen(() => import('./screens/Ask'), 'Ask') },
+              { path: 'doctor', lazy: screen(() => import('./screens/DoctorReport'), 'DoctorReport') },
+            ],
+          },
+          { path: '/p/:profileId/*', element: <LegacyProfile /> },
+          { path: '/settings', element: <Navigate to="/app/settings" replace /> },
+          { path: '*', element: <Navigate to="/" replace /> },
         ],
       },
-      { path: '/p/:profileId/*', element: <LegacyProfile /> },
-      { path: '/settings', element: <Navigate to="/app/settings" replace /> },
-      { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
 ])

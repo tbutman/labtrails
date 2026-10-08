@@ -57,12 +57,16 @@ export type ImportAdapter<M> = {
   /**
    * Optional: the kinds of document the app stores, shown as a type picker on each file in the queue.
    * Files of a kind with `read: false` are kept without reading (BabyTrails: doctor's notes, which
-   * are summarised from their own page, and ultrasound images, which are never read). Without
+   * are summarized from their own page, and ultrasound images, which are never read). Without
    * `kinds`, every file is stored as `documentKind`.
    */
   kinds?: DocumentKindOption[]
   /** The kind a new file starts as, e.g. guessed from its name. Defaults to `documentKind`. */
   kindFor?: (file: IntakeFile) => string
+  /** Whether saving dates a document by what was read from it (unless the person gave a date). */
+  datesFromContents?: boolean
+  /** Where the AI key is added, e.g. "/app/settings#ai", for the "add one in Settings" link. */
+  settingsPath?: string
   /** For the demo: a made-up sample document to try the flow with. */
   sample?: { url: string; title: string }
 }

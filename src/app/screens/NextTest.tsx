@@ -53,9 +53,15 @@ export function NextTest() {
               {latest.lab && ` · ${latest.lab}`}: {plural(lastIds.length, 'marker')}.
             </p>
             {missing.length > 0 && (
-              <p>
-                <strong>Not in that report:</strong> {missing.map((m) => `${m.name} (last ${formatDate(m.lastDate)})`).join(', ')}.
-              </p>
+              <>
+                <p>
+                  <strong>Measured before but not in that report:</strong> {missing.map((m) => `${m.name} (last ${formatDate(m.lastDate)})`).join(', ')}. Some tests
+                  are only done once or when needed; your doctor can say whether any should be repeated.
+                </p>
+                <button type="button" className="button small" onClick={() => add(missing.map((m) => m.markerId))}>
+                  Add these to the list
+                </button>
+              </>
             )}
           </div>
         </>
@@ -82,8 +88,8 @@ export function NextTest() {
               ))}
               {notes.fasting.known > 0 && (
                 <li>
-                  {notes.fasting.yes} of your {plural(notes.fasting.known, 'earlier test')} with a note were fasting.
-                  {notes.eating.length > 0 && ` Eating before the test is known to raise ${notes.eating.map((e) => e.name.toLowerCase()).join(' and ')}.`}
+                  {notes.fasting.yes} of your {plural(notes.fasting.known, 'earlier test')} with a note {notes.fasting.yes === 1 ? 'was' : 'were'} fasting.
+                  {notes.eating.length > 0 && ` Eating before the test can raise ${notes.eating.map((e) => e.name.toLowerCase()).join(' and ')}.`}
                 </li>
               )}
             </ul>
@@ -99,11 +105,6 @@ export function NextTest() {
           {lastIds.length > 0 && (
             <button type="button" className="button small" onClick={() => add(lastIds)}>
               Add what was measured last time
-            </button>
-          )}
-          {missing.length > 0 && (
-            <button type="button" className="button small" onClick={() => add(missing.map((m) => m.markerId))}>
-              Add what wasn't repeated
             </button>
           )}
           {picked.length > 0 && (

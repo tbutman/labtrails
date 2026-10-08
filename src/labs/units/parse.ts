@@ -6,7 +6,12 @@ export type Comparator = '<' | '≤' | '>' | '≥'
 
 export type DecimalHint = ',' | '.'
 
-export type ParsedNumber = { value: number; ambiguous: boolean }
+export type ParsedNumber = {
+  value: number
+  ambiguous: boolean
+  /** For a thousands-style number read with a hint ("6,500" as 6.5), the value under the other reading. */
+  otherReading?: number
+}
 
 const NUMBER = String.raw`[-−]?\d[\d.,\s]*`
 
@@ -21,6 +26,7 @@ export function parseNumber(text: string, decimal?: DecimalHint): ParsedNumber |
   const lastComma = s.lastIndexOf(',')
   const lastDot = s.lastIndexOf('.')
   let ambiguous = false
+  let otherReading: number | undefined
   let decimalMark: DecimalHint | null = null
 
   if (lastComma >= 0 && lastDot >= 0) {
@@ -34,8 +40,11 @@ export function parseNumber(text: string, decimal?: DecimalHint): ParsedNumber |
       if (!thousandsLike) return null
       decimalMark = mark === ',' ? '.' : ','
     } else if (thousandsLike) {
-      if (decimal) decimalMark = decimal
-      else {
+      if (decimal) {
+        decimalMark = decimal
+        // "6,500" read with a decimal comma is 6.5; read the other way it would be 6500, and vice versa.
+        otherReading = Number(mark === decimal ? groups.join('') : groups.join('.'))
+      } else {
         // "6,500" or "6.500": a decimal with three places is rare in lab reports, but not impossible
         ambiguous = true
         decimalMark = mark === ',' ? '.' : ','
@@ -49,7 +58,7 @@ export function parseNumber(text: string, decimal?: DecimalHint): ParsedNumber |
   else if (decimalMark === '.') s = s.replace(/,/g, '')
   if (!/^-?\d+(\.\d+)?$/.test(s)) return null
   const value = Number(s)
-  return Number.isFinite(value) ? { value, ambiguous } : null
+  return Number.isFinite(value) ? { value, ambiguous, ...(otherReading !== undefined ? { otherReading } : {}) } : null
 }
 
 // Words that labs use in place of a comparator symbol, in English and Portuguese.
@@ -70,7 +79,7 @@ function splitComparator(text: string): { comparator?: Comparator; rest: string 
 }
 
 export type ParsedValue =
-  | { kind: 'number'; value: number; comparator?: Comparator; ambiguous: boolean }
+  | { kind: 'number'; value: number; comparator?: Comparator; ambiguous: boolean; otherReading?: number }
   | { kind: 'text'; text: string }
 
 /** Parses a printed result: "5,4", "<0.5", "inferior a 0,5", or a qualitative result like "Negativo". */
@@ -79,7 +88,7 @@ export function parseValue(text: string, decimal?: DecimalHint): ParsedValue {
   // Tolerate a trailing unit or flag printed in the same cell ("5,4 mg/dL", "250 H", "43,3%")
   const m = rest.match(new RegExp(`^(${NUMBER})(?:\\s*%|\\s+[^\\d].*)?$`))
   const n = m ? parseNumber(m[1], decimal) : null
-  if (n) return { kind: 'number', value: n.value, ambiguous: n.ambiguous, ...(comparator ? { comparator } : {}) }
+  if (n) return { kind: 'number', value: n.value, ambiguous: n.ambiguous, ...(n.otherReading !== undefined ? { otherReading: n.otherReading } : {}), ...(comparator ? { comparator } : {}) }
   return { kind: 'text', text: text.trim() }
 }
 

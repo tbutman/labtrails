@@ -93,7 +93,7 @@ async function everyScreen(page: Page, found: Found[]) {
   await check(page, 'ask about your results', found)
 
   await nav(page, 'Doctor')
-  await expect(page.getByRole('img', { name: /Lab results report/ })).toBeVisible()
+  await expect(page.getByRole('img', { name: /Lab results to discuss with your doctor/ })).toBeVisible()
   await check(page, 'doctor report', found)
 }
 

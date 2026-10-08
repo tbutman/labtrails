@@ -74,7 +74,7 @@ async function vaultWithKey(page: Page) {
   await page.getByRole('button', { name: 'Save key' }).click()
   await expect(page.getByText(/ending in/)).toBeVisible()
   await page.getByRole('link', { name: 'LabTrails home' }).click()
-  await page.getByRole('link', { name: new RegExp(NAME) }).click()
+  await page.getByRole('link', { name: NAME, exact: true }).click()
 }
 
 /** Uploads the fictional sample report and asks to read it. */
@@ -120,11 +120,11 @@ test.describe('with a mocked Anthropic API', () => {
 
     // Summary of the new report: the facts leave out the name and date of birth.
     await page.getByRole('link', { name: 'Summaries' }).click()
-    await page.getByRole('button', { name: /Summarise the 15 Sept 2026 report/ }).click()
+    await page.getByRole('button', { name: /Summarize the Sep 15, 2026 report/ }).click()
     await expect(page.getByRole('heading', { name: 'Send to Anthropic?' })).toBeVisible()
     expect(bodies).toHaveLength(1)
     await page.getByRole('button', { name: 'Send' }).click()
-    await expect(page.getByText('Summary of the 15 Sept 2026 report')).toBeVisible()
+    await expect(page.getByText('Summary of the Sep 15, 2026 report')).toBeVisible()
     expect(bodies).toHaveLength(2)
     expect(bodies[1]).not.toContain(NAME)
     expect(bodies[1]).not.toContain('Alex')
@@ -169,18 +169,18 @@ test.describe('with a mocked Anthropic API', () => {
     const ticks = page.getByLabel('This matches the document')
     for (let i = 0; i < 6; i++) await ticks.nth(i).check()
     await page.getByRole('button', { name: 'Save 6 rows' }).click()
-    await expect(page.getByText('6 results in 3 reports, 14 Oct 2025 to 15 Sept 2026')).toBeVisible()
+    await expect(page.getByText('6 results in 3 reports, Oct 14, 2025 to Sep 15, 2026')).toBeVisible()
     await page.getByRole('button', { name: 'Done' }).click()
 
     // Three reports, each with its own two results; fasting only on the newest.
     await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: 'Reports' }).click()
-    for (const date of ['15 Sept 2026', '20 Mar 2026', '14 Oct 2025']) await expect(page.locator('summary', { hasText: date })).toContainText('2 results')
-    await page.locator('summary', { hasText: '15 Sept 2026' }).click()
-    await page.locator('summary', { hasText: '20 Mar 2026' }).click()
+    for (const date of ['Sep 15, 2026', 'Mar 20, 2026', 'Oct 14, 2025']) await expect(page.locator('summary', { hasText: date })).toContainText('2 results')
+    await page.locator('summary', { hasText: 'Sep 15, 2026' }).click()
+    await page.locator('summary', { hasText: 'Mar 20, 2026' }).click()
     await expect(page.getByText('Fasting', { exact: true })).toHaveCount(1)
     await page.getByRole('link', { name: 'Overview' }).click()
     // The three dates make a trend on the overview.
-    await expect(page.getByRole('link', { name: /^Glucose/ }).first()).toContainText('Rising · 3')
+    await expect(page.getByRole('link', { name: /^Glucose/ }).first()).toContainText('Rising over 3 tests')
   })
 
   test('photos of one report are read together, saved once and shown with every page', async ({ page }) => {
@@ -221,13 +221,13 @@ test.describe('with a mocked Anthropic API', () => {
     await expect(page.getByText('Page 1 of 2')).toBeVisible()
     for (const tick of await page.getByLabel('This matches the document').all()) await tick.check()
     await page.getByRole('button', { name: 'Save 2 rows' }).click()
-    await expect(page.getByText('2 results on 15 Sept 2026')).toBeVisible()
+    await expect(page.getByText('2 results on Sep 15, 2026')).toBeVisible()
     await page.getByRole('button', { name: 'Done' }).click()
 
     // One report; its original shows both pages.
     await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: 'Reports' }).click()
     await expect(page.locator('summary')).toHaveCount(1)
-    await page.locator('summary', { hasText: '15 Sept 2026' }).click()
+    await page.locator('summary', { hasText: 'Sep 15, 2026' }).click()
     await page.getByRole('button', { name: 'Show the original report (2 pages)' }).click()
     await expect(page.getByText('Page 1 of 2')).toBeVisible()
     await expect(page.getByText('Page 2 of 2')).toBeVisible()

@@ -118,10 +118,15 @@ export async function verifyBackup(backup: BackupFile, passphrase: string): Prom
   }
 }
 
-// Replaces everything on this device with the backup, in one transaction: either all of it is
-// restored or nothing changes.
+// Checks the backup (verifyBackup), then replaces everything on this device with it.
 export async function restoreBackup(db: Db, backup: BackupFile, passphrase: string): Promise<void> {
   await verifyBackup(backup, passphrase)
+  await replaceWithBackup(db, backup)
+}
+
+// Replaces everything on this device with a backup already verified, in one transaction: either all
+// of it is restored or nothing changes. Lock the vault first.
+export async function replaceWithBackup(db: Db, backup: BackupFile): Promise<void> {
   const tx = db.transaction(['meta', 'records', 'blobs'], 'readwrite')
   await Promise.all([tx.objectStore('meta').clear(), tx.objectStore('records').clear(), tx.objectStore('blobs').clear()])
   await tx.objectStore('meta').put(backup.header)

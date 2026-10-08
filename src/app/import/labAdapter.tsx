@@ -35,7 +35,7 @@ function validated(value: unknown): { extraction: Extraction; dropped: number } 
   return v
 }
 
-/** "12 results on 15 Sept 2026", or for a cumulative report "48 results in 4 reports, 3 Mar 2024 to 15 Sept 2026". */
+/** "12 results on Sep 15, 2026", or for a cumulative report "48 results in 4 reports, Mar 3, 2024 to Sep 15, 2026". */
 export function savedSummary(results: number, dates: string[]): string {
   const sorted = [...dates].sort()
   if (sorted.length === 0) return plural(results, 'result')
@@ -91,6 +91,10 @@ export function labAdapter(deps: {
 
   return {
     appName: 'LabTrails',
+    // "add one in Settings" links here (LAB-14).
+    settingsPath: '/app/settings#ai',
+    // Saving dates the document by its newest sample, unless the person gave a date at import.
+    datesFromContents: true,
     documentKind: 'lab-report',
     noun: { one: 'report', many: 'reports' },
     columns: EXTRACTION_COLUMNS,
@@ -162,7 +166,9 @@ export function labAdapter(deps: {
       // Every page of a group carries the report's date and lab, like a single document.
       const latest = (await store.get<StoredDoc>('documents', doc.id)) ?? doc
       const pages = pagesOf(latest, await store.list<StoredDoc>('documents'))
-      if (newest) for (const page of pages) await store.put('documents', { ...page, date: newest.date, meta: { ...page.meta, lab: meta.lab.trim() || undefined } })
+      if (newest)
+        for (const page of pages)
+          await store.put('documents', { ...page, ...(page.meta?.datedByUser ? {} : { date: newest.date }), meta: { ...page.meta, lab: meta.lab.trim() || undefined } })
       await deps.onSaved()
       return savedSummary(results.length, reports.map((r) => r.date))
     },

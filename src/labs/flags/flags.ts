@@ -1,4 +1,4 @@
-// The three flag rules. The code decides what's flagged; the AI only explains it. Every rule works on
+// The flag rules. The code decides what's flagged; the AI only explains it. Every rule works on
 // one marker's results for one person, already converted to one unit, each result with its own range
 // (ranges differ between labs, so there's no single "normal" band).
 
@@ -20,7 +20,7 @@ export type Point = {
 export const CHANGE_THRESHOLD = 0.25
 export const TREND_THRESHOLD = 0.1
 export const TREND_MIN_RESULTS = 3
-/** Rule 4: how many tests in a row outside the range make a result "persistent" (agreed with Thomas, 7 Oct 2026). */
+/** Rule 4: how many tests in a row outside the range make a result "persistent" (agreed with Thomas, October 7, 2026). */
 export const PERSISTENT_MIN_RESULTS = 3
 
 export type RangeFlag = {
@@ -29,14 +29,28 @@ export type RangeFlag = {
   basis: 'range' | 'lab'
   /** The lab printed a flag that disagrees with the code's reading of the range. */
   labDisagrees?: boolean
+  /** The lab marked the result normal ("N"), but it's outside the printed range. */
+  labNormal?: boolean
 }
 
 function labSide(flag: string | undefined): 'above' | 'below' | undefined {
   if (!flag) return undefined
   const f = flag.trim().toUpperCase()
-  if (/^(H|HH|HIGH|ALTO|ELEVADO|↑|\*H)$/.test(f)) return 'above'
-  if (/^(L|LL|LOW|BAIXO|DIMINUIDO|DIMINUÍDO|↓|\*L)$/.test(f)) return 'below'
+  if (/^(H|HH|HIGH|ALTO|ELEVADO|↑|\*H|\*HH)$/.test(f)) return 'above'
+  if (/^(L|LL|LOW|BAIXO|DIMINUIDO|DIMINUÍDO|↓|\*L|\*LL)$/.test(f)) return 'below'
   return undefined
+}
+
+/** The lab marked the result critical: "HH", "LL", "Critical", "Crítico", "Panic" or "!!". */
+export function labCritical(flag: string | undefined): boolean {
+  if (!flag) return false
+  const f = flag.trim().toUpperCase()
+  return /^(\*?HH|\*?LL|!!|[HL]!!)$/.test(f) || /^(CRITICAL|CRÍTICO|CRITICO|PANIC|PÂNICO|PANICO)(\s|$)/.test(f)
+}
+
+/** The lab marked the result normal: "N", "Normal" or "-". */
+export function labNormal(flag: string | undefined): boolean {
+  return !!flag && /^(N|NORMAL|-|–)$/.test(flag.trim().toUpperCase())
 }
 
 /**
@@ -69,7 +83,7 @@ export function rangeFlag(p: Point): RangeFlag | null {
 
   const labDisagrees = lab !== undefined && lab !== side
   if (!side) return null
-  return { side, basis: 'range', ...(labDisagrees ? { labDisagrees: true } : {}) }
+  return { side, basis: 'range', ...(labDisagrees ? { labDisagrees: true } : {}), ...(labNormal(p.flagAsPrinted) ? { labNormal: true } : {}) }
 }
 
 /** Whether the lab printed a flag that the code's reading of the range doesn't support. */
@@ -85,6 +99,55 @@ function width(p: Point): number | null {
   return low !== undefined && high !== undefined && high > low ? high - low : null
 }
 
+/**
+ * Far outside the lab's range: at least one range width beyond it, or, for a one-sided range, at least
+ * twice the upper limit or at most half the lower one. A simple rule about the range's width, not a
+ * table of clinical limits (agreed with Thomas, October 7, 2026).
+ */
+export function farOutside(p: Point): 'above' | 'below' | null {
+  const f = rangeFlag(p)
+  if (f?.basis !== 'range') return null
+  const { low, high } = p.range ?? {}
+  const w = width(p)
+  if (f.side === 'above' && high !== undefined) {
+    const limit = w !== null ? high + w : low === undefined && high > 0 ? 2 * high : null
+    return limit !== null && p.value >= limit ? 'above' : null
+  }
+  if (f.side === 'below' && low !== undefined) {
+    const limit = w !== null ? low - w : high === undefined && low > 0 ? low / 2 : null
+    return limit !== null && p.value <= limit ? 'below' : null
+  }
+  return null
+}
+
+/** A result the lab marked critical, or one far outside the lab's range. */
+export type Critical = { labMarked: boolean; far: 'above' | 'below' | null }
+
+export function critical(p: Point): Critical | null {
+  const labMarked = labCritical(p.flagAsPrinted)
+  const far = farOutside(p)
+  return labMarked || far ? { labMarked, far } : null
+}
+
+/**
+ * What a change is measured against: the range's width, or for a one-sided range its one limit
+ * ("up to 5" scales by 5), or with no range the earlier value.
+ */
+function changeScale(to: Point, from: Point): number {
+  const w = width(to)
+  if (w !== null) return w
+  const { low, high } = to.range ?? {}
+  const limit = high ?? low
+  return limit !== undefined && limit > 0 ? limit : Math.abs(from.value)
+}
+
+/** Which of those a change was measured against, for the words that explain it. */
+export function changeBasis(to: Point): 'width' | 'limit' | 'previous' {
+  if (width(to) !== null) return 'width'
+  const limit = to.range?.high ?? to.range?.low
+  return limit !== undefined && limit > 0 ? 'limit' : 'previous'
+}
+
 const exact = (p: Point) => p.comparator === undefined
 
 export type Change = {
@@ -93,14 +156,16 @@ export type Change = {
   direction: 'up' | 'down' | 'same'
   /** Relative change from the previous value, when the previous value isn't zero. */
   relative: number | null
+  /** The change in the unit shown. */
+  delta: number
   notable: boolean
   crossedRange: boolean
 }
 
 /**
  * Rule 2: changed notably since the previous result. Notable means at least CHANGE_THRESHOLD of the
- * newer result's range width, or of the previous value when there's no two-sided range. Moving into
- * or out of the range always counts. Results like "<0.5" aren't compared.
+ * newer result's range width, of its one limit for a one-sided range, or of the previous value when
+ * there's no range. Moving into or out of the range always counts. Results like "<0.5" aren't compared.
  */
 export function changeSincePrevious(points: Point[]): Change | null {
   const usable = sortByDate(points).filter(exact)
@@ -108,8 +173,7 @@ export function changeSincePrevious(points: Point[]): Change | null {
   const from = usable[usable.length - 2]
   const to = usable[usable.length - 1]
   const delta = to.value - from.value
-  const w = width(to)
-  const scale = w ?? Math.abs(from.value)
+  const scale = changeScale(to, from)
   const crossedRange = (rangeFlag(from) === null) !== (rangeFlag(to) === null)
   const notable = crossedRange || (scale > 0 && Math.abs(delta) >= CHANGE_THRESHOLD * scale)
   return {
@@ -117,6 +181,7 @@ export function changeSincePrevious(points: Point[]): Change | null {
     to,
     direction: delta > 0 ? 'up' : delta < 0 ? 'down' : 'same',
     relative: from.value !== 0 ? delta / Math.abs(from.value) : null,
+    delta,
     notable,
     crossedRange,
   }
@@ -127,7 +192,8 @@ export type Trend = { direction: 'rising' | 'falling'; results: number; from: Po
 /**
  * Rule 3: moving steadily in one direction. The last TREND_MIN_RESULTS or more results all rise, or
  * all fall, and the total change across them is at least TREND_THRESHOLD of the latest range width
- * (or of the first value, with no two-sided range), so small wobbles don't count.
+ * (of its one limit for a one-sided range, or of the first value with no range), so small wobbles
+ * don't count.
  */
 export function trend(points: Point[]): Trend | null {
   const usable = sortByDate(points).filter(exact)
@@ -144,7 +210,7 @@ export function trend(points: Point[]): Trend | null {
   if (run < TREND_MIN_RESULTS) return null
   const from = usable[start]
   const to = usable[last]
-  const scale = width(to) ?? Math.abs(from.value)
+  const scale = changeScale(to, from)
   if (!(scale > 0) || Math.abs(to.value - from.value) < TREND_THRESHOLD * scale) return null
   return { direction: dir > 0 ? 'rising' : 'falling', results: run, from, to }
 }

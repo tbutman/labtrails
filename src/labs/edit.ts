@@ -13,7 +13,7 @@ export type ResultInput = { name: string; value: string; unit: string; range: st
  * The form's starting values for a saved result. A marker the code would find by itself is left blank,
  * so the form shows "Understood as …"; a marker chosen earlier (by the user or the AI) is kept.
  */
-export function inputFromResult(r: Result, decimal: DecimalHint, aliases: UserAlias[] = []): ResultInput {
+export function inputFromResult(r: Result, decimal: DecimalHint | undefined, aliases: UserAlias[] = []): ResultInput {
   const unit = r.unitAsPrinted ? normaliseUnit(r.unitAsPrinted) : undefined
   const match = matchMarker(r.nameAsPrinted, unit, aliases)
   const automatic = match.status === 'matched' && match.markerId === r.markerId
@@ -28,7 +28,7 @@ export function inputFromResult(r: Result, decimal: DecimalHint, aliases: UserAl
 }
 
 /** A stored number written with the report's decimal mark, as it was printed ("0,82"). */
-export function printedNumber(value: number, decimal: DecimalHint): string {
+export function printedNumber(value: number, decimal: DecimalHint | undefined): string {
   const text = String(value)
   return decimal === ',' ? text.replace('.', ',') : text
 }
@@ -46,12 +46,25 @@ export function reportDecimal(results: Result[]): DecimalHint {
 }
 
 /** What the code understands from the input: the marker (typed, or matched by name) and the parsed value. */
-export function understandInput(input: ResultInput, decimal: DecimalHint, aliases: UserAlias[] = [], person?: Person) {
+export function understandInput(input: ResultInput, decimal: DecimalHint | undefined, aliases: UserAlias[] = [], person?: Person) {
   const unit = input.unit.trim() ? normaliseUnit(input.unit) : undefined
   const match = input.name.trim() ? matchMarker(input.name, unit, aliases) : ({ status: 'unknown' } as const)
   const markerId = input.markerId || (match.status === 'matched' ? match.markerId : undefined)
   return { match, markerId, value: parseValue(input.value, decimal), range: input.range.trim() ? parseRange(input.range, decimal, person) : null }
 }
+
+/**
+ * A typed value more than ten times beyond the range typed with it (6500 for platelets of 150–400), a
+ * likely slip in the value or unit worth a second look before saving (LAB-23).
+ */
+export function farFromRange(u: ReturnType<typeof understandInput>): boolean {
+  if (u.value.kind !== 'number' || !u.range) return false
+  const v = u.value.value
+  const { low, high } = u.range
+  return (high !== undefined && high > 0 && v > 10 * high) || (low !== undefined && low > 0 && v < low / 10)
+}
+
+export const FAR_FROM_RANGE = "This is far from the lab's range. Check the value and unit before saving."
 
 /**
  * Builds the saved result from the input, keeping only the original's identity, creation time and
@@ -61,7 +74,7 @@ export function understandInput(input: ResultInput, decimal: DecimalHint, aliase
 export function resultFromInput(
   input: ResultInput,
   base: { id: string; reportId: string; profileId: string; createdAt: string; specimen?: Result['specimen'] },
-  decimal: DecimalHint,
+  decimal: DecimalHint | undefined,
   now: string,
   aliases: UserAlias[] = [],
   person?: Person,

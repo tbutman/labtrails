@@ -7,16 +7,18 @@ import { Link, useParams } from 'react-router'
 import { analyseMarker, type MarkerAnalysis } from '../../labs/analysis'
 import { lineIn, lineText, validateLine, type PersonalLine } from '../../labs/lines'
 import { getMarker } from '../../labs/catalogue/catalogue'
-import { CHANGE_THRESHOLD, TREND_THRESHOLD } from '../../labs/flags/flags'
+import { CHANGE_THRESHOLD, TREND_THRESHOLD, changeBasis } from '../../labs/flags/flags'
 import { convertibleUnits } from '../../labs/units/convert'
-import { Callout, PageHeader, TextField } from '../../core/ui/components'
-import { DISCLAIMER, MarkerFlags } from '../components/Flags'
+import { Callout, PageHeader, SelectField, TextField } from '../../core/ui/components'
+import { CriticalNotice, DISCLAIMER, MarkerFlags, RangeMeaning, changeAmount, labMarkText } from '../components/Flags'
 import { chartEvents } from '../chartEvents'
 import { personalFlag, shownLine } from '../personalLine'
 import { MarkerChart, ResultsList } from '../components/MarkerChart'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
-import { formatDate, formatPercent, formatPoint, formatRange, formatValue, formatWhen } from '../format'
+import { formatDate, formatPercent, formatPoint, formatRange, formatValue, formatWhen, labRange, unitLabel } from '../format'
+
+const BASIS_WORDS = { width: "the lab's range width", limit: "the lab's limit", previous: 'the previous value' } as const
 
 const RECENTLY: Record<string, string> = { illness: 'recent illness', 'hard-exercise': 'recent hard exercise', alcohol: 'recent alcohol', 'poor-sleep': 'poor sleep' }
 
@@ -48,12 +50,25 @@ export function MarkerDetail() {
     <>
       <PageHeader
         title={marker.name}
-        subtitle={a.latest ? `${formatPoint(a.latest)} ${a.series.unit} on ${formatDate(a.latest.date)} · lab's range ${formatRange(a.latest.range)}` : undefined}
+        subtitle={(() => {
+          const shown = a.latestUnconverted ?? a.latest
+          const unit = a.latestUnconverted ? a.latestUnconverted.unit : a.series.unit
+          return shown
+            ? [`${formatPoint(shown)} ${unitLabel(unit)} on ${formatDate(shown.date)}`, labRange(shown.range, 'lab'), labMarkText(shown.flagAsPrinted)?.replace(/^L/, 'l')].filter(Boolean).join(' · ')
+            : undefined
+        })()}
         back={{ to: base, label: 'Overview' }}
       />
       <div className="row chips-row">
         <MarkerFlags a={a} line={personalFlag(a, lines)} />
       </div>
+      {a.latestFlag?.labNormal && (a.latestUnconverted ?? a.latest) && (
+        <p className="hint">
+          The lab marked this normal; the printed range is {formatRange((a.latestUnconverted ?? a.latest)!.range)}.
+        </p>
+      )}
+      <CriticalNotice a={a} />
+      {a.latestFlag && <RangeMeaning />}
 
       <div className="card chart-card">
         <div className="card-header">
@@ -89,11 +104,22 @@ export function MarkerDetail() {
           </li>
         </ul>
         {marker.noConversion && <p className="hint">{marker.noConversion.reason}</p>}
-        {a.series.skipped.length > 0 && (
-          <p className="hint">
-            {a.series.skipped.length} result{a.series.skipped.length > 1 ? 's' : ''} can't be shown in {a.series.unit}.
-          </p>
+        {a.unconverted.length > 0 && (
+          <div className="hint">
+            {a.unconverted.length === 1 ? "1 result is in a unit LabTrails can't convert" : `${a.unconverted.length} results are in units LabTrails can't convert`} to{' '}
+            {a.series.unit}, so {a.unconverted.length === 1 ? "it isn't" : "they aren't"} on the chart. Each is compared with its own range:
+            <ul className="plain-list">
+              {a.unconverted.map((u) => (
+                <li key={u.resultId}>
+                  {formatDate(u.date)}: {formatPoint(u)} {u.unit}, {labRange(u.range, 'lab')}
+                  {u.flag ? ` · outside the lab's range (${u.flag.side})` : ''}.{' '}
+                  <Link to={`${base}/reports/${u.reportId}/results/${u.resultId}`}>Correct the unit</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
+        {a.series.skipped.some((x) => x.reason === 'not-numeric') && <p className="hint">Results written as text aren't on the chart.</p>}
       </div>
 
       {(a.change?.notable || a.trend) && (
@@ -101,14 +127,17 @@ export function MarkerDetail() {
           <ul className="plain-list">
             {a.change?.notable && (
               <li>
-                From {formatDate(a.change.from.date)} to {formatDate(a.change.to.date)} it went {a.change.direction}
-                {a.change.relative !== null && ` by ${formatPercent(a.change.relative)}`}.{' '}
-                {a.change.crossedRange ? "It moved into or out of the lab's range, which always counts as a change." : `That's at least ${formatPercent(CHANGE_THRESHOLD)} of the lab's range width.`}
+                From {formatDate(a.change.from.date)} to {formatDate(a.change.to.date)} it went {a.change.direction} by {changeAmount(a).replace(/^[+−]/, '')}
+                {a.change.relative !== null && ` (${formatPercent(a.change.relative)})`}.{' '}
+                {a.change.crossedRange
+                  ? `It moved ${a.latestFlag ? 'outside' : 'back inside'} the lab's range, which always counts as a change.`
+                  : `That's at least ${formatPercent(CHANGE_THRESHOLD)} of ${BASIS_WORDS[changeBasis(a.change.to)]}.`}
               </li>
             )}
             {a.trend && (
               <li>
-                The last {a.trend.results} results all {a.trend.direction === 'rising' ? 'rose' : 'fell'}, by at least {formatPercent(TREND_THRESHOLD)} of the range width in total.
+                The last {a.trend.results} results all {a.trend.direction === 'rising' ? 'rose' : 'fell'}, by at least {formatPercent(TREND_THRESHOLD)} of{' '}
+                {BASIS_WORDS[changeBasis(a.trend.to)].replace('the previous value', 'the first value')} in total.
               </li>
             )}
           </ul>
@@ -174,31 +203,34 @@ function KnownInfluences({ markerId, markerName, tests, timeline }: { markerId: 
       seen.add(key)
       return true
     })
-  const name = markerName.charAt(0).toLowerCase() + markerName.slice(1)
+  // "Ferritin" → "ferritin" mid-sentence; "HbA1c", "LDL cholesterol" and "TSH" keep their capitals.
+  const name = /^[A-Z][a-z]+(?=\s|$)/.test(markerName) ? markerName.charAt(0).toLowerCase() + markerName.slice(1) : markerName
   return (
     <>
       <h2 className="section-title">
-        <Info size={14} aria-hidden /> Things known to affect this test
+        <Info size={14} aria-hidden /> Things that can affect this test
       </h2>
       <div className="card">
         {matched.length > 0 && (
           <ul className="plain-list influences-matched">
             {matched.map((m, i) => (
-              <li key={i}>{matchedSentence(m, /^[A-Z]{2}/.test(markerName) ? markerName : name, formatWhen)}</li>
+              <li key={i}>{matchedSentence(m, name, formatWhen)}</li>
             ))}
           </ul>
         )}
         <ul className="plain-list influences">
           {known.map((k) => (
             <li key={`${k.influence}-${k.effect}`}>
-              {k.effect === 'vary' ? `It varies with ${lowerFirst(INFLUENCE_NAMES[k.influence])}.` : `${INFLUENCE_NAMES[k.influence]} ${effectWords(k.effect)} it.`}{' '}
+              {k.effect === 'vary'
+                ? `It varies with ${lowerFirst(INFLUENCE_NAMES[k.influence])}${k.qualifier ? ` ${k.qualifier}` : ''}.`
+                : `${INFLUENCE_NAMES[k.influence]} ${effectWords(k.effect)} it${k.qualifier ? ` ${k.qualifier}` : ''}.`}{' '}
               <a href={k.source.url} target="_blank" rel="noreferrer noopener">
                 {k.source.title}
               </a>
             </li>
           ))}
         </ul>
-        <p className="hint">Documented influences in general, from public health sources. They don't say why any one result is what it is; your doctor can.</p>
+        <p className="hint">Documented influences in general, from health information sites. They don't say why any one result is what it is; your doctor can.</p>
       </div>
     </>
   )
@@ -217,7 +249,9 @@ function YourLine({ a, lines }: { a: MarkerAnalysis; lines: PersonalLine[] }) {
   const [low, setLow] = useState(shown?.low !== undefined ? formatValue(shown.low) : '')
   const [high, setHigh] = useState(shown?.high !== undefined ? formatValue(shown.high) : '')
   const [error, setError] = useState('')
-  const unit = a.series.unit
+  // The unit the line's values are typed in: a menu, so a value isn't saved in the wrong unit (LAB-23).
+  const units = convertibleUnits(a.marker, a.series.unit)
+  const [unit, setUnit] = useState(a.series.unit)
 
   async function save(e: FormEvent) {
     e.preventDefault()
@@ -264,6 +298,13 @@ function YourLine({ a, lines }: { a: MarkerAnalysis; lines: PersonalLine[] }) {
         {editing ? (
           <form className="line-form" onSubmit={save} noValidate>
             <TextField label="What it is" value={label} onChange={(e) => setLabel(e.target.value)} hint="For example “My doctor's target” or “Limit while on medication”." />
+            {units.length > 1 && (
+              <SelectField label="Unit of the values" value={unit} onChange={(e) => setUnit(e.target.value)}>
+                {units.map((u) => (
+                  <option key={u}>{u}</option>
+                ))}
+              </SelectField>
+            )}
             <div className="input-row">
               <TextField label={`Lower value (${unit}, optional)`} inputMode="decimal" value={low} onChange={(e) => setLow(e.target.value)} />
               <TextField label={`Upper value (${unit}, optional)`} inputMode="decimal" value={high} onChange={(e) => setHigh(e.target.value)} />
@@ -283,7 +324,7 @@ function YourLine({ a, lines }: { a: MarkerAnalysis; lines: PersonalLine[] }) {
         ) : existing && shown ? (
           <div className="row">
             <span>
-              <strong>{shown.label}</strong>: {lineText(shown, formatValue)} {unit}. <span className="faint">Set by you; the lab's range is shown separately.</span>
+              <strong>{shown.label}</strong>: {lineText(shown, formatValue)} {a.series.unit}. <span className="faint">Set by you; the lab's range is shown separately.</span>
             </span>
             <button type="button" className="button small" onClick={() => setEditing(true)}>
               Change

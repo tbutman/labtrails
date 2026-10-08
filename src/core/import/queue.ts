@@ -30,14 +30,18 @@ export type Unit<P> = {
   duplicateOf?: { title: string; date?: string; inBatch?: boolean }
   error?: string
   proposal?: P
-  /** What saving created, in words ("12 results on 15 Sep 2026"). */
+  /** What saving created, in words ("12 results on Sep 15, 2026"). */
   outcome?: string
+  /** A title and date the person gave in the queue (BABY-20); otherwise the file name and today. */
+  title?: string
+  date?: string
 }
 
 export type Action<P> =
   | { type: 'remove'; id: string }
   | { type: 'store-only'; id: string; value: boolean }
   | { type: 'kind'; id: string; kind: string; storeOnly: boolean }
+  | { type: 'details'; id: string; title?: string; date?: string }
   | { type: 'import-anyway'; id: string }
   | { type: 'stored-document'; id: string; document: StoredDoc }
   | { type: 'reading'; id: string }
@@ -105,6 +109,7 @@ const MOVES: Record<Action<unknown>['type'], UnitStatus[]> = {
   remove: ['ready', 'duplicate', 'failed'],
   'store-only': ['ready'],
   kind: ['ready', 'duplicate'],
+  details: ['ready', 'duplicate'],
   'import-anyway': ['duplicate'],
   'stored-document': ['ready', 'reading', 'failed'],
   reading: ['ready'],
@@ -143,6 +148,8 @@ export function queueReducer<P>(units: Unit<P>[], action: Action<P>): Unit<P>[] 
       return update({ storeOnly: action.value })
     case 'kind':
       return update({ kind: action.kind, storeOnly: action.storeOnly })
+    case 'details':
+      return update({ title: action.title, date: action.date })
     case 'import-anyway':
       return update({ status: 'ready', duplicateOf: undefined })
     case 'stored-document':

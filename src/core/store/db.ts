@@ -27,13 +27,21 @@ export interface TrailsDb extends DBSchema {
 
 export type Db = IDBPDatabase<TrailsDb>
 
-export function openTrailsDb(appId: string): Promise<Db> {
-  return openDB<TrailsDb>(`${appId}-vault`, 1, {
+export const dbName = (appId: string) => `${appId}-vault`
+
+export async function openTrailsDb(appId: string): Promise<Db> {
+  const db: Db = await openDB<TrailsDb>(dbName(appId), 1, {
     upgrade(db) {
       db.createObjectStore('meta', { keyPath: 'id' })
       const records = db.createObjectStore('records', { keyPath: 'key' })
       records.createIndex('collection', 'collection')
       db.createObjectStore('blobs', { keyPath: 'id' })
     },
+    // Another tab is erasing the vault (or a newer version is upgrading it): step aside, so it
+    // isn't blocked. That tab then tells this one to start again (vault/channel.ts).
+    blocking() {
+      db.close()
+    },
   })
+  return db
 }

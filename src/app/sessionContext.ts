@@ -8,12 +8,17 @@ import type { AppSettings } from './types'
 
 export type Mode = 'loading' | 'welcome' | 'locked' | 'unlocked' | 'demo'
 
+/** A one-off message for the start screen: after a restore, "Restored. Enter the backup's passphrase…". */
+export type Notice = 'restored' | null
+
 export type Session = {
   mode: Mode
   trails: Trails | null
   store: RecordStore | null
   core: CoreSettings
   app: AppSettings
+  /** When this vault was created, so the backup nudge counts from it before any backup (CHK-04). */
+  vaultCreatedAt?: string
   /** Bumped after every write, so screens reload. */
   version: number
   changed: () => void
@@ -25,6 +30,8 @@ export type Session = {
   saveCore: (next: CoreSettings) => Promise<void>
   saveApp: (next: AppSettings) => Promise<void>
   reload: () => Promise<void>
+  notice: Notice
+  setNotice: (notice: Notice) => void
 }
 
 export const SessionContext = createContext<Session | null>(null)

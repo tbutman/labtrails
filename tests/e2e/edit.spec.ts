@@ -35,7 +35,7 @@ async function vaultWithReport(page: Page) {
 
 async function openReport(page: Page) {
   await page.getByRole('link', { name: 'Reports', exact: true }).first().click()
-  await page.locator('summary', { hasText: '30 Sept 2026' }).click()
+  await page.locator('summary', { hasText: 'Sep 30, 2026' }).click()
 }
 
 test('correcting, mapping, adding and deleting single results', async ({ page }) => {
@@ -54,7 +54,7 @@ test('correcting, mapping, adding and deleting single results', async ({ page })
   // Map the unknown name to a marker; the value keeps its decimal comma.
   await page.getByRole('link', { name: 'Correct GLU-X2' }).click()
   await expect(page.getByLabel('Value', { exact: true })).toHaveValue('5,1')
-  await page.getByLabel('Not in the catalogue. Map it to').selectOption('glucose')
+  await page.getByLabel("Not in LabTrails' list of markers. Map it to").selectOption('glucose')
   await expect(page.getByText('LabTrails will remember this')).toBeVisible()
   await page.getByRole('button', { name: 'Save the correction' }).click()
   await expect(page.getByRole('row', { name: /GLU-X2/ })).not.toContainText('not mapped')
@@ -105,16 +105,18 @@ test('the timeline: an entry shows on the chart, in the table and, when ticked, 
 
   await page.getByRole('link', { name: 'Overview' }).first().click()
   await page.getByRole('link', { name: /^Glucose/ }).first().click()
-  await expect(page.getByRole('img', { name: /Timeline: Medicine X 100 mg, every day, from 15 Oct 2026/ })).toBeVisible()
+  await expect(page.getByRole('img', { name: /Timeline: Medicine X 100 mg, every day, from Oct 15, 2026/ })).toBeVisible()
   await expect(page.getByRole('list', { name: 'Timeline on this chart' })).toContainText('Medicine X')
 
   await page.getByRole('link', { name: 'Table' }).first().click()
   await expect(page.getByRole('row', { name: /Timeline/ })).toContainText('Started Medicine X 100 mg, every day')
 
   await page.getByRole('link', { name: 'Doctor' }).first().click()
-  await expect(page.getByRole('img', { name: /Lab results report/ })).not.toContainText('Medicine X')
+  await expect(page.getByRole('img', { name: /Lab results to discuss with your doctor/ })).not.toContainText('Medicine X')
+  // Back inside the range is no longer included by default (only results outside the range, and trends).
+  await page.getByRole('checkbox', { name: 'Glucose' }).check()
   await page.getByLabel(/Include the timeline/).check()
-  await expect(page.locator('.report-sheet svg')).toContainText('Timeline: Medicine X 100 mg, every day (from 15 Oct 2026)')
+  await expect(page.locator('.report-sheet svg')).toContainText('Timeline: Medicine X 100 mg, every day (from Oct 15, 2026)')
 })
 
 test('dose timing: a test records when the blood was drawn relative to a timed dose', async ({ page }) => {
@@ -155,5 +157,85 @@ test('a personal line: drawn on the chart in any unit, flagged as yours, and on 
   await page.getByRole('link', { name: 'Overview' }).first().click()
   await expect(page.getByText('Above your line').first()).toBeVisible()
   await page.getByRole('link', { name: 'Doctor' }).first().click()
-  await expect(page.locator('.report-sheet svg')).toContainText("Above your line (My doctor's target: under 38.9)")
+  await expect(page.locator('.report-sheet svg')).toContainText("(My doctor's target: under 38.9 mmol/L)")
+})
+
+test('a person can be renamed, then deleted with everything kept about them', async ({ page }) => {
+  await vaultWithReport(page)
+  // In-app navigation: a reload would lock the vault.
+  const people = () => page.locator('header a[href="/app"]').first().click()
+  await people()
+  await page.getByRole('link', { name: 'Edit or delete Alex Example' }).click()
+  await page.getByLabel('Name or nickname').fill('Jane Doe')
+  await page.getByRole('button', { name: 'Save' }).click()
+  await expect(page.getByRole('heading', { name: 'Jane Doe' })).toBeVisible()
+
+  await people()
+  await page.getByRole('link', { name: 'Edit or delete Jane Doe' }).click()
+  page.once('dialog', (d) => {
+    expect(d.message()).toBe("Delete Jane Doe and all their reports, results, documents, timeline and conversations? This can't be undone, except from a backup.")
+    void d.accept()
+  })
+  await page.getByRole('button', { name: 'Delete this person' }).click()
+  await expect(page.getByRole('heading', { name: 'Add the first person' })).toBeVisible()
+})
+
+test('locking or reloading returns you to the same screen after unlocking (X-05)', async ({ page }) => {
+  await vaultWithReport(page)
+  await page.getByRole('link', { name: 'Table' }).first().click()
+  await expect(page.getByRole('heading', { name: 'All results' })).toBeVisible()
+  await page.getByRole('button', { name: 'Lock' }).click()
+  await expect(page.getByText('You were on All results. Unlock to continue.')).toBeVisible()
+  await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
+  await page.getByRole('button', { name: 'Unlock' }).click()
+  await expect(page.getByRole('heading', { name: 'All results' })).toBeVisible()
+
+  // A reload locks the vault; the address is kept for this tab.
+  await page.reload()
+  await expect(page.getByText('You were on All results. Unlock to continue.')).toBeVisible()
+  await page.getByLabel('Passphrase', { exact: true }).fill(PASS)
+  await page.getByRole('button', { name: 'Unlock' }).click()
+  await expect(page.getByRole('heading', { name: 'All results' })).toBeVisible()
+})
+
+test('a reloaded demo says it ended, and offers it again (X-05)', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Try the demo' }).first().click()
+  await expect(page.getByRole('heading', { name: 'Sam (demo)' })).toBeVisible()
+  await page.reload()
+  await expect(page.getByText('The demo ended because the page was reloaded.')).toBeVisible()
+  await page.getByRole('button', { name: 'Try the demo again' }).click()
+  await expect(page.getByRole('heading', { name: 'Sam (demo)' })).toBeVisible()
+})
+
+test('leaving a form with typed values asks first (X-05)', async ({ page }) => {
+  await vaultWithReport(page)
+  await page.getByRole('link', { name: 'Add results' }).click()
+  await page.getByLabel('Lab (optional)').fill('Northfield (fictional)')
+  const asked = new Promise<string>((resolve) =>
+    page.once('dialog', (d) => {
+      resolve(d.type())
+      void d.accept()
+    }),
+  )
+  await page.reload()
+  expect(await asked).toBe('beforeunload')
+})
+
+test('a forgotten passphrase: erase this vault and start again (CORE-01)', async ({ page }) => {
+  await vaultWithReport(page)
+  await page.getByRole('button', { name: 'Lock' }).click()
+  await page.getByRole('button', { name: 'Forgot your passphrase?' }).click()
+  await page.getByRole('button', { name: 'Erase this vault' }).click()
+  await page.getByLabel('Type LabTrails to confirm').fill('LabTrails')
+  await page.getByRole('button', { name: 'Erase everything' }).click()
+  await expect(page.getByRole('heading', { name: 'Set up your vault' })).toBeVisible()
+  await expect(page.getByText('Everything is deleted from this browser.')).toBeVisible()
+})
+
+test('changing the passphrase asks for the new one twice (CORE-02)', async ({ page }) => {
+  await vaultWithReport(page)
+  await page.getByRole('link', { name: 'Settings' }).first().click()
+  await expect(page.getByRole('heading', { name: 'Erase this vault' })).toBeVisible()
+  await expect(page.getByLabel('New passphrase again')).toBeVisible()
 })

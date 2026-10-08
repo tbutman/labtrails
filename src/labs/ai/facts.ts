@@ -3,8 +3,9 @@
 // included: they're "the person", with an age in years and sex if set, because some ranges depend on
 // them.
 
+import { redactNames } from '../../core/ai/redact'
 import { analyse, notRepeated, type MarkerAnalysis } from '../analysis'
-import { rangeFlag, type Point } from '../flags/flags'
+import { critical, rangeFlag, type Point } from '../flags/flags'
 import { INFLUENCE_NAMES, effectWords, matchInfluences } from '../influences'
 import { lineFlag, lineIn, type PersonalLine } from '../lines'
 import { ageInYears } from '../person'
@@ -17,8 +18,8 @@ export type MarkerFacts = {
   marker: string
   panel: string
   unit: string
-  latest: FactPoint & { outsideRange?: 'above' | 'below' }
-  previous?: FactPoint & { outsideRange?: 'above' | 'below' }
+  latest: FactPoint & { outsideRange?: 'above' | 'below'; farOutside?: true }
+  previous?: FactPoint & { outsideRange?: 'above' | 'below'; farOutside?: true }
   changedNotably?: { direction: 'up' | 'down' | 'same'; percent: number | null; crossedRange: boolean }
   trend?: { direction: 'rising' | 'falling'; results: number }
   /** Outside the lab's range on this many tests in a row, ending with the latest. */
@@ -29,6 +30,8 @@ export type MarkerFacts = {
   personalLine?: PersonalLineFact
   history: FactPoint[]
   convertedFrom?: string
+  /** Results in a unit LabTrails can't convert to "unit": each in its own printed unit and range, not in history. */
+  notConverted?: (FactPoint & { unit: string; outsideRange?: 'above' | 'below' })[]
 }
 
 export type ContextFacts = { fasting?: string; medications?: string; recently?: string[]; notes?: string; doseTiming?: string[] }
@@ -49,7 +52,7 @@ export function personalLineFact(a: MarkerAnalysis, lines: PersonalLine[], name:
 }
 
 /** A documented influence on a marker that LabTrails matched to the timeline or a test's notes. */
-export type InfluenceFact = { influence: string; effect: string; matchedBy: string; source: string }
+export type InfluenceFact = { influence: string; effect: string; qualifier?: string; matchedBy: string; source: string }
 
 export type SummaryFacts = {
   person: { ageYears?: number; sex?: 'female' | 'male' }
@@ -65,7 +68,7 @@ export type SummaryFacts = {
 }
 
 const RULES =
-  'Flags were computed by code: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" means a change of at least 25% of the range width (or of the previous value without a two-sided range), or moving into or out of the range; "trend" means 3 or more results moving the same way by at least 10% of the range width; "persistent" means outside the lab\'s range on that many tests in a row (3 or more). "notInLatestReport" lists markers measured before but not in the latest report. These are simple heuristics, not clinical thresholds. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events, with dates and doses; "doseTiming" says when a test was drawn relative to a dose; "knownInfluences" are documented influences on a marker from public health sources that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result. "personalLine" is a value the person or their doctor chose for a marker, not a lab or clinical range.'
+  'Flags were computed by code: "outsideRange" compares a result with the range printed by its own lab; "changedNotably" means a change of at least 25% of the range width (of its one limit for a one-sided range, or of the previous value without a range), or moving into or out of the range; "trend" means 3 or more results moving the same way by at least 10% of the range width; "persistent" means outside the lab\'s range on that many tests in a row (3 or more); "farOutside" means the lab marked the result critical (for example HH, LL or "critical") or it is at least one range width outside the lab\'s range. "notConverted" are results in a unit LabTrails cannot convert, each compared with its own printed range. "notInLatestReport" lists markers measured before but not in the latest report. These are simple heuristics, not clinical thresholds. "timeline" is the person\'s own record of medications, supplements, lifestyle changes and events, with dates and doses; "doseTiming" says when a test was drawn relative to a dose; "knownInfluences" are documented influences on a marker from health information sites that LabTrails matched to the timeline or a test\'s notes. None of these is a cause of a result. "personalLine" is a value the person or their doctor chose for a marker, not a lab or clinical range.'
 
 function point(p: Point): FactPoint {
   return { date: p.date, value: round(p.value), ...(p.comparator ? { comparator: p.comparator } : {}), ...(p.range ? { range: roundRange(p.range) } : {}) }
@@ -76,19 +79,17 @@ const roundRange = (r: { low?: number; high?: number }) => ({ ...(r.low !== unde
 
 function withFlag(p: Point) {
   const f = rangeFlag(p)
-  return { ...point(p), ...(f?.basis === 'range' ? { outsideRange: f.side } : {}) }
+  return { ...point(p), ...(f?.basis === 'range' ? { outsideRange: f.side } : {}), ...(critical(p) ? { farOutside: true as const } : {}) }
 }
 
 export { ageInYears } from '../person'
 
-/** Replaces the person's name (and its parts) in free text with "the person". */
+/**
+ * Replaces the person's name (and its parts) in free text with "the person", using the core's
+ * redactNames, which matches accented names as whole words ("José", "Ângela") (LAB-07).
+ */
 export function redactName(text: string, name: string): string {
-  const parts = [name, ...name.split(/\s+/)].map((p) => p.trim()).filter((p) => p.length >= 2)
-  let out = text
-  for (const part of [...new Set(parts)].sort((a, b) => b.length - a.length)) {
-    out = out.replace(new RegExp(`\\b${part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi'), 'the person')
-  }
-  return out
+  return redactNames(text, [name], 'the person')
 }
 
 function contextFacts(c: TestContext | undefined, name: string, date?: string): ContextFacts | undefined {
@@ -125,7 +126,13 @@ export function influenceFacts(markerId: string, tests: Report[], timeline: Time
       const key = `${m.influence.influence}|${matchedBy}`
       if (seen.has(key)) continue
       seen.add(key)
-      out.push({ influence: INFLUENCE_NAMES[m.influence.influence], effect: effectWords(m.influence.effect), matchedBy, source: m.influence.source.title })
+      out.push({
+        influence: INFLUENCE_NAMES[m.influence.influence],
+        effect: effectWords(m.influence.effect),
+        ...(m.influence.qualifier ? { qualifier: m.influence.qualifier } : {}),
+        matchedBy,
+        source: m.influence.source.title,
+      })
     }
   }
   return out
@@ -135,6 +142,7 @@ function markerFacts(a: MarkerAnalysis, panel: string, historyLength: number): M
   const pts = a.series.points
   const latest = pts.at(-1)
   if (!latest) return null
+  const notConverted = a.unconverted.slice(-historyLength).map((u) => ({ ...withFlag(u), unit: u.unit }))
   const previous = pts.at(-2)
   const converted = pts.find((p) => p.convertedFrom)?.convertedFrom
   return {
@@ -150,6 +158,7 @@ function markerFacts(a: MarkerAnalysis, panel: string, historyLength: number): M
     ...(a.persistent ? { persistent: { side: a.persistent.side, results: a.persistent.results } } : {}),
     history: pts.slice(-historyLength).map(point),
     ...(converted ? { convertedFrom: converted } : {}),
+    ...(notConverted.length ? { notConverted } : {}),
   }
 }
 

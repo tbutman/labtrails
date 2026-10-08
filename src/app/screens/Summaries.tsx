@@ -15,6 +15,8 @@ import { MessageCircleQuestion, Sparkles } from 'lucide-react'
 import { Callout, EmptyState, PageHeader } from '../../core/ui/components'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
+import { bannedPhrase, summaryWordingError, UNCHECKED_NUMBERS_NOTE } from '../../core/ask/wording'
+import { demoNote } from '../../core/ui/copy'
 import { formatDate } from '../format'
 
 type Request = { kind: Summary['kind']; reportId?: string; facts: SummaryFacts }
@@ -49,6 +51,11 @@ export function Summaries() {
         content: [{ type: 'text', text: message }],
         maxTokens: 1500,
       })
+      // The same banned wording as Ask (CORE-04): a summary that uses it isn't saved.
+      if (bannedPhrase(text)) {
+        setError(summaryWordingError('LabTrails'))
+        return
+      }
       const summary: Summary = {
         id: crypto.randomUUID(),
         profileId: profile.id,
@@ -74,7 +81,7 @@ export function Summaries() {
     const context = request.facts.report?.context
     return (
       <>
-        <PageHeader title={request.kind === 'after-report' ? 'Summarise this report' : 'Overall summary'} />
+        <PageHeader title={request.kind === 'after-report' ? 'Summarize this report' : 'Overall summary'} />
         {error && (
           <p className="error" role="alert">
             {error}
@@ -114,7 +121,7 @@ export function Summaries() {
       {canAsk && latest && (
         <p className="row summaries-actions">
           <button className="button primary" onClick={() => setRequest({ kind: 'after-report', reportId: latest.id, facts: factsFor('after-report', latest.id) })}>
-            Summarise the {formatDate(latest.date)} report
+            Summarize the {formatDate(latest.date)} report
           </button>
           <button className="button" onClick={() => setRequest({ kind: 'overall', facts: factsFor('overall') })}>
             Write an overall summary
@@ -123,7 +130,9 @@ export function Summaries() {
       )}
       {mode === 'unlocked' && !core.ai.apiKey && (
         <Callout icon={Sparkles}>
-          Summaries use AI with your own Anthropic API key. <Link to="/app/settings#ai">Add one in Settings</Link>.
+          <span>
+            Summaries use AI with your own Anthropic API key. <Link to="/app/settings#ai">Add one in Settings</Link> to write them.
+          </span>
         </Callout>
       )}
       {ordered.length === 0 && (
@@ -138,6 +147,7 @@ export function Summaries() {
           <AiOutput
             key={s.id}
             label={mode === 'demo' ? `${label} (pre-written example)` : label}
+            {...(mode === 'demo' ? { note: demoNote('person') } : {})}
             footer={
               <p className="hint">
                 {formatDate(s.createdAt.slice(0, 10))}
@@ -147,6 +157,7 @@ export function Summaries() {
             }
           >
             <Markdown text={s.text} />
+            <p className="hint">{UNCHECKED_NUMBERS_NOTE}</p>
           </AiOutput>
         )
       })}

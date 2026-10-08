@@ -8,19 +8,20 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { AiError } from '../../core/ai/client'
 import { redactNames } from '../../core/ai/redact'
 import { SendSheet } from '../../core/ai/SendSheet'
-import { askQuestion } from '../../core/ask/ask'
+import { askQuestion, FOLLOW_UP_NOTE } from '../../core/ask/ask'
 import { AskThreadView } from '../../core/ask/AskThreadView'
 import type { AskThread, AskTurn } from '../../core/ask/model'
 import { EmptyState, PageHeader, TextAreaField } from '../../core/ui/components'
 import { ASK_BANNED, ASK_SYSTEM, askFacts, askFactsText, askSuggestions, LAB_UNITS, OUT_OF_SCOPE } from '../../labs/ai/ask'
 import { digest } from '../../labs/ai/digest'
 import { DISCLAIMER } from '../components/Flags'
+import { demoNote } from '../../core/ui/copy'
 import { DEMO_ANSWERS } from '../demo'
 import { formatDate, plural } from '../format'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
 
-const PREPARED_NOTE = 'Demo: prepared in advance for this made-up person, in the style of the AI answers. No AI was called.'
+const PREPARED_NOTE = demoNote('person')
 const nowIso = () => new Date().toISOString()
 
 export function Ask() {
@@ -150,6 +151,14 @@ export function Ask() {
         }
       />
 
+      {mode === 'unlocked' && !core.ai.apiKey && error !== 'NO_KEY' && (
+        <div className="callout">
+          <span>
+            Ask uses AI with your own Anthropic API key. <Link to="/app/settings#ai">Add one in Settings</Link> to ask questions.
+          </span>
+        </div>
+      )}
+
       {thread && <AskThreadView turns={thread.turns} outOfScope={OUT_OF_SCOPE} preparedNote={PREPARED_NOTE} />}
 
       {pending && pendingFacts ? (
@@ -168,7 +177,7 @@ export function Ask() {
               ...(thread ? ['The earlier questions and answers in this conversation'] : []),
             ]}
             notSending={['Your name and date of birth', "Your tests' notes and medications text", 'Your documents', "Other people's results"]}
-            notes={['If your question includes your name, LabTrails replaces it with “the person” before sending.']}
+            notes={['If your question includes your name, LabTrails replaces it with “the person” before sending.', ...(thread ? [FOLLOW_UP_NOTE] : [])]}
             model={core.ai.model}
             estimate={estimate}
             busy={busy}
@@ -209,9 +218,11 @@ export function Ask() {
 
       {error &&
         (error === 'NO_KEY' ? (
-          <p className="callout" role="alert">
-            Answers use AI with your own Anthropic API key. <Link to="/app/settings#ai">Add one in Settings</Link>.
-          </p>
+          <div className="callout" role="alert">
+            <span>
+              Ask uses AI with your own Anthropic API key. <Link to="/app/settings#ai">Add one in Settings</Link> to ask questions.
+            </span>
+          </div>
         ) : (
           <p className="error" role="alert">
             {error}

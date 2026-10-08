@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEMO_RESULTS } from '../../src/app/demo'
-import { aliasToRemember, inputFromResult, printedNumber, reportDecimal, resultFromInput, sameNameResults, validateInput } from '../../src/labs/edit'
+import { aliasToRemember, farFromRange, inputFromResult, printedNumber, reportDecimal, resultFromInput, sameNameResults, understandInput, validateInput } from '../../src/labs/edit'
 
 const base = { id: 'r1', reportId: 'rep', profileId: 'p', createdAt: '2026-01-01T00:00:00Z' }
 const now = '2026-10-06T12:00:00Z'
@@ -79,5 +79,15 @@ describe('remembering mappings', () => {
     expect(inputFromResult(glucose, '.').markerId).toBe('')
     const guessed = DEMO_RESULTS.find((r) => r.nameAsPrinted === 'Cistatina C' && r.markerId)
     if (guessed) expect(inputFromResult(guessed, ',').markerId).toBe(guessed.markerId)
+  })
+})
+
+describe('a value far from its range (LAB-23)', () => {
+  const input = (value: string, range: string) => ({ name: 'Platelets', value, unit: 'x10^3/uL', range, flag: '', markerId: '' })
+  it('asks about a value more than ten times beyond the range typed with it', () => {
+    expect(farFromRange(understandInput(input('6500', '150 - 400'), '.'))).toBe(true)
+    expect(farFromRange(understandInput(input('0,9', '150 - 400'), ','))).toBe(true)
+    expect(farFromRange(understandInput(input('650', '150 - 400'), '.'))).toBe(false)
+    expect(farFromRange(understandInput(input('6500', ''), '.'))).toBe(false)
   })
 })

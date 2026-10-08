@@ -18,8 +18,8 @@ describe('parseNumber', () => {
 
   it('marks thousands-style numbers as ambiguous unless told the decimal mark', () => {
     expect(parseNumber('6,500')).toEqual({ value: 6500, ambiguous: true })
-    expect(parseNumber('6,500', ',')).toEqual({ value: 6.5, ambiguous: false })
-    expect(parseNumber('6.500', '.')).toEqual({ value: 6.5, ambiguous: false })
+    expect(parseNumber('6,500', ',')).toMatchObject({ value: 6.5, ambiguous: false })
+    expect(parseNumber('6.500', '.')).toMatchObject({ value: 6.5, ambiguous: false, otherReading: 6500 })
     expect(parseNumber('1.234.567')).toEqual({ value: 1234567, ambiguous: false })
   })
 
@@ -112,5 +112,14 @@ describe('normaliseUnit', () => {
 
   it('leaves unknown units as printed', () => {
     expect(normaliseUnit(' copies/mL ')).toBe('copies/mL')
+  })
+})
+
+describe('a thousands-style number read with a decimal mark (LAB-03)', () => {
+  it('keeps the other reading, so the form can say how it was read', () => {
+    expect(parseNumber('6,500', ',')).toEqual({ value: 6.5, ambiguous: false, otherReading: 6500 })
+    expect(parseNumber('6,500', '.')).toEqual({ value: 6500, ambiguous: false, otherReading: 6.5 })
+    expect(parseNumber('6,500')).toEqual({ value: 6500, ambiguous: true })
+    expect(parseNumber('5,4', ',')).toEqual({ value: 5.4, ambiguous: false })
   })
 })

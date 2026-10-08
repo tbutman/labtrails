@@ -431,7 +431,7 @@ fieldset > legend {
   font-weight: 500;
   margin: 0;
 }
-/* A softer check that doesn't block saving: worth a second look. Text colour, marked by a rule. */
+/* A softer check that doesn't block saving: worth a second look. Text color, marked by a rule. */
 .field-warning {
   color: var(--text);
   font-size: var(--text-sm);
@@ -1724,7 +1724,7 @@ details.disclosure > .disclosure-body {
   margin-top: var(--space-8);
 }
 
-/* A chip that stands out without colour, e.g. a low-confidence row in the review step */
+/* A chip that stands out without color, e.g. a low-confidence row in the review step */
 .chip.strong {
   background: var(--surface);
   border: 1.5px solid var(--text);
@@ -1792,4 +1792,85 @@ details.disclosure > .disclosure-body {
 main[tabindex='-1']:focus,
 h1[tabindex='-1']:focus {
   outline: none;
+}
+
+/* ---------- Added for the Trails review (October 7, 2026) ---------- */
+
+/* Between two titled lists in one footer column ("Made by", then "Also from Trails") */
+.footer-grid .footer-title-next {
+  margin-top: var(--space-5);
+}
+
+/* The passphrase strength hint: three bars and a word (CORE-08) */
+.passphrase-strength {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: calc(-1 * var(--space-2));
+}
+.passphrase-meter {
+  display: inline-flex;
+  gap: 3px;
+  flex: none;
+}
+.passphrase-meter span {
+  width: 18px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-strong);
+}
+.passphrase-strength.weak .passphrase-meter span:nth-child(1),
+.passphrase-strength.ok .passphrase-meter span:nth-child(-n + 2),
+.passphrase-strength.strong .passphrase-meter span {
+  background: var(--accent-text);
+}
+
+/* Erasing the vault (CORE-01): the one destructive filled button */
+.button.danger-fill {
+  background: var(--danger);
+  border-color: var(--danger);
+  /* The surface color reads on the danger red in both modes (light text on dark red, and the reverse). */
+  color: var(--surface);
+}
+.button.danger-fill:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  filter: brightness(0.92);
+}
+.forgot-passphrase {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+}
+.auth-card .forgot-passphrase.link-button {
+  display: block;
+  margin: var(--space-4) auto 0;
+  color: var(--text-muted);
+}
+
+/* Selected toggle chips carry a check mark (CORE-10) */
+.toggle-chip input:checked + span {
+  padding-left: calc(var(--space-3) - 2px);
+}
+
+/* Touch targets: 44 px where the pointer is a finger (CORE-11) */
+@media (pointer: coarse) {
+  .segmented label,
+  .segmented span,
+  .button.small,
+  .back-link,
+  .toggle-chip span {
+    min-height: 44px;
+  }
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+  }
+  .footer-grid li a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .footer-grid ul {
+    gap: 0;
+  }
 }

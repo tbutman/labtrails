@@ -209,6 +209,9 @@ export function SiteFooter({ brand, product }: { brand: Brand; product: { label:
             <li>
               <a href="https://tbutman.com">Thomas Butman</a>
             </li>
+          </ul>
+          <p className="footer-title footer-title-next">Also from Trails</p>
+          <ul>
             <li>
               <a href={brand.sister.url}>{brand.sister.name}</a>
             </li>

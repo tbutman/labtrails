@@ -13,6 +13,7 @@ const CANONICAL: Record<string, string> = {
   'µg/ml': 'µg/mL',
   'ng/dl': 'ng/dL',
   'ng/ml': 'ng/mL',
+  'ng/l': 'ng/L',
   'pg/ml': 'pg/mL',
   'mmol/l': 'mmol/L',
   'mmol/mol': 'mmol/mol',

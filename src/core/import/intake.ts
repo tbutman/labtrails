@@ -1,6 +1,6 @@
 // Taking files in: several at once, or zip files, opened entirely in the browser. Each file is checked
 // by its real type (its first bytes, not its name), given a SHA-256 fingerprint so duplicates can be
-// recognised, and anything unusable is listed with a reason instead of failing the whole batch.
+// recognized, and anything unusable is listed with a reason instead of failing the whole batch.
 //
 // Zips are untrusted input: nested zips are skipped, and the number of entries, the size of each file
 // and the total unpacked size are capped, so a crafted "zip bomb" can't exhaust memory.

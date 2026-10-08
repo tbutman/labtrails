@@ -7,8 +7,9 @@ export type KdfParams =
   | { alg: 'argon2id'; salt: Uint8Array<ArrayBuffer>; memoryKiB: number; iterations: number; parallelism: number }
   | { alg: 'pbkdf2-sha256'; salt: Uint8Array<ArrayBuffer>; iterations: number }
 
-// OWASP Password Storage Cheat Sheet, checked 6 October 2026: Argon2id with 19 MiB, 2 passes and
-// 1 lane, or PBKDF2-HMAC-SHA256 with 600,000 iterations.
+// OWASP Password Storage Cheat Sheet, checked October 6, 2026: Argon2id with 19 MiB, 2 passes and
+// 1 lane, or PBKDF2-HMAC-SHA256 with 600,000 iterations. PBKDF2 is the fallback for browsers that
+// can't run WebAssembly (for example iOS with Lockdown Mode on), since WebCrypto has it built in.
 export const DEFAULT_ARGON2ID = { memoryKiB: 19456, iterations: 2, parallelism: 1 } as const
 export const DEFAULT_PBKDF2_ITERATIONS = 600_000
 
@@ -28,20 +29,54 @@ export function newKdfParams(alg: KdfParams['alg'] = 'argon2id'): KdfParams {
     : { alg, salt, iterations: DEFAULT_PBKDF2_ITERATIONS }
 }
 
-// Turns the passphrase into the key that wraps the data key. The passphrase is normalised so the
+// Thrown when the vault needs Argon2id and this browser can't run it (no WebAssembly).
+export class KdfUnavailableError extends Error {
+  constructor() {
+    super(
+      "This browser can't run Argon2id, which opens this vault. WebAssembly may be turned off, for example by Lockdown Mode on an iPhone. Allow it for this site, or use another browser.",
+    )
+    this.name = 'KdfUnavailableError'
+  }
+}
+
+// Whether Argon2id can run here: a tiny derivation, so a missing or blocked WebAssembly shows up
+// before a vault is made with it.
+export async function argon2idAvailable(): Promise<boolean> {
+  if (typeof WebAssembly === 'undefined') return false
+  try {
+    await argon2id({ password: 'test', salt: new Uint8Array(16), memorySize: 8, iterations: 1, parallelism: 1, hashLength: 16, outputType: 'binary' })
+    return true
+  } catch {
+    return false
+  }
+}
+
+// Argon2id where it runs, PBKDF2-SHA256 where it doesn't.
+export async function bestKdfParams(): Promise<KdfParams> {
+  return newKdfParams((await argon2idAvailable()) ? 'argon2id' : 'pbkdf2-sha256')
+}
+
+// Turns the passphrase into the key that wraps the data key. The passphrase is normalized so the
 // same words typed on different keyboards give the same key.
 export async function deriveWrappingKey(passphrase: string, params: KdfParams): Promise<CryptoKey> {
   const password = encoder.encode(passphrase.normalize('NFC'))
   if (params.alg === 'argon2id') {
-    const raw = await argon2id({
-      password,
-      salt: params.salt,
-      memorySize: params.memoryKiB,
-      iterations: params.iterations,
-      parallelism: params.parallelism,
-      hashLength: 32,
-      outputType: 'binary',
-    })
+    if (typeof WebAssembly === 'undefined') throw new KdfUnavailableError()
+    let raw: Uint8Array
+    try {
+      raw = await argon2id({
+        password,
+        salt: params.salt,
+        memorySize: params.memoryKiB,
+        iterations: params.iterations,
+        parallelism: params.parallelism,
+        hashLength: 32,
+        outputType: 'binary',
+      })
+    } catch {
+      // Argon2id only fails when its WebAssembly can't be compiled or run.
+      throw new KdfUnavailableError()
+    }
     return crypto.subtle.importKey('raw', new Uint8Array(raw), 'AES-GCM', false, ['wrapKey', 'unwrapKey'])
   }
   const base = await crypto.subtle.importKey('raw', password, 'PBKDF2', false, ['deriveKey'])

@@ -10,7 +10,7 @@ describe('the request for the next test', () => {
 
   it('lists the ticked tests in catalogue order, in English or Portuguese', () => {
     const ids = ['haematocrit', 'free-testosterone', 'testosterone']
-    expect(requestSentence(ids, 'en')).toBe("I'd like these blood tests, please: haematocrit, total testosterone and free testosterone.")
+    expect(requestSentence(ids, 'en')).toBe("I'd like these blood tests, please: hematocrit, total testosterone and free testosterone.")
     expect(requestSentence(ids, 'pt')).toBe('Gostaria de fazer análises a: hematócrito, testosterona total e testosterona livre, por favor.')
     expect(requestSentence(['tsh'], 'pt')).toBe('Gostaria de fazer análises a: TSH, por favor.')
     expect(requestSentence([], 'en')).toBe('')
@@ -26,5 +26,11 @@ describe('notes from the history', () => {
     expect(notes.timed).toEqual([])
     const timed = { ...DEMO_TIMELINE[0], id: 'x', timing: true }
     expect(historyNotes(DEMO_RESULTS, DEMO_REPORTS, [timed], '2026-10-07').timed.map((e) => e.id)).toEqual(['x'])
+  })
+})
+
+describe('capitals in the request (LAB-20)', () => {
+  it('keeps HbA1c and TSH as written, and lowers ordinary names', () => {
+    expect(requestSentence(['hba1c', 'tsh', 'glucose'], 'en')).toBe("I'd like these blood tests, please: glucose, HbA1c and TSH.")
   })
 })

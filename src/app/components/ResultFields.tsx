@@ -5,7 +5,7 @@
 import { CheckCircle2, CircleHelp, X } from 'lucide-react'
 import { useId } from 'react'
 import { MARKERS, PANELS, getMarker } from '../../labs/catalogue/catalogue'
-import { understandInput, type ResultInput } from '../../labs/edit'
+import { FAR_FROM_RANGE, farFromRange, understandInput, type ResultInput } from '../../labs/edit'
 import type { UserAlias } from '../../labs/match/match'
 import { normaliseUnit } from '../../labs/units/normalise'
 import type { DecimalHint, Person } from '../../labs/units/parse'
@@ -27,7 +27,7 @@ export function MarkerNames() {
 
 type Props = {
   input: ResultInput
-  decimal: DecimalHint
+  decimal: DecimalHint | undefined
   aliases: UserAlias[]
   onChange: (patch: Partial<ResultInput>) => void
   /** Shown as a remove button when given (rows on the manual entry form). */
@@ -83,7 +83,7 @@ export function ResultFields({ input, decimal, aliases, onChange, onRemove, labe
             ) : (
               <label className="map-to">
                 <CircleHelp size={15} aria-hidden />
-                {u.match.status === 'ambiguous' ? 'Which marker is this?' : found ? 'Map it to' : 'Not in the catalogue. Map it to'}
+                {u.match.status === 'ambiguous' ? 'Which marker is this?' : found ? 'Map it to' : "Not in LabTrails' list of markers. Map it to"}
                 <select value={input.markerId} onChange={(e) => onChange({ markerId: e.target.value })}>
                   <option value={KEEP}>{u.match.status === 'ambiguous' ? 'Choose…' : found ? `${getMarker(found)?.name} (as found)` : 'Keep as printed'}</option>
                   {PANELS.map((p) => (
@@ -103,7 +103,13 @@ export function ResultFields({ input, decimal, aliases, onChange, onRemove, labe
               {u.value.kind === 'number' ? `Value ${u.value.comparator ?? ''}${formatValue(u.value.value)}${u.value.ambiguous ? ' (check the decimal mark)' : ''}` : 'Kept as text'}
             </span>
           )}
+          {u.value.kind === 'number' && u.value.otherReading !== undefined && decimal && (
+            <span className="error">
+              Read as {formatValue(u.value.value)}. If the report means {formatValue(u.value.otherReading)}, switch to {decimal === ',' ? '5.4 (decimal point)' : '5,4 (decimal comma)'}.
+            </span>
+          )}
           {input.range.trim() && <span className="faint">{u.range ? `Range ${u.range.low ?? '…'} to ${u.range.high ?? '…'}` : 'Range kept as printed'}</span>}
+          {farFromRange(u) && <span className="error">{FAR_FROM_RANGE}</span>}
           {!unitKnown && <span className="error">LabTrails doesn't know this unit for {marker?.name}; it'll be kept but can't be converted.</span>}
           {onRemove && (
             <button type="button" className="icon-button remove-row" onClick={onRemove} aria-label={`Remove ${label.toLowerCase()}`}>
@@ -117,10 +123,11 @@ export function ResultFields({ input, decimal, aliases, onChange, onRemove, labe
 }
 
 /** The decimal mark used on a report; numbers like "5,4" are read differently from "5.4". */
-export function DecimalSwitch({ value, onChange }: { value: DecimalHint; onChange: (v: DecimalHint) => void }) {
+export function DecimalSwitch({ value, onChange }: { value: DecimalHint | undefined; onChange: (v: DecimalHint | undefined) => void }) {
   return (
     <label className="decimal-switch">
-      <select aria-label="Numbers on this report are written like" value={value} onChange={(e) => onChange(e.target.value as DecimalHint)}>
+      <select aria-label="Numbers on this report are written like" value={value ?? ''} onChange={(e) => onChange((e.target.value || undefined) as DecimalHint | undefined)}>
+        <option value="">Decimal mark: not chosen</option>
         <option value=",">5,4 (decimal comma)</option>
         <option value=".">5.4 (decimal point)</option>
       </select>

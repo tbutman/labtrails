@@ -5,12 +5,14 @@ import { useState, type FormEvent } from 'react'
 import { MODELS } from './models'
 
 type Props = {
+  /** For "lets BabyTrails use its AI". Defaults to "this app". */
+  appName?: string
   apiKey?: string
   model: string
   onSave: (next: { apiKey?: string; model: string }) => Promise<void> | void
 }
 
-export function ApiKeySettings({ apiKey, model, onSave }: Props) {
+export function ApiKeySettings({ appName = 'this app', apiKey, model, onSave }: Props) {
   const [draft, setDraft] = useState('')
   const [error, setError] = useState('')
   const [saved, setSaved] = useState('')
@@ -32,9 +34,19 @@ export function ApiKeySettings({ apiKey, model, onSave }: Props) {
   return (
     <div className="stack">
       <p>
-        AI features use your own Anthropic API key, so Anthropic bills you directly and nothing goes through
-        this app's server. Create a <strong>separate key just for this app</strong> and set a monthly spending limit in the
-        Anthropic Console (console.anthropic.com).
+        An API key is a password-like code from Anthropic that lets {appName} use its AI on your account.{' '}
+        <a href="https://console.anthropic.com" target="_blank" rel="noreferrer">
+          Get one at console.anthropic.com
+        </a>
+        .
+      </p>
+      <p>
+        Anthropic bills you directly, and nothing goes through {appName === 'this app' ? "this app's" : `the ${appName}`} server. Create a{' '}
+        <strong>separate key just for {appName}</strong> and set a monthly spending limit in the Anthropic Console. The key is kept only in
+        this encrypted vault and sent only to Anthropic.
+      </p>
+      <p className="hint">
+        If your Anthropic organization has zero data retention, browser requests aren't allowed for it; use a key from another organization.
       </p>
       {apiKey ? (
         <p className="hint">

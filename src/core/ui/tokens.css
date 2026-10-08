@@ -1,6 +1,6 @@
 /* Trails UI v2: design tokens for the Trails apps (BabyTrails and LabTrails).
    One typeface (Inter, self-hosted, OFL), a refined "Honey and ink" palette, soft layered shadows and
-   a 4 px spacing scale. Each app sets only its accent and, if it shows flags, its flag colour, in its
+   a 4 px spacing scale. Each app sets only its accent and, if it shows flags, its flag color, in its
    own stylesheet loaded after this file (see README.md).
 
    Contrast (WCAG 2.1), light / dark:
@@ -72,7 +72,7 @@
   --shadow-lg: 0 2px 4px rgb(29 35 64 / 0.04), 0 24px 56px -20px rgb(29 35 64 / 0.3);
   --scrim: rgb(250 249 246 / 0.78);
 
-  /* Charts (neutral; apps colour the data with their accent) */
+  /* Charts (neutral; apps color the data with their accent) */
   --chart-grid: rgb(29 35 64 / 0.07);
   --chart-axis: var(--text-faint);
   --chart-band-outer: rgb(29 35 64 / 0.06);
@@ -80,7 +80,7 @@
   --chart-median: rgb(29 35 64 / 0.5);
   --chart-outline: #1d2340;
 
-  /* Per-app colours, resolved for the current mode (apps define the -light and -dark values) */
+  /* Per-app colors, resolved for the current mode (apps define the -light and -dark values) */
   --accent: var(--accent-light);
   --accent-text: var(--accent-text-light);
   --accent-soft: var(--accent-soft-light);

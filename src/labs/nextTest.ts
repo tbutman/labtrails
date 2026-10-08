@@ -90,7 +90,7 @@ export const PORTUGUESE_NAMES: Record<string, string> = {
 }
 
 /** "Total testosterone" → "total testosterone"; "HbA1c" and "TSH" keep their capitals. */
-const inSentence = (name: string) => (/^[A-ZÁÉÍÓÚ][a-záéíóúãõâêôç]/.test(name) ? name[0].toLowerCase() + name.slice(1) : name)
+const inSentence = (name: string) => (/^[A-ZÁÉÍÓÚ][a-záéíóúãõâêôç]+(?=\s|$)/.test(name) ? name[0].toLowerCase() + name.slice(1) : name)
 
 export function requestName(markerId: string, lang: RequestLanguage): string {
   const name = lang === 'pt' ? (PORTUGUESE_NAMES[markerId] ?? getMarker(markerId)?.name ?? markerId) : (getMarker(markerId)?.name ?? markerId)
@@ -114,7 +114,7 @@ export type HistoryNotes = {
   timed: TimelineEntry[]
   /** How many earlier tests were fasting, of those where it's known. */
   fasting: { yes: number; known: number }
-  /** Markers measured before that eating before the test is known to affect. */
+  /** Markers measured before that eating before the test can affect. */
   eating: { markerId: string; name: string; influence: Influence }[]
 }
 

@@ -16,7 +16,7 @@ export function TableView() {
   return (
     <>
       <PageHeader title="All results" subtitle={<>Every marker by date, newest first. <span className="chip flag">! Outside the lab's range</span></>} />
-      <div className="table-wrap" tabIndex={0} aria-label="Results table, scrolls sideways">
+      <div className="table-wrap results-table" tabIndex={0} aria-label="Results table, scrolls sideways and down">
         <table>
           <thead>
             <tr>

@@ -1,35 +1,37 @@
-import { useState, type FormEvent } from 'react'
-import { Navigate } from 'react-router'
-import { MIN_PASSPHRASE_LENGTH, WrongPassphraseError } from '../../core'
+import { ToStart } from '../returnTo'
 import { ApiKeySettings } from '../../core/ai/ApiKeySettings'
+import { ExportBackup, RestoreBackup } from '../../core/backup/BackupForms'
 import type { Theme } from '../../core/settings/settings'
-import { PageHeader, Segmented, SelectField, TextField } from '../../core/ui/components'
+import { PageHeader, Segmented, SelectField } from '../../core/ui/components'
+import { ChangePassphrase, EraseVault } from '../../core/vault/VaultForms'
 import { APP } from '../brand'
 import { Shell } from '../components/Layout'
 import { useSession } from '../sessionContext'
-import { ExportBackup, RestoreBackup } from './Backup'
+import { APP_ID } from '../types'
 
 export function Settings() {
-  const { mode, core, saveCore } = useSession()
-  if (mode !== 'unlocked') return <Navigate to={APP} replace />
+  const { mode, core, saveCore, trails, setNotice, reload } = useSession()
+  if (mode !== 'unlocked' || !trails) return <ToStart />
   return (
     <Shell narrow>
       <PageHeader title="Settings" back={{ to: APP, label: 'People' }} />
 
       <h2 className="section-title">Backup</h2>
       <div className="card">
-        <ExportBackup />
+        <ExportBackup
+          db={trails.db}
+          appId={APP_ID}
+          contents="all your results"
+          lastBackupAt={core.lastBackupAt}
+          onExported={() => saveCore({ ...core, lastBackupAt: new Date().toISOString(), changesSinceBackup: 0 })}
+        />
       </div>
 
       <h2 className="section-title" id="ai">
         AI (optional)
       </h2>
       <div className="card">
-        <p className="muted small">
-          Reading reports and writing summaries use your own Anthropic API key. Use a dedicated key with a spending limit set in Anthropic's console.
-          The key is stored only in this encrypted vault and sent only to Anthropic.
-        </p>
-        <ApiKeySettings apiKey={core.ai.apiKey} model={core.ai.model} onSave={({ apiKey, model }) => void saveCore({ ...core, ai: { ...core.ai, apiKey, model } })} />
+        <ApiKeySettings appName="LabTrails" apiKey={core.ai.apiKey} model={core.ai.model} onSave={({ apiKey, model }) => void saveCore({ ...core, ai: { ...core.ai, apiKey, model } })} />
       </div>
 
       <h2 className="section-title">Appearance and locking</h2>
@@ -56,54 +58,33 @@ export function Settings() {
 
       <h2 className="section-title">Passphrase</h2>
       <div className="card">
-        <ChangePassphrase />
+        <ChangePassphrase vault={trails.vault} appName="LabTrails" />
       </div>
 
       <h2 className="section-title">Restore</h2>
       <details className="disclosure">
         <summary>Restore from a backup</summary>
         <div className="disclosure-body">
-          <RestoreBackup />
+          <RestoreBackup
+            db={trails.db}
+            vault={trails.vault}
+            appId={APP_ID}
+            appName="LabTrails"
+            onRestored={() => {
+              setNotice('restored')
+              void reload()
+            }}
+          />
         </div>
       </details>
-    </Shell>
-  )
-}
 
-function ChangePassphrase() {
-  const { trails } = useSession()
-  const [current, setCurrent] = useState('')
-  const [next, setNext] = useState('')
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
-
-  async function submit(e: FormEvent) {
-    e.preventDefault()
-    if (!trails) return
-    if (next.length < MIN_PASSPHRASE_LENGTH) return setMessage({ ok: false, text: `Use at least ${MIN_PASSPHRASE_LENGTH} characters.` })
-    try {
-      await trails.vault.changePassphrase(current, next)
-      setCurrent('')
-      setNext('')
-      setMessage({ ok: true, text: 'Passphrase changed. Older backups still open with the old one.' })
-    } catch (err) {
-      setMessage({ ok: false, text: err instanceof WrongPassphraseError ? "The current passphrase isn't right." : 'The passphrase could not be changed.' })
-    }
-  }
-
-  return (
-    <form onSubmit={submit} noValidate>
-      <div className="input-row">
-        <TextField label="Current passphrase" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
-        <TextField label="New passphrase" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
+      <h2 className="section-title" id="erase">
+        Erase this vault
+      </h2>
+      <div className="card">
+        <p className="hint">Deletes everything LabTrails keeps in this browser, so you can start again. Backups you downloaded aren't affected.</p>
+        <EraseVault appId={APP_ID} appName="LabTrails" db={trails.db} vault={trails.vault} channel={trails.channel} home={APP} />
       </div>
-      {message && (
-        <p className={message.ok ? 'hint form-error' : 'error form-error'} role={message.ok ? 'status' : 'alert'}>
-          {message.text}
-        </p>
-      )}
-      <button className="button" disabled={!current || !next}>
-        Change passphrase
-      </button>
-    </form>
+    </Shell>
   )
 }

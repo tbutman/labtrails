@@ -10,6 +10,7 @@ import { KINDS, LIFESTYLE_SUGGESTIONS, entryFromInput, entryLabel, inputFromEntr
 import { formatPeriod } from '../format'
 import { useBase, useProfileData } from '../profileContext'
 import { useSession } from '../sessionContext'
+import { useLeaveWarning } from '../returnTo'
 
 const kindLabel = (k: TimelineKind) => KINDS.find((x) => x.value === k)?.label ?? k
 const today = () => new Date().toISOString().slice(0, 10)
@@ -48,7 +49,7 @@ export function Timeline() {
     <>
       <PageHeader
         title="Timeline"
-        subtitle={`Medications, supplements and changes in ${profile.name}'s life, shown on the charts so results can be read in context. They never change a flag.`}
+        subtitle={`Medications, supplements and changes in ${profile.name.replace(/ \(demo\)$/, '')}'s life, shown on the charts so results can be read in context. They never change a flag.`}
         actions={
           <Link className="button primary" to={`${base}/timeline/new`}>
             <Plus size={16} aria-hidden /> Add to the timeline
@@ -103,6 +104,8 @@ function EntryForm({ entry, base }: { entry?: TimelineEntry; base: string }) {
   const { profile } = useProfileData()
   const navigate = useNavigate()
   const [input, setInput] = useState<EntryInput>(() => inputFromEntry(entry))
+  const [initial] = useState(input)
+  useLeaveWarning(JSON.stringify(input) !== JSON.stringify(initial))
   const [error, setError] = useState('')
   const set = (patch: Partial<EntryInput>) => setInput((i) => ({ ...i, ...patch }))
   const back = `${base}/timeline`

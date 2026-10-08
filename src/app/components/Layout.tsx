@@ -8,6 +8,7 @@ import { UpdatePrompt } from '../../core/ui/UpdatePrompt'
 import { APP, BRAND } from '../brand'
 import { ProfileContext } from '../profileContext'
 import { useSession } from '../sessionContext'
+import { ToStart } from '../returnTo'
 
 /** The router's root: new screens open at the top, and going back returns to where you were. */
 export function Root() {
@@ -98,12 +99,12 @@ export function ProfileLayout() {
     }
   }, [store, profileId, version])
 
-  if (!store) return <Navigate to={APP} replace />
+  if (!store) return <ToStart />
   if (data === undefined) return <Loading />
   if (data === null)
     return (
       <Shell>
-        <h1>Profile not found</h1>
+        <h1>Person not found</h1>
         <Link to={APP}>Back to the start</Link>
       </Shell>
     )

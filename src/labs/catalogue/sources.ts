@@ -24,6 +24,7 @@ export const SOURCES = {
     note: 'Factors that are powers of ten (1 g/dL = 10 g/L, 1 mg/dL = 0.01 g/L, 10³/µL = 10⁹/L) or exactly 1 (mIU/L = µIU/mL, mmol/L = mEq/L for ions with one charge).',
   },
   glucose: pubchem('glucose', 5793, '180.16', '10 / 180.16 = 0.0555'),
+  glucoseGramsPerLiter: pubchem('glucose', 5793, '180.16', 'g/L → mmol/L = 1,000 / 180.16 = 5.551 (1 g/L = 100 mg/dL)'),
   cholesterol: pubchem('cholesterol', 5997, '386.7', '10 / 386.7 = 0.02586'),
   triglycerides: pubchem('triolein', 5497163, '885.4', '10 / 885.4 = 0.01129; triglycerides are conventionally converted as triolein'),
   creatinine: pubchem('creatinine', 588, '113.12', '10,000 / 113.12 = 88.4'),
@@ -40,7 +41,7 @@ export const SOURCES = {
   phosphate: pubchem('phosphorus', 5462309, '30.974', '10 / 30.974 = 0.3229; inorganic phosphate is reported as phosphorus'),
   iron: pubchem('iron', 23925, '55.84', '10 / 55.84 = 0.1791'),
   vitaminD: pubchem('calcifediol (25-hydroxyvitamin D3)', 5283731, '400.6', '1,000 / 400.6 = 2.496; total 25-OH vitamin D is conventionally converted as D3 (D2 alone would give 2.423)'),
-  vitaminB12: pubchem('cyanocobalamin', 166596686, '1355.4', '1,000 / 1355.4 = 0.7378'),
+  vitaminB12: pubchem('cyanocobalamin', 166596686, '1355.4', '1,000 / 1355.4 = 0.7378; 1 ng/L is 1 pg/mL, so the same factor'),
   folate: pubchem('folic acid', 135398658, '441.4', '1,000 / 441.4 = 2.266'),
   freeT4: pubchem('thyroxine', 5819, '776.87', '10,000 / 776.87 = 12.87'),
   freeT3: pubchem('triiodothyronine', 5920, '650.97', '1,000 / 650.97 = 1.536'),
@@ -48,6 +49,16 @@ export const SOURCES = {
   oestradiol: pubchem('estradiol', 5757, '272.4', '1,000 / 272.4 = 3.671'),
   cortisol: pubchem('cortisol (hydrocortisone)', 5754, '362.5', '10,000 / 362.5 = 27.59'),
   dheas: pubchem('DHEA sulfate', 12594, '368.5', '10 / 368.5 = 0.02714'),
+  prolactin: {
+    title: 'NIBSC: WHO International Standard, Prolactin, Human, 84/500 (3rd IS), instructions for use, version 4.0',
+    url: 'https://nibsc.org/documents/ifu/84-500.pdf',
+    note: 'Each ampoule holds 53 mIU (by definition) and approximately 2.5 µg of human prolactin: 53 / 2.5 = 21.2 mIU per µg, so 1 ng/mL = 21.2 mIU/L and 1 mIU/L = 0.0472 ng/mL. Its replacement, the 4th IS (83/573, https://nibsc.org/documents/ifu/83-573.pdf), calibrated against it, holds 67 mIU in approximately 3.2 µg (20.9 per µg), so assays can differ by a few percent. Checked October 7, 2026.',
+  },
+  hemoglobinMonomer: {
+    title: 'BIPM: CCQM-P201 final report, Quantification of Total Haemoglobin in Blood (2023), Measurand',
+    url: 'https://www.bipm.org/documents/d/guest/ccqm-p201',
+    note: 'Haemoglobin monomer average (141 amino acids): molecular weight 16,115 g/mol (16,114.5 in the ICSH reference method a participant used). 1 mmol/L = 16.115 g/L, so g/dL → mmol/L = 10 / 16.115 = 0.6206. Converted on this monomer basis; the tetramer (64,458 g/mol, same report) would give a quarter of the value. Checked October 7, 2026.',
+  },
   insulin: {
     title: 'Knopp JL, Holder-Pearson L, Chase JG. Insulin units and conversion factors: a story of truth, boots, and faster half-truths. J Diabetes Sci Technol 2019;13(3):597-600',
     url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC6501531/',

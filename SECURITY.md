@@ -16,6 +16,7 @@ Please don't include real lab results in a report. Use made-up data.
 
 ## What's in scope
 
-The app's code, its build and release workflow, and the shared core in `src/core/` (copied from
+The app's code, its build and release workflow, the server configuration in this repository
+(`deploy/`), and the shared core in `src/core/` (copied from
 [BabyTrails](https://github.com/tbutman/babytrails); a problem there likely affects both apps). The
 [threat model](THREAT_MODEL.md) explains what LabTrails protects against and its known limits.

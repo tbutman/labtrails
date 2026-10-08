@@ -3,14 +3,26 @@
 // "abnormal" or a verdict. Each flag has an icon and
 // words, so it never depends on colour.
 
-import { CircleAlert, Minus, MoveDownRight, MoveUpRight, TrendingDown, TrendingUp } from 'lucide-react'
+import { CircleAlert, Minus, MoveDownRight, MoveUpRight, TrendingDown, TrendingUp, TriangleAlert } from 'lucide-react'
 import type { MarkerAnalysis } from '../../labs/analysis'
-import { Chip } from '../../core/ui/components'
-import { formatPercent } from '../format'
+import { Callout, Chip } from '../../core/ui/components'
+import { formatValue } from '../format'
+import { disclaimer } from '../../core/ui/copy'
 
 export function MarkerFlags({ a, compact = false, line }: { a: MarkerAnalysis; compact?: boolean; line?: { side: 'above' | 'below'; label: string } | null }) {
   return (
     <>
+      {a.latestCritical && (
+        <Chip tone="flag" icon={TriangleAlert}>
+          {a.latestCritical.labMarked
+            ? compact
+              ? 'Lab marked critical'
+              : 'The lab marked this result as critical'
+            : compact
+              ? 'Far outside lab range'
+              : "Far outside the lab's range"}
+        </Chip>
+      )}
       {line && (
         <Chip tone="outline" icon={Minus}>
           {line.side === 'above' ? 'Above' : 'Below'} your line{compact ? '' : ` (${line.label})`}
@@ -32,19 +44,74 @@ export function MarkerFlags({ a, compact = false, line }: { a: MarkerAnalysis; c
       )}
       {a.change?.notable && (
         <Chip icon={a.change.direction === 'down' ? MoveDownRight : MoveUpRight}>
-          {compact ? 'Changed' : 'Changed since last time'}
-          {a.change.relative !== null && ` ${a.change.direction === 'up' ? '+' : '−'}${formatPercent(a.change.relative)}`}
+          {a.change.crossedRange && !a.latestFlag ? "Back inside the lab's range · " : compact ? 'Changed ' : 'Changed since last time '}
+          {changeAmount(a)}
         </Chip>
       )}
       {a.trend && (
         <Chip icon={a.trend.direction === 'rising' ? TrendingUp : TrendingDown}>
           {a.trend.direction === 'rising' ? 'Rising' : 'Falling'}
-          {compact ? ` · ${a.trend.results}` : ` over the last ${a.trend.results} results`}
+          {compact ? ` over ${a.trend.results} tests` : ` over the last ${a.trend.results} results`}
         </Chip>
       )}
     </>
   )
 }
 
-export const DISCLAIMER =
-  "LabTrails records and charts results; it doesn't diagnose anything or give medical advice. Flags are simple rules about the lab's own range and changes over time. Discuss your results with your doctor."
+/** A change in the unit shown: "+1.2 mmol/L", "−30 mg/dL". */
+export function changeAmount(a: MarkerAnalysis): string {
+  if (!a.change) return ''
+  const sign = a.change.delta > 0 ? '+' : a.change.delta < 0 ? '−' : ''
+  return `${sign}${formatValue(Math.abs(a.change.delta))} ${a.series.unit}`
+}
+
+export const DISCLAIMER = `${disclaimer('LabTrails', 'your doctor')} Flags are simple rules about the lab's own range and changes over time.`
+
+/** Shown under a result the lab marked critical or that's far outside its range (LAB-01). Fixed wording. */
+export const CRITICAL_TEXT =
+  "This result is far outside the lab's range. First check it matches the report (the number and the unit). If it does and no doctor has talked to you about it yet, contact your doctor or the lab today. If you feel unwell, call your local emergency number."
+
+/** CRITICAL_TEXT without its first sentence, for a result the lab marked critical that isn't far outside. */
+export const CRITICAL_ACTION =
+  'First check it matches the report (the number and the unit). If it does and no doctor has talked to you about it yet, contact your doctor or the lab today. If you feel unwell, call your local emergency number.'
+
+/** CRITICAL_TEXT for several results at once, on the overview. */
+export const CRITICAL_TEXT_MANY =
+  "These results are far outside the lab's range. First check each one matches the report (the number and the unit). If it does and no doctor has talked to you about it yet, contact your doctor or the lab today. If you feel unwell, call your local emergency number."
+
+/** CRITICAL_ACTION for several results at once, when not all of them are far outside. */
+export const CRITICAL_ACTION_MANY =
+  'First check each one matches the report (the number and the unit). If it does and no doctor has talked to you about it yet, contact your doctor or the lab today. If you feel unwell, call your local emergency number.'
+
+export function CriticalNotice({ a }: { a: MarkerAnalysis }) {
+  if (!a.latestCritical) return null
+  return (
+    <Callout icon={TriangleAlert} tone="warning">
+      {a.latestCritical.labMarked && <strong>The lab marked this result as critical. </strong>}
+      {/* "Far outside the lab's range" only when it is (CHK-03): a lab's mark can come with no range, or just outside it. */}
+      {a.latestCritical.far ? CRITICAL_TEXT : CRITICAL_ACTION}
+    </Callout>
+  )
+}
+
+/** "Lab's mark: HH", as printed, or nothing when the lab printed no mark. */
+export function labMarkText(flag: string | undefined): string | null {
+  const f = flag?.trim()
+  return f ? `Lab's mark: ${f}` : null
+}
+
+/** The public page "What 'outside the range' means" cites (LAB-06), shown the way influences are cited. */
+export const RANGE_SOURCE = { title: 'MedlinePlus: How to Understand Your Lab Results', url: 'https://medlineplus.gov/lab-tests/how-to-understand-your-lab-results/' }
+
+export function RangeMeaning() {
+  return (
+    <p className="hint range-meaning">
+      <strong>What “outside the range” means.</strong> A lab's range is where most healthy people's results fall, so some healthy people are just outside it. Food,
+      exercise, a recent illness or the time of day can move a result too. A result outside the range is worth bringing to your doctor, who can read it with your
+      history.{' '}
+      <a href={RANGE_SOURCE.url} target="_blank" rel="noreferrer noopener">
+        {RANGE_SOURCE.title}
+      </a>
+    </p>
+  )
+}

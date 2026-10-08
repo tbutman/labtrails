@@ -105,7 +105,7 @@ export const DEMO_REPORTS: Report[] = REPORTS.map((r) => ({
 export const DEMO_RESULTS: Result[] = buildResults()
 
 // Sam's timeline (SPEC.md section 18.9): what started between tests. Vitamin D rises after the
-// supplement; ferritin keeps falling through marathon training.
+// supplement; ferritin keeps falling through marathon training (on the chart, not a matched influence).
 export const DEMO_TIMELINE: TimelineEntry[] = [
   { id: 'demo-t1', profileId: DEMO_PROFILE.id, kind: 'supplement', name: 'Vitamin D3', dose: '2,000 IU', every: { n: 1, unit: 'day' }, start: '2024-11', createdAt: '2024-11-02T09:00:00Z', updatedAt: '2024-11-02T09:00:00Z' },
   { id: 'demo-t2', profileId: DEMO_PROFILE.id, kind: 'lifestyle', name: 'Marathon training', start: '2025-01-06', notes: 'Four runs a week.', createdAt: '2025-01-06T09:00:00Z', updatedAt: '2025-01-06T09:00:00Z' },
@@ -129,7 +129,7 @@ export const DEMO_SUMMARIES: Summary[] = [
       '- **Ferritin** fell from 51 to 38 µg/L. It\'s still inside the lab\'s range of 30–400, but it has fallen at every test since 2023, from 142.',
       '- **LDL cholesterol** (3.6 mmol/L) and **total cholesterol** (5.7 mmol/L) are above this lab\'s ranges, and both have risen at each test. LDL has been above the range at every test since 2023, total cholesterol since October 2024.',
       '- **CRP** is back inside the range (0.9 mg/L) after 6.8 in November, when you noted a cold the week before.',
-      '- **Triglycerides** are back inside the range (1.14 mmol/L); November\'s higher value was from a non-fasting test.',
+      '- **Triglycerides** are back inside the range (1.14 mmol/L). The November test wasn\'t fasting, and eating before a test can raise triglycerides.',
       '',
       'Glucose, ferritin and the cholesterol results are worth discussing with your doctor, especially the steady direction of each.',
     ].join('\n'),
@@ -234,7 +234,7 @@ export const DEMO_ANSWERS: Record<Suggestion['id'], Answer> = {
   },
   changed: {
     kind: 'answer',
-    text: "Since your previous test in November 2025, the biggest changes LabTrails flagged were:\n\n- **CRP** fell from 6.8 mg/L to 0.9 mg/L, back inside the lab's range (below 5 mg/L).\n- **Triglycerides** fell from 1.83 mmol/L to 1.14 mmol/L, also back inside the range (below 1.7 mmol/L).\n- **Glucose** rose from 5.8 mmol/L to 6.2 mmol/L, just above the range (up to 6.0 mmol/L).\n\nOver a longer time, your ferritin has fallen at every test, from 142 µg/L to 38 µg/L, still inside its lab's range. These could be good to go through with your doctor.",
+    text: "Since your previous test in November 2025, the biggest changes LabTrails flagged were:\n\n- **CRP** fell from 6.8 mg/L to 0.9 mg/L, back inside the lab's range (below 5 mg/L).\n- **Triglycerides** fell from 1.83 mmol/L to 1.14 mmol/L, also back inside the range (below 1.7 mmol/L).\n- **Glucose** rose from 5.8 mmol/L to 6.2 mmol/L, just above the range (up to 6.0 mmol/L).\n\nOver a longer time, your ferritin has fallen at every test, from 142 µg/L to 38 µg/L, still inside its lab's range. These are worth going through with your doctor.",
     numbers: [
       { text: '6.8 mg/L', fact: 'markers[7].results[4].value' },
       { text: '0.9 mg/L', fact: 'markers[7].results[5].value' },

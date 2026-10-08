@@ -26,7 +26,7 @@ export type AiRequest = {
 export type AiUsage = { inputTokens: number; outputTokens: number }
 
 export class AiError extends Error {
-  readonly kind: 'key' | 'limit' | 'busy' | 'request' | 'network' | 'output'
+  readonly kind: 'key' | 'limit' | 'busy' | 'request' | 'network' | 'offline' | 'refused' | 'output'
   constructor(kind: AiError['kind'], message: string) {
     super(message)
     this.name = 'AiError'
@@ -58,10 +58,11 @@ async function post(req: AiRequest, extra: Record<string, unknown>): Promise<{ t
     })
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') throw err
-    throw new AiError(
-      'network',
-      "Couldn't reach Anthropic. Check your connection. If your Anthropic organisation has zero data retention, browser requests aren't allowed for it; use a key from another organisation.",
-    )
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      throw new AiError('offline', "You're offline. AI features need a connection; everything else works offline.")
+    }
+    // An organization with zero data retention also fails here (Settings' AI help says so).
+    throw new AiError('network', "Couldn't reach Anthropic. Check your connection and try again.")
   }
 
   if (!response.ok) throw await errorFor(response)
@@ -74,6 +75,8 @@ async function post(req: AiRequest, extra: Record<string, unknown>): Promise<{ t
     .filter((b) => b.type === 'text')
     .map((b) => b.text ?? '')
     .join('')
+  // The model declined: whatever text came with it isn't an answer, so none of it is shown or saved.
+  if (body.stop_reason === 'refusal') throw new AiError('refused', 'Anthropic declined to answer this request. Nothing was saved.')
   return {
     text,
     usage: { inputTokens: body.usage?.input_tokens ?? 0, outputTokens: body.usage?.output_tokens ?? 0 },
@@ -142,8 +145,13 @@ export function imageBlock(bytes: Uint8Array, mediaType: 'image/jpeg' | 'image/p
   return { type: 'image', source: { type: 'base64', media_type: mediaType, data: toBase64(bytes) } }
 }
 
-// Shrinks a photo so its long edge is at most `maxEdge` pixels, as JPEG. Saves tokens and keeps
-// phone photos under Anthropic's per-image limit. Returns the original if it's already small.
+// Re-encodes a photo before it's sent: the long edge at most `maxEdge` pixels, and always redrawn,
+// so details stored in the file (EXIF: location, camera, time) are left behind (CORE-12). PNGs stay
+// PNG (sharp text) unless that's over Anthropic's per-image limit; everything else becomes JPEG.
+export const PHOTO_NOTE = 'Photo details such as location are removed before sending.'
+
+const IMAGE_LIMIT_BYTES = 4 * 1024 * 1024
+
 export async function shrinkImage(
   bytes: Uint8Array<ArrayBuffer>,
   mediaType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif',
@@ -151,13 +159,13 @@ export async function shrinkImage(
 ): Promise<{ bytes: Uint8Array<ArrayBuffer>; mediaType: 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif' }> {
   const bitmap = await createImageBitmap(new Blob([bytes], { type: mediaType }))
   const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height))
-  if (scale === 1 && bytes.length < 4 * 1024 * 1024) {
-    bitmap.close()
-    return { bytes, mediaType }
-  }
   const canvas = new OffscreenCanvas(Math.round(bitmap.width * scale), Math.round(bitmap.height * scale))
   canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
+  if (mediaType === 'image/png') {
+    const png = await canvas.convertToBlob({ type: 'image/png' })
+    if (png.size < IMAGE_LIMIT_BYTES) return { bytes: new Uint8Array(await png.arrayBuffer()), mediaType: 'image/png' }
+  }
   const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.85 })
   return { bytes: new Uint8Array(await blob.arrayBuffer()), mediaType: 'image/jpeg' }
 }

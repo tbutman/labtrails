@@ -46,8 +46,8 @@ const differential = (id: string, name: string, aliases: string[]): Marker[] => 
 
 export const MARKERS: Marker[] = [
   // Blood count
-  { id: 'haemoglobin', name: 'Haemoglobin', panel: 'blood-count', aliases: ['haemoglobin', 'hemoglobin', 'hemoglobina', 'hgb', 'hb'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes)] },
-  { id: 'haematocrit', name: 'Haematocrit', panel: 'blood-count', aliases: ['haematocrit', 'hematocrit', 'hematocrito', 'hct', 'ht'], units: [base('%'), linear('L/L', 100, SOURCES.siPrefixes)] },
+  { id: 'haemoglobin', name: 'Hemoglobin', panel: 'blood-count', aliases: ['haemoglobin', 'hemoglobin', 'hemoglobina', 'hgb', 'hb'], units: [base('g/L'), linear('g/dL', 10, SOURCES.siPrefixes), linear('mmol/L', 16.115, SOURCES.hemoglobinMonomer)] },
+  { id: 'haematocrit', name: 'Hematocrit', panel: 'blood-count', aliases: ['haematocrit', 'hematocrit', 'hematocrito', 'hct', 'ht'], units: [base('%'), linear('L/L', 100, SOURCES.siPrefixes)] },
   { id: 'rbc', name: 'Red blood cells', panel: 'blood-count', aliases: ['red blood cells', 'red cells', 'rbc', 'erythrocytes', 'eritrocitos', 'globulos vermelhos', 'hemacias', 'red cell count', 'red blood cell count', 'rbc count', 'rcc'], units: [base('10¹²/L'), same('10⁶/µL')] },
   { id: 'mcv', name: 'MCV', panel: 'blood-count', aliases: ['mcv', 'mean corpuscular volume', 'vgm', 'volume globular medio', 'vcm', 'volume corpuscular medio'], units: [base('fL')] },
   { id: 'mch', name: 'MCH', panel: 'blood-count', aliases: ['mch', 'mean corpuscular haemoglobin', 'mean corpuscular hemoglobin', 'hgm', 'hemoglobina globular media', 'hcm', 'hemoglobina corpuscular media'], units: [base('pg')] },
@@ -63,7 +63,7 @@ export const MARKERS: Marker[] = [
   { id: 'mpv', name: 'MPV', panel: 'blood-count', aliases: ['mpv', 'mean platelet volume', 'vpm', 'volume plaquetario medio'], units: [base('fL')] },
 
   // Glucose
-  { id: 'glucose', name: 'Glucose', panel: 'glucose', aliases: ['glucose', 'fasting glucose', 'glucose fasting', 'glicose', 'glicemia', 'glicemia em jejum', 'glucose serum', 'glucose plasma'], units: [base('mmol/L'), linear('mg/dL', 0.0555, SOURCES.glucose)] },
+  { id: 'glucose', name: 'Glucose', panel: 'glucose', aliases: ['glucose', 'fasting glucose', 'glucose fasting', 'glicose', 'glicemia', 'glicemia em jejum', 'glucose serum', 'glucose plasma'], units: [base('mmol/L'), linear('mg/dL', 0.0555, SOURCES.glucose), linear('g/L', 5.551, SOURCES.glucoseGramsPerLiter)] },
   { id: 'hba1c', name: 'HbA1c', panel: 'glucose', aliases: ['hba1c', 'a1c', 'haemoglobin a1c', 'hemoglobin a1c', 'glycated haemoglobin', 'glycated hemoglobin', 'glycohemoglobin', 'hemoglobina glicada', 'hemoglobina glicosilada', 'hemoglobina a1c'], units: [base('mmol/mol'), hba1cPercent] },
   { id: 'insulin', name: 'Insulin', panel: 'glucose', aliases: ['insulin', 'fasting insulin', 'insulina', 'insulina em jejum'], units: [base('pmol/L'), linear('µIU/mL', 6.0, SOURCES.insulin), linear('mIU/L', 6.0, SOURCES.insulin)] },
 
@@ -126,7 +126,7 @@ export const MARKERS: Marker[] = [
 
   // Vitamins
   { id: 'vitamin-d', name: 'Vitamin D (25-OH)', panel: 'vitamins', aliases: ['vitamin d', '25 oh vitamin d', '25 hydroxyvitamin d', '25 hydroxy vitamin d', 'vitamin d 25 hydroxy', 'vitamin d 25 hydroxy total', 'vitamin d total 25 hydroxy', 'vitamin d 25 oh', '25 oh d', 'vitamina d', '25 oh vitamina d', '25 hidroxivitamina d', 'vitamina d 25 oh'], units: [base('nmol/L'), linear('ng/mL', 2.496, SOURCES.vitaminD)] },
-  { id: 'vitamin-b12', name: 'Vitamin B12', panel: 'vitamins', aliases: ['vitamin b12', 'b12', 'cobalamin', 'vitamina b12', 'cobalamina'], units: [base('pmol/L'), linear('pg/mL', 0.7378, SOURCES.vitaminB12)] },
+  { id: 'vitamin-b12', name: 'Vitamin B12', panel: 'vitamins', aliases: ['vitamin b12', 'b12', 'cobalamin', 'vitamina b12', 'cobalamina'], units: [base('pmol/L'), linear('pg/mL', 0.7378, SOURCES.vitaminB12), linear('ng/L', 0.7378, SOURCES.vitaminB12)] },
   { id: 'folate', name: 'Folate', panel: 'vitamins', aliases: ['folate', 'folic acid', 'serum folate', 'acido folico', 'folato'], units: [base('nmol/L'), linear('ng/mL', 2.266, SOURCES.folate)] },
 
   // Hormones
@@ -139,10 +139,10 @@ export const MARKERS: Marker[] = [
     units: [base('pmol/L'), linear('pg/mL', 3.467, SOURCES.testosterone), linear('ng/dL', 34.67, SOURCES.testosterone)],
   },
   { id: 'shbg', name: 'SHBG', panel: 'hormones', aliases: ['shbg', 'sex hormone binding globulin', 'globulina de ligacao as hormonas sexuais'], units: [base('nmol/L')] },
-  { id: 'oestradiol', name: 'Oestradiol', panel: 'hormones', aliases: ['oestradiol', 'estradiol', 'e2', '17 beta estradiol'], units: [base('pmol/L'), linear('pg/mL', 3.671, SOURCES.oestradiol)] },
+  { id: 'oestradiol', name: 'Estradiol', panel: 'hormones', aliases: ['oestradiol', 'estradiol', 'e2', '17 beta estradiol'], units: [base('pmol/L'), linear('pg/mL', 3.671, SOURCES.oestradiol)] },
   { id: 'lh', name: 'LH', panel: 'hormones', aliases: ['lh', 'luteinising hormone', 'luteinizing hormone', 'hormona luteinizante', 'hormonio luteinizante'], units: [base('U/L'), same('mIU/mL')] },
   { id: 'fsh', name: 'FSH', panel: 'hormones', aliases: ['fsh', 'follicle stimulating hormone', 'hormona folículo estimulante', 'hormona foliculo estimulante', 'hormonio foliculo estimulante'], units: [base('U/L'), same('mIU/mL')] },
-  { id: 'prolactin', name: 'Prolactin', panel: 'hormones', aliases: ['prolactin', 'prolactina', 'prl'], units: [base('ng/mL'), same('µg/L')] },
+  { id: 'prolactin', name: 'Prolactin', panel: 'hormones', aliases: ['prolactin', 'prolactina', 'prl'], units: [base('ng/mL'), same('µg/L'), linear('mIU/L', 1 / 21.2, SOURCES.prolactin), linear('µIU/mL', 1 / 21.2, SOURCES.prolactin)] },
   { id: 'cortisol', name: 'Cortisol', panel: 'hormones', aliases: ['cortisol', 'cortisol am', 'morning cortisol', 'cortisol serico', 'cortisol matinal'], units: [base('nmol/L'), linear('µg/dL', 27.59, SOURCES.cortisol)] },
   { id: 'dhea-s', name: 'DHEA-S', panel: 'hormones', aliases: ['dhea s', 'dheas', 'dhea sulfate', 'dhea sulphate', 'sulfato de dhea', 'dhea so4'], units: [base('µmol/L'), linear('µg/dL', 0.02714, SOURCES.dheas)] },
   { id: 'psa', name: 'PSA', panel: 'hormones', aliases: ['psa', 'total psa', 'psa total', 'prostate specific antigen', 'antigenio especifico da prostata'], units: [base('µg/L'), same('ng/mL')] },

@@ -1,6 +1,6 @@
 // The models the apps offer. Changing the default is one line. Prices are US dollars per million
-// tokens, from Anthropic's pricing page on 6 October 2026, and only used for rough cost estimates.
-// Haiku 4.5 is left out because it's due to retire from 15 October 2026; Fable 5.1 because Anthropic
+// tokens, from Anthropic's pricing page on October 6, 2026, and only used for rough cost estimates.
+// Haiku 4.5 is left out because it's due to retire from October 15, 2026; Fable 5.1 because Anthropic
 // requires 30-day retention for it.
 
 export type ModelInfo = { id: string; label: string; inputPerMTok: number; outputPerMTok: number }

@@ -37,7 +37,7 @@ test('importing a zip, catching duplicates at every level, keeping files to read
   // Imported anyway, it's recognised as the same report, with every row already saved.
   await page.getByRole('button', { name: 'Import anyway' }).click()
   await page.getByRole('button', { name: 'Read 1 report' }).click()
-  await expect(page.getByText(/This looks like your report from 15 Sept 2026/)).toBeVisible()
+  await expect(page.getByText(/This looks like your report from Sep 15, 2026/)).toBeVisible()
   await expect(page.getByText(/rows already saved, left out/)).toBeVisible()
   await page.getByRole('button', { name: 'Mark as read and continue' }).click()
   await expect(page.getByRole('heading', { name: 'Import finished' })).toBeVisible()
@@ -52,9 +52,31 @@ test('importing a zip, catching duplicates at every level, keeping files to read
   await expect(page.getByText('icon-512.png')).toBeVisible()
 
   // A report's details can be changed after it's saved.
-  await page.getByText('15 Sept 2026').first().click()
+  await page.getByText('Sep 15, 2026').first().click()
   await page.getByRole('link', { name: 'Edit details' }).first().click()
   await page.getByLabel('Lab (optional)').fill('Another lab (fictional)')
   await page.getByRole('button', { name: 'Save details' }).click()
   await expect(page.getByText(/Another lab \(fictional\)/)).toBeVisible()
+})
+
+test('a kept PDF opens with View, also offline (LAB-14, LAB-15)', async ({ page, context }) => {
+  // Once the service worker controls the page, the app and the PDF viewer's worker are cached.
+  await page.goto('/')
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready
+  })
+  await page.reload()
+  await page.getByRole('button', { name: 'Try the demo' }).first().click()
+  await page.getByRole('link', { name: 'Reports', exact: true }).click()
+  await page.getByRole('link', { name: 'Import reports' }).first().click()
+  await page.getByLabel('Add PDFs, photos or zip files').setInputFiles('tests/fixtures/reports/riverside-cumulative.pdf')
+  await page.getByRole('button', { name: 'Keep without reading for now' }).click()
+  await page.getByRole('button', { name: 'Done' }).click()
+  await expect(page.getByText('riverside-cumulative.pdf')).toBeVisible()
+
+  await context.setOffline(true)
+  await page.getByRole('button', { name: 'View', exact: true }).click()
+  await expect(page.locator('.original .doc-pdf canvas').first()).toBeVisible()
+  await expect(page.locator('.original .error')).toHaveCount(0)
+  await context.setOffline(false)
 })

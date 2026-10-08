@@ -1,6 +1,6 @@
 # LabTrails threat model
 
-Last updated 6 October 2026. It describes the design in [SPEC.md](SPEC.md); when the code and this
+Last updated October 7, 2026. It describes the design in [SPEC.md](SPEC.md); when the code and this
 file disagree, that's a bug in one of them. It's adapted from
 [BabyTrails' threat model](https://github.com/tbutman/babytrails/blob/main/THREAT_MODEL.md), because
 the two apps share their vault, storage and backup code (`src/core/`).
@@ -40,7 +40,9 @@ at rest, and sent nowhere without the user's go-ahead. The personal timeline is 
   (19 MiB memory, 2 passes, OWASP's recommended setting), or PBKDF2-SHA256 with 600,000 iterations if
   Argon2id can't run. Each record is bound to its collection and ID, so records can't be swapped.
 - **Locking.** The vault locks after 5 minutes of inactivity by default, and when the page has been
-  hidden that long. Locking drops the keys from memory. Reloading the page also locks it.
+  hidden that long. Locking drops the keys from memory. Reloading the page also locks it. With
+  LabTrails open in several tabs, locking one locks them all; the tabs tell each other only that
+  something changed, never what.
 - **No server data.** No accounts, database, analytics, cookies or third-party scripts.
 - **A strict Content-Security-Policy.** The page may only load its own files and talk to itself and
   `https://api.anthropic.com`. Browser tests fail if the app requests anything else.
@@ -59,11 +61,12 @@ at rest, and sent nowhere without the user's go-ahead. The personal timeline is 
 ### Someone gets the device while the vault is locked
 
 - **Mitigation:** everything is encrypted, and each passphrase guess has to go through a deliberately
-  slow key derivation. Setup requires at least 12 characters and suggests four or more random words.
+  slow key derivation. A new passphrase needs at least 12 characters, at least 4 different ones, not
+  one word repeated and not built from the app's name; setup suggests four or more random words.
 - **Limit:** anyone can copy the browser's database and guess offline, with no lockout. A short or
-  common passphrase can be guessed. Not hidden: how many records and blobs there are, their
-  approximate sizes, and the collection names (`profiles`, `reports`, `results`, `aliases`,
-  `summaries`, `documents`, `settings`).
+  common passphrase can be guessed. Not hidden: the number of records in each collection and their
+  names (`profiles`, `reports`, `results`, `aliases`, `summaries`, `askThreads`, `timeline`, `lines`,
+  `documents`, `settings`), file sizes, and when the vault was created.
 
 ### Someone gets the device while the vault is unlocked
 
@@ -77,8 +80,19 @@ at rest, and sent nowhere without the user's go-ahead. The personal timeline is 
 
 ### A lost passphrase
 
-- **Mitigation:** a clear warning and a confirmation at setup, and encrypted backups.
+- **Mitigation:** a clear warning and a confirmation at setup, and encrypted backups. Under Unlock,
+  "Forgot your passphrase?" says nobody can reset it, and offers restoring a backup or erasing the
+  vault to start again. Changing the passphrase asks for the new one twice.
 - **Limit:** by design there's no recovery. A backup needs the passphrase it was made with.
+
+### Erasing this vault
+
+"Erase this vault" (in Settings, and under Unlock) deletes LabTrails' database in this browser, its
+Cache Storage and service worker, and its local and session storage, then reloads; other open tabs
+reload too. It needs no passphrase, because it only destroys, but it asks for "LabTrails" to be typed.
+- **Limit:** anyone holding the unlocked or locked device can erase the vault (as they could by
+  clearing the browser's data). They still can't read it. Backups downloaded elsewhere aren't
+  affected.
 
 ### The browser deletes the data
 
@@ -93,7 +107,8 @@ the user clears site data.
 
 LabTrails supports several people in one vault (for example a partner).
 - **Mitigation:** adding a person shows a note that their results need their agreement, both to be
-  kept here and to be sent to the AI. The README says the same.
+  kept here and to be sent to the AI. The README says the same. A person can be deleted, with their
+  reports, results, documents, summaries, conversations, timeline and lines.
 - **Limit:** the app can't check that agreement. Whoever holds the passphrase sees every profile.
 
 ### The AI provider sees what's sent
@@ -104,7 +119,7 @@ LabTrails supports several people in one vault (for example a partner).
 - **Limit:** Anthropic receives the reports and facts the user approves, under the user's own account
   and Anthropic's terms. Uploaded reports usually print the person's name, date of birth and sometimes
   a health number; the app can't redact a PDF or photo, and the send sheet says so. As checked on
-  6 October 2026, Anthropic's [Commercial Terms](https://www.anthropic.com/legal/commercial-terms)
+  October 6, 2026, Anthropic's [Commercial Terms](https://www.anthropic.com/legal/commercial-terms)
   say it may not train models on customer content, and its
   [Privacy Center](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data)
   says API inputs and outputs are deleted within 30 days, with exceptions including up to 2 years for
@@ -113,9 +128,9 @@ LabTrails supports several people in one vault (for example a partner).
 ### Instructions hidden in an uploaded report (prompt injection)
 
 - **Mitigation:** the AI has no tools and can't change data; extraction output is validated against a
-  schema that only allows catalogue IDs for markers; every row is reviewed by the user before saving;
+  schema that only allows catalog IDs for markers; every row is reviewed by the user before saving;
   flags are computed by code; output is never rendered as HTML.
-- **Limit:** a crafted document could still make a summary misleading. Summaries are labelled as AI
+- **Limit:** a crafted document could still make a summary misleading. Summaries are labeled as AI
   output with a disclaimer, and they only describe flags the code already computed.
 
 ### Wrong numbers
@@ -125,7 +140,11 @@ Not an attack, but the most likely way the app could mislead.
   display, so a wrong conversion factor can be fixed without touching stored data. Every factor is
   cited in code and tested against an independently computed value. Markers that can't be converted
   reliably (Lp(a) between mg/dL and nmol/L) aren't. Dates that could be read two ways must be
-  confirmed. Each result is flagged against its own lab's range.
+  confirmed. Each result is flagged against its own lab's range. A result the lab marked critical, or
+  at least one range width outside the range, shows fixed text to check it against the report and,
+  if it matches, contact a doctor or the lab today. A value typed more than ten times beyond its range
+  asks before saving. A result in a unit LabTrails can't convert is flagged against its own range
+  instead of being dropped.
 - **Limit:** the flag thresholds for "changed" and "rising/falling" are simple heuristics, not
   clinical thresholds, and the app says so.
 
@@ -147,7 +166,8 @@ user brings their own key, stored encrypted in their own vault and sent only to 
 The code comes from GitHub (source and builds), npm (dependencies), the home server and Cloudflare. If
 any of them were compromised, they could serve code that reads the results after the user unlocks.
 - **Mitigation:** the code is public; every build is made by GitHub Actions from a public commit, with
-  a checksum the server verifies; dependencies are few and locked; the CSP is set by the server, not
+  a checksum the server verifies (it catches a corrupted or incomplete download, not a malicious
+  release, because the checksum comes from the same release); dependencies are few and locked; the CSP is set by the server, not
   only by the build; Cloudflare features that inject scripts are off.
 - **Limit:** this is the biggest limit of any web app. The CSP doesn't stop determined malicious code:
   even the one allowed AI endpoint could carry data out under an attacker's own API key. It limits
@@ -160,7 +180,8 @@ any of them were compromised, they could serve code that reads the results after
   static files through an outbound-only tunnel and pulls checksummed builds rather than accepting
   pushes.
 - **Limit:** Cloudflare terminates TLS for the app's files and sees which pages are requested, not
-  the results. Whoever controls the server controls the code it serves.
+  the results. The CDN may receive reports of failed page loads, without any health data. Whoever
+  controls the server controls the code it serves.
 
 ## Not in scope
 

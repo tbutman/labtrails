@@ -1,4 +1,4 @@
-// Recognising files that are already in the vault, by their SHA-256 fingerprint, before anything is
+// Recognizing files that are already in the vault, by their SHA-256 fingerprint, before anything is
 // sent to the AI (which also saves the cost of reading them again).
 
 import type { RecordStore } from '../store/types'
@@ -10,6 +10,8 @@ export type ImportMeta = {
   sha256?: string
   /** unread: stored, waiting to be read; read: its contents were saved; stored: kept without reading. */
   importStatus?: 'unread' | 'read' | 'stored'
+  /** The person gave the date at import, so apps shouldn't replace it with one they work out. */
+  datedByUser?: true
 }
 
 export type StoredDoc = DocumentRecord<string, ImportMeta & Record<string, unknown>>
