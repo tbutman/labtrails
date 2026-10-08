@@ -1,3 +1,3 @@
-Copied from https://github.com/tbutman/babytrails at commit 51756aca3c323b4832e1de7ece8fe638e95702f4
-(on review-fixes) by scripts/sync-core.sh. Don't edit files in src/core/ here; change them in BabyTrails.
+Copied from https://github.com/tbutman/babytrails at commit ec65855b27ed7b2bb3fee0464d1062bb6e86b3b0
+(on origin/main) by scripts/sync-core.sh. Don't edit files in src/core/ here; change them in BabyTrails.
 Also copied: tests/unit/vault.test.ts tests/unit/passphrase.test.ts tests/unit/kdfFallback.test.ts tests/unit/channel.test.ts tests/unit/backup.test.ts tests/unit/settings.test.ts tests/unit/documents.test.ts tests/unit/review.test.ts tests/unit/ai.test.ts tests/unit/askCore.test.ts tests/unit/import.test.ts tests/unit/importPages.test.ts scripts/copy-pdfjs.mjs

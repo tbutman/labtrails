@@ -1,7 +1,7 @@
-// Copies pdf.js's support files (WebAssembly image decoders, standard fonts, character maps, colour
+// Copies pdf.js's support files (WebAssembly image decoders, standard fonts, character maps, color
 // profiles) into public/vendor/pdfjs/, so the PDF viewer loads them from the app's own origin and
 // the Content-Security-Policy can stay strict. The copy is git-ignored; pdf.js is Apache-2.0 and the
-// decoders carry their own licences (copied alongside).
+// decoders carry their own licenses (copied alongside).
 
 import { cpSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
