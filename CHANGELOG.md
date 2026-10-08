@@ -5,6 +5,8 @@
 - The landing page's "Who made it?" links Thomas Butman to the combined story at
   [tbutman.com/work/trails](https://tbutman.com/work/trails), and the case study links it too.
 - The shared core is synced from BabyTrails `ec65855` (comment spelling only).
+- The threat model no longer says the CDN may receive reports of failed page loads: Network Error
+  Logging is now off for both domains.
 
 ## 0.2.0 (October 8, 2026)
 

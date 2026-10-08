@@ -180,8 +180,7 @@ any of them were compromised, they could serve code that reads the results after
   static files through an outbound-only tunnel and pulls checksummed builds rather than accepting
   pushes.
 - **Limit:** Cloudflare terminates TLS for the app's files and sees which pages are requested, not
-  the results. The CDN may receive reports of failed page loads, without any health data. Whoever
-  controls the server controls the code it serves.
+  the results. Whoever controls the server controls the code it serves.
 
 ## Not in scope
 
